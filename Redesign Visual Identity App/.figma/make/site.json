@@ -1,0 +1,10 @@
+{
+  "description": "Capture and customize photos in a playful virtual photo booth, offering creative layouts, filters, and editing tools for memorable moments.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
