@@ -1,0 +1,776 @@
+{
+  "1": {
+    "name": "Couple Sweethearts 4-Cut",
+    "category": "Romantic Couples ♡",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Two hearts, four moments.",
+    "bg": "#fdfbf7",
+    "accent": "#d97762"
+  },
+  "2": {
+    "name": "Romantic Duo Strip",
+    "category": "Romantic Couples ♡",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "Side by side, forever together.",
+    "bg": "#fcf8f2",
+    "accent": "#c85e49"
+  },
+  "3": {
+    "name": "Anniversary Love Story 6-Cut",
+    "category": "Romantic Couples ♡",
+    "count": 6,
+    "orientation": "portrait",
+    "note": "Happy anniversary bae 🌷",
+    "bg": "#fbf5f2",
+    "accent": "#d64d6e"
+  },
+  "4": {
+    "name": "Now Playing · Cute Player",
+    "category": "Music Player Frames 🎵",
+    "count": 1,
+    "orientation": "square",
+    "note": "Track 01: You and Me (Looping)",
+    "bg": "#f9f6ef",
+    "accent": "#3b82f6"
+  },
+  "5": {
+    "name": "Evil Eye Protection Duo",
+    "category": "Playful & Y2K",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "Good vibes only 💕🧿",
+    "bg": "#f4f6fb",
+    "accent": "#4f46e5"
+  },
+  "6": {
+    "name": "Aesthetic Scrapbook 4-Cut",
+    "category": "Aesthetic Scrapbook",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Taped memories and coffee stains.",
+    "bg": "#f7f2e7",
+    "accent": "#78716c"
+  },
+  "7": {
+    "name": "Vintage Collage 4-Cut",
+    "category": "Aesthetic Scrapbook",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Preserved with love.",
+    "bg": "#f6f0e2",
+    "accent": "#854d0e"
+  },
+  "8": {
+    "name": "Bestie Poses 4-Cut",
+    "category": "Playful & Y2K",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Never taking serious pictures.",
+    "bg": "#fef3f2",
+    "accent": "#e11d48"
+  },
+  "9": {
+    "name": "Couple Film Strip Inspo",
+    "category": "Romantic Couples ♡",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Timeless Korean 4-cut romance.",
+    "bg": "#fdfbf7",
+    "accent": "#be123c"
+  },
+  "10": {
+    "name": "Couple Photobooth Classic",
+    "category": "Romantic Couples ♡",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Captured inside the curtain.",
+    "bg": "#1c1917",
+    "accent": "#f5f5f4"
+  },
+  "11": {
+    "name": "Design Photobooth Strip",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Seoul nightwalk edition.",
+    "bg": "#292524",
+    "accent": "#fafaf9"
+  },
+  "12": {
+    "name": "Classic Darkroom Strip",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "35mm grain and high contrast.",
+    "bg": "#171717",
+    "accent": "#e7e5e4"
+  },
+  "13": {
+    "name": "Vintage Honey Dip",
+    "category": "Aesthetic Scrapbook",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Warm golden memories.",
+    "bg": "#fefce8",
+    "accent": "#ca8a04"
+  },
+  "14": {
+    "name": "Baby Pink Ribbon Strip",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Tied with a satin bow 🎀",
+    "bg": "#fdf2f8",
+    "accent": "#db2777"
+  },
+  "15": {
+    "name": "Mono Noir 4-Cut",
+    "category": "Minimalist Studio",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "High contrast black and white.",
+    "bg": "#18181b",
+    "accent": "#ffffff"
+  },
+  "16": {
+    "name": "Sweet Lavender 3-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Pastel purple daydreams.",
+    "bg": "#faf5ff",
+    "accent": "#9333ea"
+  },
+  "17": {
+    "name": "Coquette Lace Heart Strip",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Delicate lace & sugar hearts.",
+    "bg": "#fff1f2",
+    "accent": "#f43f5e"
+  },
+  "18": {
+    "name": "Analog Booth Standard",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Authentic photobooth paper.",
+    "bg": "#262626",
+    "accent": "#f5f5f4"
+  },
+  "19": {
+    "name": "Warm Sepia Keepsake",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Tones of aged parchment.",
+    "bg": "#fbf7ee",
+    "accent": "#9a3412"
+  },
+  "20": {
+    "name": "Tokyo Neon 4-Cut",
+    "category": "Playful & Y2K",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Shibuya late night booth.",
+    "bg": "#0f172a",
+    "accent": "#38bdf8"
+  },
+  "21": {
+    "name": "Gingham Ribbon 4-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Picnic check & pink bows.",
+    "bg": "#fdf2f8",
+    "accent": "#ec4899"
+  },
+  "22": {
+    "name": "Film Border Diptych",
+    "category": "Retro Film Strips",
+    "count": 2,
+    "orientation": "landscape",
+    "note": "Two frames from the roll.",
+    "bg": "#1c1917",
+    "accent": "#e7e5e4"
+  },
+  "23": {
+    "name": "Cherry Blossom Duo",
+    "category": "Romantic Couples ♡",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "Springtime together.",
+    "bg": "#fff1f2",
+    "accent": "#fb7185"
+  },
+  "24": {
+    "name": "Cotton Candy 4-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Dreamy pastel swirls.",
+    "bg": "#f0fdfa",
+    "accent": "#14b8a6"
+  },
+  "25": {
+    "name": "Square Love Note Collage",
+    "category": "Romantic Couples ♡",
+    "count": 4,
+    "orientation": "square",
+    "note": "Four corners of affection.",
+    "bg": "#fef2f2",
+    "accent": "#ef4444"
+  },
+  "26": {
+    "name": "Sunset Romance Strip",
+    "category": "Romantic Couples ♡",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "When the sky turns peach.",
+    "bg": "#fff7ed",
+    "accent": "#f97316"
+  },
+  "27": {
+    "name": "Polaroid Collage 6-Cut",
+    "category": "Aesthetic Scrapbook",
+    "count": 6,
+    "orientation": "portrait",
+    "note": "Shuffled snapshots on the desk.",
+    "bg": "#fbf9f5",
+    "accent": "#78716c"
+  },
+  "28": {
+    "name": "Matchbox Retro Strip",
+    "category": "Retro Film Strips",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Warm vintage typography.",
+    "bg": "#fef3c7",
+    "accent": "#d97706"
+  },
+  "29": {
+    "name": "Minimal Warm Ivory Solo",
+    "category": "Minimalist Studio",
+    "count": 1,
+    "orientation": "portrait",
+    "note": "Quiet, clean, uncluttered.",
+    "bg": "#fdfcf9",
+    "accent": "#44403c"
+  },
+  "30": {
+    "name": "Solo Portrait Film",
+    "category": "Minimalist Studio",
+    "count": 1,
+    "orientation": "portrait",
+    "note": "Editorial magazine margin.",
+    "bg": "#f5f5f4",
+    "accent": "#1c1917"
+  },
+  "31": {
+    "name": "Bestie 4-Cut Keepsake",
+    "category": "Playful & Y2K",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Laughter captured in four takes.",
+    "bg": "#fef9c3",
+    "accent": "#ca8a04"
+  },
+  "32": {
+    "name": "Dreamy Sky Duo",
+    "category": "Romantic Couples ♡",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "Cloud gazing moments.",
+    "bg": "#eff6ff",
+    "accent": "#2563eb"
+  },
+  "33": {
+    "name": "Vintage Ticket 3-Cut",
+    "category": "Retro Film Strips",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Admit two for memories.",
+    "bg": "#fbf4eb",
+    "accent": "#b45309"
+  },
+  "34": {
+    "name": "Cafe Journal Scrapbook",
+    "category": "Aesthetic Scrapbook",
+    "count": 4,
+    "orientation": "square",
+    "note": "Sunday afternoon latte.",
+    "bg": "#f7f4ee",
+    "accent": "#713f12"
+  },
+  "35": {
+    "name": "Pastel Mint Duo",
+    "category": "Coquette & Bows 🎀",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "Refreshing sweet colors.",
+    "bg": "#f0fdf4",
+    "accent": "#16a34a"
+  },
+  "36": {
+    "name": "Coquette Strawberry 4-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Sweet berries & ribbon loops.",
+    "bg": "#fdf2f8",
+    "accent": "#e11d48"
+  },
+  "37": {
+    "name": "9-Shot Contact Matrix",
+    "category": "Minimalist Studio",
+    "count": 9,
+    "orientation": "square",
+    "note": "A complete day in nine tiles.",
+    "bg": "#f5f5f4",
+    "accent": "#27272a"
+  },
+  "38": {
+    "name": "Golden Hour 4-Cut",
+    "category": "Romantic Couples ♡",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Lit by late afternoon sun.",
+    "bg": "#fffbeb",
+    "accent": "#d97706"
+  },
+  "39": {
+    "name": "Newspaper Print 4-Cut",
+    "category": "Aesthetic Scrapbook",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "The Daily Chronicle of You.",
+    "bg": "#f5f2e9",
+    "accent": "#171717"
+  },
+  "40": {
+    "name": "Minimal Studio Solo Frame",
+    "category": "Minimalist Studio",
+    "count": 1,
+    "orientation": "square",
+    "note": "Bold white space, sharp focus.",
+    "bg": "#fafafa",
+    "accent": "#09090b"
+  },
+  "41": {
+    "name": "Retro Kodachrome 3-Cut",
+    "category": "Retro Film Strips",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Rich colors of the 70s.",
+    "bg": "#fef2f2",
+    "accent": "#dc2626"
+  },
+  "42": {
+    "name": "Korean Pastel Photobooth",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Hongdae street booth style.",
+    "bg": "#faf5ff",
+    "accent": "#a855f7"
+  },
+  "43": {
+    "name": "Sweet Peachy Duo",
+    "category": "Romantic Couples ♡",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "Soft warm peach glow.",
+    "bg": "#fff7ed",
+    "accent": "#ea580c"
+  },
+  "44": {
+    "name": "Washi Tape Scrapbook 4-Cut",
+    "category": "Aesthetic Scrapbook",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Handmade scrapbook page.",
+    "bg": "#fcf9f2",
+    "accent": "#65a30d"
+  },
+  "45": {
+    "name": "Classic Noir 4-Cut",
+    "category": "Minimalist Studio",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Inky shadows & silver highlights.",
+    "bg": "#18181b",
+    "accent": "#e4e4e7"
+  },
+  "46": {
+    "name": "Lilac Blossom 3-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Floral scent in the air.",
+    "bg": "#faf5ff",
+    "accent": "#8b5cf6"
+  },
+  "47": {
+    "name": "Warm Caramel Duo",
+    "category": "Aesthetic Scrapbook",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "Cozy autumn cardigan vibes.",
+    "bg": "#fef3c7",
+    "accent": "#92400e"
+  },
+  "48": {
+    "name": "Solo Keepsake Card",
+    "category": "Minimalist Studio",
+    "count": 1,
+    "orientation": "portrait",
+    "note": "A keepsake for the wallet.",
+    "bg": "#fbfbf9",
+    "accent": "#292524"
+  },
+  "49": {
+    "name": "Vintage Stamp Strip",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Perforated stamp edges.",
+    "bg": "#f5efe6",
+    "accent": "#7c2d12"
+  },
+  "50": {
+    "name": "Pure White Studio Solo",
+    "category": "Minimalist Studio",
+    "count": 1,
+    "orientation": "portrait",
+    "note": "Passport portrait aesthetic.",
+    "bg": "#ffffff",
+    "accent": "#000000"
+  },
+  "51": {
+    "name": "Retro Strip Duo",
+    "category": "Retro Film Strips",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "Two unposed moments.",
+    "bg": "#262626",
+    "accent": "#d4d4d4"
+  },
+  "52": {
+    "name": "Coquette Pink Ribbon 4-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Bows, sparkles, and laughter.",
+    "bg": "#fdf2f8",
+    "accent": "#f43f5e"
+  },
+  "53": {
+    "name": "Summer Glow 3-Cut",
+    "category": "Romantic Couples ♡",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Sunshine on our faces.",
+    "bg": "#fefce8",
+    "accent": "#eab308"
+  },
+  "54": {
+    "name": "Analog Negative 4-Cut",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Exposed sprocket holes.",
+    "bg": "#171717",
+    "accent": "#fafaf9"
+  },
+  "55": {
+    "name": "Botanical Olive 4-Cut",
+    "category": "Aesthetic Scrapbook",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Wildflowers pressed in pages.",
+    "bg": "#f2f5ed",
+    "accent": "#3f6212"
+  },
+  "56": {
+    "name": "6-Photo Grid Story",
+    "category": "Aesthetic Scrapbook",
+    "count": 6,
+    "orientation": "portrait",
+    "note": "A mini album in one page.",
+    "bg": "#faf8f5",
+    "accent": "#57534e"
+  },
+  "57": {
+    "name": "Minimalist Duo Frame",
+    "category": "Minimalist Studio",
+    "count": 2,
+    "orientation": "landscape",
+    "note": "Two sides of the same afternoon.",
+    "bg": "#f4f4f5",
+    "accent": "#18181b"
+  },
+  "58": {
+    "name": "Monochrome Film Strip",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Grain, shadow, and quiet smiles.",
+    "bg": "#1c1917",
+    "accent": "#fafaf9"
+  },
+  "59": {
+    "name": "Sweetheart 3-Cut",
+    "category": "Romantic Couples ♡",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Three reasons I adore you.",
+    "bg": "#fff1f2",
+    "accent": "#e11d48"
+  },
+  "60": {
+    "name": "Classic Booth Strip 4-Cut",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "The authentic subway booth strip.",
+    "bg": "#262626",
+    "accent": "#fafaf9"
+  },
+  "61": {
+    "name": "Vintage Camera 4-Cut",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Mechanical shutter clicks.",
+    "bg": "#292524",
+    "accent": "#f5f5f4"
+  },
+  "62": {
+    "name": "Pastel Butter 4-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Warm buttercup aesthetic.",
+    "bg": "#fefce8",
+    "accent": "#ca8a04"
+  },
+  "63": {
+    "name": "Love Letter 4-Cut",
+    "category": "Romantic Couples ♡",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Written with my whole heart.",
+    "bg": "#fdf2f8",
+    "accent": "#db2777"
+  },
+  "64": {
+    "name": "Rose Quartz 4-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Crystalline soft pink.",
+    "bg": "#fce7f3",
+    "accent": "#be185d"
+  },
+  "65": {
+    "name": "Anniversary Story Grid",
+    "category": "Romantic Couples ♡",
+    "count": 6,
+    "orientation": "portrait",
+    "note": "Looking back at our milestones.",
+    "bg": "#fdfbf7",
+    "accent": "#e11d48"
+  },
+  "66": {
+    "name": "Best Friends Forever 4-Cut",
+    "category": "Playful & Y2K",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Partners in every mischief.",
+    "bg": "#fef9c3",
+    "accent": "#a16207"
+  },
+  "67": {
+    "name": "Y2K Nostalgia Duo",
+    "category": "Playful & Y2K",
+    "count": 2,
+    "orientation": "square",
+    "note": "Cyber aesthetic & digicam vibes.",
+    "bg": "#f0fdfa",
+    "accent": "#0d9488"
+  },
+  "68": {
+    "name": "Coquette Cherries 4-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Double cherries on top.",
+    "bg": "#fff1f2",
+    "accent": "#e11d48"
+  },
+  "69": {
+    "name": "Retro Diner 4-Cut",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Milkshakes and jukebox tunes.",
+    "bg": "#fef2f2",
+    "accent": "#b91c1c"
+  },
+  "70": {
+    "name": "Polaroid Trio Collage",
+    "category": "Aesthetic Scrapbook",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Tilted snapshots with clips.",
+    "bg": "#faf7f0",
+    "accent": "#78716c"
+  },
+  "71": {
+    "name": "Minimalist Grid 4-Cut",
+    "category": "Minimalist Studio",
+    "count": 4,
+    "orientation": "square",
+    "note": "Balanced square composition.",
+    "bg": "#f4f4f5",
+    "accent": "#27272a"
+  },
+  "72": {
+    "name": "Midnight Blue Booth Strip",
+    "category": "Retro Film Strips",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Under the neon stars.",
+    "bg": "#0f172a",
+    "accent": "#94a3b8"
+  },
+  "73": {
+    "name": "Free Template Pink Heart",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Save it pls 💗",
+    "bg": "#fdf2f8",
+    "accent": "#ec4899"
+  },
+  "74": {
+    "name": "Pink Ribbon Dream 4-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Signature coquette edition.",
+    "bg": "#fff1f2",
+    "accent": "#f43f5e"
+  },
+  "75": {
+    "name": "Funsies Photobooth 4-Cut",
+    "category": "Playful & Y2K",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Silly faces, pure joy.",
+    "bg": "#fef9c3",
+    "accent": "#ca8a04"
+  },
+  "76": {
+    "name": "Layout Inspo Asymmetric",
+    "category": "Aesthetic Scrapbook",
+    "count": 5,
+    "orientation": "portrait",
+    "note": "Creative layout design.",
+    "bg": "#f7f4ec",
+    "accent": "#57534e"
+  },
+  "77": {
+    "name": "Special Birthday Surprise",
+    "category": "Romantic Couples ♡",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Make her feel so special 🎂",
+    "bg": "#fff1f2",
+    "accent": "#db2777"
+  },
+  "78": {
+    "name": "iMessage Bubbles 4-Cut",
+    "category": "Playful & Y2K",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Text conversations & laughs.",
+    "bg": "#f0fdf4",
+    "accent": "#16a34a"
+  },
+  "79": {
+    "name": "My Baby 🤍 Duo Strip",
+    "category": "Romantic Couples ♡",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "My favorite person in the world.",
+    "bg": "#fafaf9",
+    "accent": "#44403c"
+  },
+  "80": {
+    "name": "Photobooth With My Lova",
+    "category": "Romantic Couples ♡",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "Cutest duo in town.",
+    "bg": "#fef2f2",
+    "accent": "#dc2626"
+  },
+  "81": {
+    "name": "Stories Idea by Gelsieva",
+    "category": "Aesthetic Scrapbook",
+    "count": 6,
+    "orientation": "portrait",
+    "note": "Instagram story scrapbook.",
+    "bg": "#f5f2e9",
+    "accent": "#44403c"
+  },
+  "82": {
+    "name": "Trending Song Album Cover",
+    "category": "Music Player Frames 🎵",
+    "count": 1,
+    "orientation": "square",
+    "note": "Add you photo & your loved one.",
+    "bg": "#18181b",
+    "accent": "#22c55e"
+  },
+  "83": {
+    "name": "Zootopia Rainbow Mushrooms",
+    "category": "Playful & Y2K",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Magical forest wonderland 🍄",
+    "bg": "#f0fdf4",
+    "accent": "#15803d"
+  },
+  "84": {
+    "name": "Tulips Garden 3-Cut",
+    "category": "Playful & Y2K",
+    "count": 3,
+    "orientation": "portrait",
+    "note": "Fresh tulip blooms 🌷🌷🌷",
+    "bg": "#fdf4ff",
+    "accent": "#c026d3"
+  },
+  "85": {
+    "name": "Bow Aesthetic Duo Strip",
+    "category": "Coquette & Bows 🎀",
+    "count": 2,
+    "orientation": "portrait",
+    "note": "Double ribbon elegance 🎀",
+    "bg": "#fff1f2",
+    "accent": "#e11d48"
+  },
+  "86": {
+    "name": "Coquette Bow Classic 4-Cut",
+    "category": "Coquette & Bows 🎀",
+    "count": 4,
+    "orientation": "portrait",
+    "note": "The ultimate ribbon strip 🎀",
+    "bg": "#fdf2f8",
+    "accent": "#db2777"
+  }
+}
