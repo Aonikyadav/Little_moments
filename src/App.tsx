@@ -41,6 +41,7 @@ import {
   Bookmark,
   Paintbrush,
   Grid2X2,
+  ExternalLink,
 } from "lucide-react"
 import type {
   Composition,
@@ -51,22 +52,25 @@ import type {
   FilterName,
 } from "./types"
 import { defaultAdjustments } from "./types"
-import { templates, getTemplate, templatesForCount } from "./templates"
+import { templates, getTemplate, templatesForCount, kBoothTemplates } from "./templates"
 import { cssFilter, renderComposition } from "./rendering"
 import "./studio/studio.css"
 import { dimensions, historyStep } from "./studio/model"
 import { saveProject, loadProjects, removeProject } from "./studio/storage"
 import useFontRevision from "./studio/useFontRevision"
 import { TemplateThumbnail } from "./components/TemplateThumbnail"
+import { findGridLayout } from "./studio/gridEngine"
 
 const Studio = lazy(() => import("./studio/Studio"))
 const samples = [
-  "/photos/couple.jpg",
-  "/photos/booth.jpg",
-  "/photos/kiss.jpg",
-  "/photos/friends.jpg",
-  "/photos/moments.jpg",
-  "/photos/bday.jpg",
+  "/images/romantic_love_kisspose_aesthetic/031.jpg",
+  "/images/romantic_love_kisspose_aesthetic/032.jpg",
+  "/images/romantic_love_kisspose_aesthetic/033.jpg",
+  "/images/romantic_love_kisspose_aesthetic/034.jpg",
+  "/images/romantic_love_kisspose_aesthetic/035.jpg",
+  "/images/romantic_love_kisspose_aesthetic/036.jpg",
+  "/images/cool_animated_romantic/001.jpg",
+  "/images/propose_love_greeting_years_birthday/017.jpg",
 ]
 
 const counts: PhotoCount[] = [1, 2, 3, 4, 5, 6, 8, 9]
@@ -108,6 +112,7 @@ type Saved = {
 
 type Page =
   | "home"
+  | "kbooth"
   | "templates"
   | "creations"
   | "settings"
@@ -201,6 +206,35 @@ export default function App() {
   const [countFilter, setCountFilter] = useState<string>("all")
   const [sortBy, setSortBy] = useState<SortOption>("recommended")
   const [query, setQuery] = useState("")
+  const [kBoothCategory, setKBoothCategory] = useState<string>("All")
+
+  const filteredKBooth = useMemo(() => {
+    if (kBoothCategory === "All") return kBoothTemplates
+    if (kBoothCategory === "Twin Strips")
+      return kBoothTemplates.filter(
+        (t) => t.tags?.includes("twin-strip") || t.tags?.includes("v-strip"),
+      )
+    if (kBoothCategory === "Tickets & Barcodes")
+      return kBoothTemplates.filter(
+        (t) => t.tags?.includes("ticket") || t.tags?.includes("barcode"),
+      )
+    if (kBoothCategory === "Minimalist & Slats")
+      return kBoothTemplates.filter(
+        (t) =>
+          t.tags?.includes("minimal") ||
+          t.tags?.includes("slat") ||
+          t.tags?.includes("shadow"),
+      )
+    if (kBoothCategory === "Postage Stamp & Croc")
+      return kBoothTemplates.filter(
+        (t) => t.tags?.includes("stamp") || t.tags?.includes("croc"),
+      )
+    if (kBoothCategory === "Moodboard & Scrapbook")
+      return kBoothTemplates.filter(
+        (t) => t.tags?.includes("moodboard") || t.tags?.includes("scrapbook"),
+      )
+    return kBoothTemplates
+  }, [kBoothCategory])
   const [selectedSlot, setSelectedSlot] = useState(0)
   const [history, setHistory] = useState<Composition[]>([])
   const [future, setFuture] = useState<Composition[]>([])
@@ -293,6 +327,19 @@ export default function App() {
       stream.current?.getTracks().forEach((t) => t.stop())
     }
   }, [])
+
+  // Spacebar triggers camera capture when in booth
+  useEffect(() => {
+    if (page !== "camera" && page !== "setup") return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !capturing && cameraState !== "loading") {
+        e.preventDefault()
+        startBurstCapture()
+      }
+    }
+    window.addEventListener("keydown", handleKey)
+    return () => window.removeEventListener("keydown", handleKey)
+  }, [page, capturing, cameraState])
 
   useEffect(() => {
     let active = true
@@ -409,6 +456,7 @@ export default function App() {
       ...composition,
       templateId: t.id,
       background: t.background,
+      backgroundPattern: t.backgroundPattern,
     }
     setComposition(nextComp)
     setSettings((s) => ({ ...s, count: t.count }))
@@ -532,7 +580,7 @@ export default function App() {
     let captured = false
 
     // 1. Try real video frame if active and ready with non-zero dimensions
-    if (!demoMode && v && v.srcObject && v.readyState >= 2 && v.videoWidth > 0 && v.videoHeight > 0) {
+    if (!demoMode && v && (v.srcObject || v.videoWidth > 0) && v.videoWidth > 0 && v.videoHeight > 0) {
       try {
         ctx.save()
         if (settings.mirror && settings.facingMode === "user") {
@@ -1137,6 +1185,7 @@ export default function App() {
         </div>
 
         {/* Desktop Navigation (>= 1024px) */}
+        {/* Desktop Navigation (>= 1024px) */}
         <nav className="site-navigation hidden lg:flex">
           <button
             type="button"
@@ -1144,6 +1193,16 @@ export default function App() {
             onClick={() => setPage("home")}
           >
             home
+          </button>
+          <button
+            type="button"
+            className={`relative flex items-center gap-1.5 ${page === "kbooth" ? "is-active" : ""}`}
+            onClick={() => setPage("kbooth")}
+          >
+            <span>k-booth</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-400 text-stone-950 uppercase tracking-wider animate-pulse">
+              12 NEW
+            </span>
           </button>
           <button
             type="button"
@@ -1164,20 +1223,7 @@ export default function App() {
           </button>
           <button
             type="button"
-            onClick={() => {
-              if (!composition.photos.length) {
-                setComposition((c) => ({
-                  ...c,
-                  photos: Array.from({ length: currentTemplate.count }, (_, i) => ({
-                    id: crypto.randomUUID(),
-                    src: samples[i % samples.length],
-                    name: `Sample Photo ${i + 1}`,
-                    adjustments: defaultAdjustments(),
-                  })),
-                }))
-              }
-              setPage("editor")
-            }}
+            onClick={() => setPage("editor")}
           >
             studio
           </button>
@@ -1234,6 +1280,7 @@ export default function App() {
 
           {[
             { id: "home", label: "Home Showcase", icon: Home, count: null },
+            { id: "kbooth", label: "K-Booth 인생네컷", icon: Sparkles, count: 12 },
             { id: "templates", label: "Browse Templates", icon: Grid2X2, count: templates.length },
             { id: "camera", label: "Photobooth Camera", icon: Camera, count: null, action: () => openCamera() },
             { id: "editor", label: "Studio Editor", icon: Paintbrush, count: null },
@@ -1254,17 +1301,6 @@ export default function App() {
                 }`}
                 onClick={() => {
                   if (item.action) item.action()
-                  if (item.id === "editor" && !composition.photos.length) {
-                    setComposition((c) => ({
-                      ...c,
-                      photos: Array.from({ length: currentTemplate.count }, (_, i) => ({
-                        id: crypto.randomUUID(),
-                        src: samples[i % samples.length],
-                        name: `Sample Photo ${i + 1}`,
-                        adjustments: defaultAdjustments(),
-                      })),
-                    }))
-                  }
                   setPage(item.id as Page)
                   setMobileMenuOpen(false)
                 }}
@@ -1347,6 +1383,18 @@ export default function App() {
                     }}
                   >
                     Start Photobooth
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sketch-button flex items-center gap-1.5 bg-amber-100/90 hover:bg-amber-200 border-stone-900 text-stone-900 font-bold"
+                    onClick={() => setPage("kbooth")}
+                  >
+                    <Sparkles size={15} className="text-amber-700" />
+                    <span>K-Booth Frames (12)</span>
+                    <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-stone-900 text-amber-300">
+                      NEW
+                    </span>
                   </button>
 
                   <button
@@ -1456,6 +1504,59 @@ export default function App() {
               </div>
             </section>
 
+            {/* K-Booth Spotlight Section on Home */}
+            <section className="mt-14 p-6 sm:p-8 bg-[#f5ede2] border-2 border-stone-900 shadow-[6px_6px_0_#171717]">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-0.5 bg-stone-900 text-amber-300 font-mono text-[11px] font-bold uppercase rounded-sm">
+                      NEW COLLECTION
+                    </span>
+                    <span className="text-xs font-mono text-stone-600">인생네컷 · 12 Authentic Canva Frames</span>
+                  </div>
+                  <h2 className="font-caveat text-3xl sm:text-4xl text-stone-900 font-bold">
+                    K-Booth Photostrips & Memory Stubs
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  className="sketch-button sketch-button--dark sketch-button--sm flex items-center gap-1.5 self-start md:self-auto"
+                  onClick={() => setPage("kbooth")}
+                >
+                  <span>Explore All 12 K-Frames</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+
+              {/* Quick Preview Reel */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {kBoothTemplates.slice(0, 6).map((kt) => (
+                  <button
+                    key={kt.id}
+                    type="button"
+                    className="p-2 bg-[#faf8f0] border-2 border-stone-800 shadow-[2px_2px_0_#171717] hover:-translate-y-1 transition-transform text-left group"
+                    onClick={() => {
+                      applyTemplate(kt)
+                      setPreviewTemplate(kt)
+                    }}
+                  >
+                    <div className="aspect-square bg-stone-100 border border-stone-300 overflow-hidden mb-2 relative">
+                      <TemplateThumbnail template={kt} className="w-full h-full object-contain p-1" />
+                      <span className="absolute bottom-1 right-1 px-1 py-0.2 bg-stone-900/80 text-amber-300 font-mono text-[9px] font-bold">
+                        {kt.count} CUTS
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-bold text-stone-900 line-clamp-1 group-hover:text-amber-800">
+                      {kt.name}
+                    </p>
+                    <p className="text-[10px] text-stone-500 font-mono">
+                      {kt.orientation}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </section>
+
             {/* Process Section */}
             <section className="about-section border-t-2 border-stone-900 pt-16 mt-8 grid md:grid-cols-2 gap-10 items-center">
               <div className="border-2 border-stone-900 p-8 bg-[#faf8f0] shadow-[6px_6px_0_#171717]">
@@ -1485,6 +1586,225 @@ export default function App() {
               </div>
             </section>
           </>
+        )}
+
+        {/* ======================================================== */}
+        {/* SCREEN 1.5: K-BOOTH (인생네컷 · CANVA FRAMES GALLERY)      */}
+        {/* ======================================================== */}
+        {page === "kbooth" && (
+          <section className="kbooth-page pb-16 pt-4">
+            {/* Korean Photobooth Banner */}
+            <div className="relative mb-8 p-6 sm:p-8 bg-[#f5ede2] border-2 border-stone-900 shadow-[6px_6px_0_#171717] overflow-hidden">
+              <div className="relative z-10 max-w-3xl">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="px-2.5 py-1 bg-stone-900 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider rounded-sm shadow-sm flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-amber-300 animate-spin" />
+                    인생네컷 · K-BOOTH STUDIO
+                  </span>
+                  <span className="px-2 py-0.5 bg-rose-600 text-white font-mono text-xs font-bold rounded-sm shadow-sm">
+                    12 CANVA TEMPLATES
+                  </span>
+                  <span className="px-2 py-0.5 bg-purple-100 text-purple-900 border border-purple-300 font-mono text-[11px] font-bold rounded-sm">
+                    Twin Strips · Tickets · Scrapbooks
+                  </span>
+                </div>
+
+                <h1 className="font-caveat text-4xl sm:text-5xl md:text-6xl text-stone-900 font-bold leading-tight mb-3">
+                  Korean Photobooth Keepsakes
+                </h1>
+
+                <p className="text-stone-700 text-sm sm:text-base leading-relaxed mb-6 font-sans">
+                  Faithfully crafted from trending Canva templates: twin 4-cut marble strips, fanned V-strips with lace ribbons, starry midnight concert tickets, hot pink crocodile leather postage stamps, and vintage scrapbook moodboards. Snap live bursts in our analog booth or customize layers, text, stickers, and filters in the Studio.
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    className="sketch-button sketch-button--dark flex items-center gap-2"
+                    onClick={() => {
+                      applyTemplate(kBoothTemplates[0])
+                      setPage("camera")
+                      openCamera()
+                    }}
+                  >
+                    <Camera size={16} />
+                    <span>Launch K-Booth Camera Burst</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sketch-button flex items-center gap-2 bg-[#faf8f0]"
+                    onClick={() => {
+                      applyTemplate(kBoothTemplates[0])
+                      setPage("editor")
+                    }}
+                  >
+                    <Paintbrush size={16} />
+                    <span>Open in Studio Editor</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sketch-button flex items-center gap-2 text-stone-700"
+                    onClick={() => {
+                      applyTemplate(kBoothTemplates[0])
+                      setPage("review")
+                      slotReplaceIndex.current = null
+                      fileInput.current?.click()
+                    }}
+                  >
+                    <Upload size={16} />
+                    <span>Upload Snapshots</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Watermark Stamp */}
+              <div className="absolute -bottom-8 -right-8 w-44 h-44 rounded-full border-4 border-dashed border-stone-400/40 flex items-center justify-center rotate-12 pointer-events-none select-none">
+                <span className="text-[13px] font-mono font-bold tracking-widest text-stone-400/60 uppercase text-center leading-tight">
+                  LITTLE MOMENTS<br />★ K-BOOTH ★<br />SEOUL 2026
+                </span>
+              </div>
+            </div>
+
+            {/* Filter Navigation Tabs */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 no-scrollbar">
+              {[
+                { label: "All 12 K-Frames", key: "All", count: 12 },
+                { label: "Twin Strips (8 & 6 Cuts)", key: "Twin Strips", count: 6 },
+                { label: "Tickets & Barcodes", key: "Tickets & Barcodes", count: 3 },
+                { label: "Minimalist & Slats", key: "Minimalist & Slats", count: 2 },
+                { label: "Postage Stamp & Croc", key: "Postage Stamp & Croc", count: 2 },
+                { label: "Moodboard & Scrapbook", key: "Moodboard & Scrapbook", count: 2 },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={`flex-shrink-0 px-3.5 py-1.5 text-xs font-mono rounded-sm border-2 transition-all active:scale-95 ${
+                    kBoothCategory === tab.key
+                      ? "bg-stone-900 text-amber-300 border-stone-900 shadow-[2px_2px_0_#171717] font-bold"
+                      : "bg-[#faf8f0] text-stone-700 border-stone-800 hover:bg-stone-100 shadow-[1px_1px_0_#171717]"
+                  }`}
+                  onClick={() => setKBoothCategory(tab.key)}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              ))}
+            </div>
+
+            {/* Template Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredKBooth.map((t, idx) => (
+                <article
+                  key={t.id}
+                  className="template-card flex flex-col justify-between bg-[#faf8f0] border-2 border-stone-900 shadow-[4px_4px_0_#171717] p-3 transition-transform hover:-translate-y-1"
+                >
+                  <div className="relative mb-3">
+                    <button
+                      type="button"
+                      className="w-full aspect-square bg-stone-950/5 border border-stone-300 overflow-hidden relative group block"
+                      onClick={() => setPreviewTemplate(t)}
+                      title={`Inspect ${t.name}`}
+                    >
+                      <TemplateThumbnail
+                        template={t}
+                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <span className="absolute top-2 left-2 px-2 py-0.5 text-[10px] font-mono font-bold bg-stone-900 text-amber-300 border border-stone-800 shadow-sm">
+                        {t.count} CUTS
+                      </span>
+                      <span className="absolute top-2 right-2 px-1.5 py-0.5 text-[9px] font-mono font-bold bg-white/90 border border-stone-400 text-stone-800 uppercase">
+                        {t.orientation}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="absolute bottom-2 right-2 p-1.5 rounded-full bg-white/90 border border-stone-800 shadow-sm text-stone-700 hover:text-rose-600 active:scale-90 transition-transform"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleFavorite(t.id)
+                      }}
+                      title={favorites.includes(t.id) ? "Remove favorite" : "Add to favorites"}
+                    >
+                      <Heart
+                        size={15}
+                        className={favorites.includes(t.id) ? "fill-rose-500 text-rose-500" : ""}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-[11px] font-mono font-bold text-amber-700 uppercase tracking-wider">
+                          K-Booth · {t.id.replace("tmpl-", "")}
+                        </span>
+                        {t.canvaUrl && (
+                          <a
+                            href={t.canvaUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] font-mono text-purple-700 hover:text-purple-900 hover:underline"
+                            title="View Template on Canva"
+                          >
+                            <span>Canva</span>
+                            <ExternalLink size={10} />
+                          </a>
+                        )}
+                      </div>
+
+                      <h3 className="font-bold text-base text-stone-900 leading-snug mb-1">
+                        {t.name}
+                      </h3>
+                      {t.subtitle && (
+                        <p className="text-xs text-stone-500 font-mono mb-2">
+                          {t.subtitle}
+                        </p>
+                      )}
+                      <p className="text-xs text-stone-700 line-clamp-2 leading-relaxed mb-3">
+                        {t.note}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-dashed border-stone-300">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          className="sketch-button sketch-button--dark text-xs py-2 px-2 flex items-center justify-center gap-1.5"
+                          onClick={() => startWithTemplate(t, "booth")}
+                          title={`Snap ${t.count} photos in live booth`}
+                        >
+                          <Camera size={13} />
+                          <span className="font-bold">Snap in Booth</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="sketch-button text-xs py-2 px-2 flex items-center justify-center gap-1.5 bg-[#f3ede4]"
+                          onClick={() => startWithTemplate(t, "sample")}
+                          title="Open and edit template in Studio"
+                        >
+                          <Paintbrush size={13} />
+                          <span>Open Studio</span>
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="w-full py-1 text-[11px] font-mono text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 border border-stone-300 rounded-sm flex items-center justify-center gap-1.5 transition-colors"
+                        onClick={() => startWithTemplate(t, "upload")}
+                        title="Directly select images from device"
+                      >
+                        <Upload size={12} />
+                        <span>Upload Photos Directly</span>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* ======================================================== */}
@@ -1799,7 +2119,15 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
               {/* Camera Stream Viewport */}
               <div className="booth-card">
-                <div className="camera-frame relative overflow-hidden bg-[#121212]">
+                <div
+                  className="camera-frame is-clickable relative overflow-hidden bg-[#121212]"
+                  onClick={() => {
+                    if (!capturing && cameraState !== "loading") {
+                      startBurstCapture()
+                    }
+                  }}
+                  title="Click anywhere to capture photos"
+                >
                   {/* Live Video Element - ALWAYS rendered in DOM so ref={video} is never null */}
                   <video
                     ref={video}
@@ -1866,7 +2194,8 @@ export default function App() {
                           <button
                             type="button"
                             className="sketch-button sketch-button--sm text-[11px] bg-stone-100 text-stone-900 py-1"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation()
                               setDemoMode(false)
                               openCamera()
                             }}
@@ -1876,7 +2205,10 @@ export default function App() {
                           <button
                             type="button"
                             className="sketch-button sketch-button--sm text-[11px] text-stone-200 border-stone-500 py-1"
-                            onClick={() => fileInput.current?.click()}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              fileInput.current?.click()
+                            }}
                           >
                             Upload Photos
                           </button>
@@ -1892,6 +2224,10 @@ export default function App() {
                       {capturing
                         ? `BURST: ${burstCount.current} / ${burstCount.total}`
                         : `${currentTemplate.count} SHOTS READY`}
+                    </span>
+                    <span className="hud-pill font-mono bg-rose-950/85 text-rose-200 border-rose-500/70 hidden sm:inline-flex items-center gap-1.5 shadow-md">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
+                      CLICK RED BUTTON OR TAP CAMERA
                     </span>
                     <span className="hud-pill font-mono">
                       {demoMode ? "DEMO SENSOR" : settings.captureFilter}
@@ -1936,15 +2272,28 @@ export default function App() {
                   </button>
 
                   {/* Primary Red Shutter Button */}
-                  <button
-                    type="button"
-                    disabled={capturing || cameraState === "loading"}
-                    className="shutter-btn flex flex-col items-center justify-center text-white disabled:opacity-50"
-                    onClick={() => startBurstCapture()}
-                    title="Capture Photo Strip"
-                  >
-                    <Camera size={26} />
-                  </button>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="relative flex items-center justify-center">
+                      <div className="shutter-btn-ring" />
+                      <button
+                        type="button"
+                        id="shutter-button"
+                        disabled={capturing || cameraState === "loading"}
+                        className="shutter-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          startBurstCapture()
+                        }}
+                        title={`Take ${currentTemplate.count} Photobooth Shots`}
+                        aria-label="Capture Photos"
+                      >
+                        <Camera size={28} className={capturing ? "animate-spin" : ""} />
+                      </button>
+                    </div>
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-stone-800">
+                      {capturing ? "Capturing..." : `Snap (${currentTemplate.count} Cuts)`}
+                    </span>
+                  </div>
 
                   <button
                     type="button"
@@ -2113,7 +2462,7 @@ export default function App() {
                           SLOT {slotIdx + 1}
                         </span>
 
-                        <div className="aspect-[4/3] bg-stone-200 border border-stone-400 overflow-hidden flex items-center justify-center">
+                        <div className="aspect-[4/3] bg-stone-100 border border-stone-300 overflow-hidden flex items-center justify-center">
                           {photo ? (
                             <img
                               src={photo.src}
@@ -2123,24 +2472,26 @@ export default function App() {
                           ) : (
                             <button
                               type="button"
-                              className="text-stone-500 hover:text-stone-900 text-xs flex flex-col items-center gap-1"
+                              className="text-stone-500 hover:text-stone-900 text-xs flex flex-col items-center gap-1.5 p-3 w-full h-full justify-center hover:bg-stone-200/60 transition-colors"
                               onClick={() => {
                                 slotReplaceIndex.current = slotIdx
                                 fileInput.current?.click()
                               }}
                             >
-                              <Plus size={18} />
-                              <span>Add Photo</span>
+                              <Plus size={20} className="text-amber-700" />
+                              <span className="font-mono font-bold text-[10px] uppercase tracking-wide text-stone-700">+ Add Photo</span>
                             </button>
                           )}
                         </div>
 
                         {photo && (
-                          <div className="mt-2 flex justify-between items-center text-[10px] font-mono">
-                            <span className="text-stone-600 truncate max-w-[90px]">{photo.name}</span>
+                          <div className="mt-2.5 pt-2 border-t border-stone-200 flex justify-between items-center gap-1.5 text-[11px] font-mono">
+                            <span className="text-stone-700 font-semibold truncate max-w-[100px]">
+                              {photo.name && !photo.name.startsWith("Sample Photo") ? photo.name : `Shot ${slotIdx + 1}`}
+                            </span>
                             <button
                               type="button"
-                              className="text-amber-800 hover:underline"
+                              className="px-2 py-0.5 rounded bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-[10px] transition-colors shrink-0"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 slotReplaceIndex.current = slotIdx
@@ -2194,50 +2545,62 @@ export default function App() {
         {/* ======================================================== */}
         {page === "editor" && (
           <section className="flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden">
-            <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[#faf8f2] border-b-2 border-stone-900 flex-shrink-0 z-20">
-              <div className="flex items-center gap-2 min-w-0">
+            {/* Modern Atelier Studio Header */}
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-[#faf8f2] border-b border-stone-200/90 shadow-sm flex-shrink-0 z-20">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <button
                   type="button"
-                  className="sketch-button sketch-button--sm flex items-center gap-1 text-xs py-1 px-2.5 active:scale-95 flex-shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-stone-300 hover:border-stone-900 text-xs font-semibold text-stone-800 shadow-sm active:scale-95 transition-all flex-shrink-0"
                   onClick={() => setPage("templates")}
                 >
                   <ArrowLeft size={13} /> Back
                 </button>
-                <h2 className="font-gochi text-lg sm:text-2xl truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">{currentTemplate.name}</h2>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="px-2 py-0.5 bg-stone-900 text-white rounded text-[10.5px] font-mono font-bold tracking-wider">STUDIO</span>
+                  <h2 className="text-sm sm:text-base font-semibold text-stone-900 truncate max-w-[160px] xs:max-w-[240px] sm:max-w-none">
+                    {composition.gridLayoutId
+                      ? (findGridLayout(composition.gridLayoutId)?.name ?? currentTemplate.name)
+                      : currentTemplate.name}
+                  </h2>
+                  <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-stone-200/70 text-stone-700 text-[10.5px] font-mono font-medium">
+                    {composition.aspectRatio ?? "1:1"}
+                  </span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center bg-stone-100 p-0.5 rounded-lg border border-stone-200">
                   <button
                     type="button"
-                    className="sketch-button sketch-button--sm p-1.5 text-xs disabled:opacity-40 active:scale-95"
+                    className="p-1.5 text-stone-700 hover:text-stone-950 rounded hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent active:scale-95 transition-all"
                     onClick={() => undo()}
                     disabled={!history.length}
                     title="Undo"
                   >
-                    <Undo2 size={13} />
+                    <Undo2 size={14} />
                   </button>
                   <button
                     type="button"
-                    className="sketch-button sketch-button--sm p-1.5 text-xs disabled:opacity-40 active:scale-95"
+                    className="p-1.5 text-stone-700 hover:text-stone-950 rounded hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent active:scale-95 transition-all"
                     onClick={() => redo()}
                     disabled={!future.length}
                     title="Redo"
                   >
-                    <Redo2 size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    className="sketch-button sketch-button--sm text-xs py-1 px-2.5 active:scale-95 hidden xs:inline-block"
-                    onClick={() => saveCurrentCreation()}
-                  >
-                    Save
+                    <Redo2 size={14} />
                   </button>
                 </div>
 
                 <button
                   type="button"
-                  className="sketch-button sketch-button--dark text-xs py-1 px-3 whitespace-nowrap active:scale-95"
+                  className="px-3.5 py-1.5 rounded-full bg-white border border-stone-300 hover:border-stone-900 text-xs font-semibold text-stone-800 shadow-sm active:scale-95 transition-all hidden xs:inline-flex items-center gap-1"
+                  onClick={() => saveCurrentCreation()}
+                >
+                  Save
+                </button>
+
+                <button
+                  type="button"
+                  className="px-4 py-1.5 rounded-full bg-stone-900 hover:bg-black text-white text-xs font-semibold shadow-md active:scale-95 transition-all flex items-center gap-1"
                   onClick={() => setPage("export")}
                 >
                   Export →
@@ -2681,6 +3044,27 @@ export default function App() {
 
           <button
             type="button"
+            className={`flex flex-col items-center justify-center py-1 px-2.5 sm:px-4 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
+              page === "kbooth"
+                ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
+                : "text-stone-600 hover:text-stone-900"
+            }`}
+            onClick={() => {
+              setPage("kbooth")
+              window.scrollTo({ top: 0, behavior: "smooth" })
+            }}
+          >
+            <div className="relative">
+              <Sparkles size={19} className={page === "kbooth" ? "stroke-[2.5]" : "stroke-[1.8]"} />
+              <span className="absolute -top-1 -right-2 text-[8px] font-mono font-bold bg-amber-400 text-stone-950 px-1 rounded-full leading-tight">
+                12
+              </span>
+            </div>
+            <span className="mt-0.5">K-Booth</span>
+          </button>
+
+          <button
+            type="button"
             className={`flex flex-col items-center justify-center py-1 px-3 sm:px-5 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
               page === "templates"
                 ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
@@ -2767,7 +3151,7 @@ export default function App() {
       )}
 
       {/* CodePen Site Footer - only on informational pages */}
-      {(page === "home" || page === "templates") && (
+      {(page === "home" || page === "templates" || page === "kbooth") && (
         <footer className="site-footer">
           <span>© Little Moments Creative Print Studio</span>
           <span>Crafted with vintage ink & real paper textures.</span>

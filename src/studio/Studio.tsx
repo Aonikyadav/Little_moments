@@ -98,12 +98,12 @@ const tools = [
 ]
 
 const samplePhotos = [
-  "/photos/couple.jpg",
-  "/photos/booth.jpg",
-  "/photos/kiss.jpg",
-  "/photos/friends.jpg",
-  "/photos/moments.jpg",
-  "/photos/bday.jpg",
+  "/images/romantic_love_kisspose_aesthetic/031.jpg",
+  "/images/romantic_love_kisspose_aesthetic/032.jpg",
+  "/images/romantic_love_kisspose_aesthetic/033.jpg",
+  "/images/romantic_love_kisspose_aesthetic/034.jpg",
+  "/images/romantic_love_kisspose_aesthetic/035.jpg",
+  "/images/cool_animated_romantic/001.jpg",
 ]
 const colors = [
   "#f8f2e6",
@@ -506,23 +506,9 @@ export default function Studio({
     return () => window.removeEventListener("keydown", key)
   }, [c, selected])
   const applyGridLayout = (gl: GridLayout) => {
-    const requiredCount = gl.count
     let nextPhotos = [...c.photos]
-
-    if (nextPhotos.length < requiredCount) {
-      let sourceIdx = 0
-      while (nextPhotos.length < requiredCount) {
-        const src = samplePhotos[sourceIdx % samplePhotos.length]
-        nextPhotos.push({
-          id: crypto.randomUUID(),
-          src,
-          name: `Photo ${nextPhotos.length + 1}`,
-          adjustments: defaultAdjustments(),
-        })
-        sourceIdx++
-      }
-    } else if (nextPhotos.length > requiredCount) {
-      nextPhotos = nextPhotos.slice(0, requiredCount)
+    if (nextPhotos.length > gl.count) {
+      nextPhotos = nextPhotos.slice(0, gl.count)
     }
 
     commit({
@@ -536,19 +522,7 @@ export default function Studio({
 
   const applyTemplate = (t: PhotoTemplate) => {
     let nextPhotos = [...c.photos]
-    if (nextPhotos.length < t.count) {
-      let sourceIdx = 0
-      while (nextPhotos.length < t.count) {
-        const src = samplePhotos[sourceIdx % samplePhotos.length]
-        nextPhotos.push({
-          id: crypto.randomUUID(),
-          src,
-          name: `Photo ${nextPhotos.length + 1}`,
-          adjustments: defaultAdjustments(),
-        })
-        sourceIdx++
-      }
-    } else if (nextPhotos.length > t.count) {
+    if (nextPhotos.length > t.count) {
       nextPhotos = nextPhotos.slice(0, t.count)
     }
 
@@ -1226,6 +1200,44 @@ export default function Studio({
                       </div>
                     )
                   })}
+                {/* Empty slot placeholders for guided mode or templates */}
+                {c.mode !== "freeform" && (() => {
+                  const activeLayout = c.gridLayoutId ? findGridLayout(c.gridLayoutId) : null
+                  const activeSlots = activeLayout
+                    ? activeLayout.getSlots(c.spacing ?? 2, c.padding ?? 4)
+                    : template.slots
+                  const emptySlots = activeSlots.slice(c.photos.length)
+                  return emptySlots.map((slot, idx) => {
+                    const slotIndex = c.photos.length + idx
+                    return (
+                      <div
+                        key={`empty-slot-${slotIndex}`}
+                        className="empty-slot-placeholder"
+                        style={{
+                          left: `${slot.x}%`,
+                          top: `${slot.y}%`,
+                          width: `${slot.width}%`,
+                          height: `${slot.height}%`,
+                          transform: slot.rotation ? `rotate(${slot.rotation}deg)` : undefined,
+                          position: "absolute",
+                        }}
+                        onClick={() => {
+                          setReplacing(false)
+                          importInput.current?.click()
+                        }}
+                        title={`Click to add photo to Slot ${slotIndex + 1}`}
+                      >
+                        <Plus size={22} className="text-stone-400 group-hover:text-stone-700" />
+                        <span className="text-[11px] font-mono text-stone-600 font-bold">
+                          Slot {slotIndex + 1}
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-sans">
+                          + Tap to add
+                        </span>
+                      </div>
+                    )
+                  })
+                })()}
                 {safe && (
                   <div className="safe-guides">
                     <span>SOCIAL SAFE AREA</span>
@@ -1510,9 +1522,7 @@ export default function Studio({
               </button>
             </div>
           )}
-          <p className="hand studio-annotation">
-            a little mess. a little magic. entirely you.
-          </p>
+
         </div>
         <aside className="studio-inspector">
           <nav className="studio-rail studio-tools" aria-label="Editing tools">
@@ -1836,26 +1846,32 @@ export default function Studio({
                           <button
                             type="button"
                             key={gl.id}
-                            className={`piccollage-card ${isActive ? "active" : ""}`}
+                            className={`piccollage-card group ${isActive ? "active" : ""}`}
                             onClick={() => applyGridLayout(gl)}
                             title={`${gl.name} (${gl.count} photos)`}
                           >
-                            <div className="card-wireframe">
-                              {gl.wireframe.map((cell, idx) => (
-                                <div
-                                  key={idx}
-                                  className={`wf-cell ${isActive ? "wf-cell-active" : ""}`}
-                                  style={{
-                                    left: `${cell.x}%`,
-                                    top: `${cell.y}%`,
-                                    width: `${cell.w}%`,
-                                    height: `${cell.h}%`,
-                                  }}
-                                />
-                              ))}
+                            <div className="wireframe-box">
+                              <svg viewBox="0 0 100 100" className="w-full h-full">
+                                {gl.wireframe.map((cell, idx) => (
+                                  <rect
+                                    key={idx}
+                                    x={cell.x}
+                                    y={cell.y}
+                                    width={cell.w}
+                                    height={cell.h}
+                                    rx="2.5"
+                                    fill={isActive ? "#0d9488" : "#cfc6b2"}
+                                    stroke="#ffffff"
+                                    strokeWidth="2.5"
+                                  />
+                                ))}
+                              </svg>
                             </div>
-                            <span className="text-[11px] font-medium text-stone-700 truncate w-full text-center mt-1">
+                            <span className="layout-name">
                               {gl.name}
+                            </span>
+                            <span className="layout-meta">
+                              {gl.count} photos
                             </span>
                           </button>
                         )

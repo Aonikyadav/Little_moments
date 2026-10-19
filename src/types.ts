@@ -7,6 +7,7 @@ export type Slot = {
   width: number
   height: number
   radius?: number
+  rotation?: number
 }
 
 export type PhotoTemplate = {
@@ -26,6 +27,8 @@ export type PhotoTemplate = {
   backgroundPattern?: string
   frameId?: string
   frameColor?: string
+  canvaUrl?: string
+  subtitle?: string
 }
 
 export type FilterName = string

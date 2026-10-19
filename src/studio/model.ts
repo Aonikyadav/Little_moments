@@ -81,7 +81,7 @@ export function photoBounds(
     y: slot.y,
     width: slot.width,
     height: slot.height,
-    rotation: 0,
+    rotation: slot.rotation ?? 0,
   }
 }
 

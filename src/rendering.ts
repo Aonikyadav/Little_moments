@@ -234,6 +234,577 @@ async function drawPhoto(
   }
   ctx.restore()
 }
+function drawKBoothPattern(
+  ctx: CanvasRenderingContext2D,
+  p: string,
+  w: number,
+  h: number,
+  c: Composition,
+) {
+  ctx.save()
+
+  if (p === "K-Booth Dark Marble") {
+    // Marble veining
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.09)"
+    ctx.lineWidth = w * 0.003
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath()
+      ctx.moveTo(w * (0.1 + i * 0.16), 0)
+      ctx.bezierCurveTo(
+        w * (0.2 + i * 0.14),
+        h * 0.35,
+        w * (0.05 + i * 0.18),
+        h * 0.65,
+        w * (0.25 + i * 0.15),
+        h,
+      )
+      ctx.stroke()
+    }
+    // Subtle golden/lavender sparkle dust
+    for (let i = 0; i < 40; i++) {
+      const sx = (((i * 179) % 1000) / 1000) * w
+      const sy = (((i * 383) % 1000) / 1000) * h
+      ctx.fillStyle =
+        i % 2 === 0 ? "rgba(192, 132, 252, 0.25)" : "rgba(253, 230, 138, 0.2)"
+      ctx.beginPath()
+      ctx.arc(sx, sy, w * 0.002, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    // Twin photobooth backing strips
+    const drawStrip = (x: number, y: number, sw: number, sh: number) => {
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.4)"
+      ctx.shadowBlur = w * 0.02
+      ctx.shadowOffsetY = h * 0.01
+      ctx.fillStyle = "#faf5ef"
+      ctx.beginPath()
+      ctx.roundRect(x, y, sw, sh, w * 0.015)
+      ctx.fill()
+      ctx.strokeStyle = "#e8dfd1"
+      ctx.lineWidth = w * 0.002
+      ctx.stroke()
+      ctx.restore()
+
+      // Header text "HAPPY BIRTHDAY"
+      ctx.save()
+      ctx.fillStyle = "#1e1b24"
+      ctx.font = `bold ${w * 0.022}px 'DM Sans', sans-serif`
+      ctx.textAlign = "center"
+      ctx.fillText("✦ HAPPY BIRTHDAY ✦", x + sw / 2, y + sh * 0.04)
+      ctx.font = `italic ${w * 0.016}px 'Caveat', cursive`
+      ctx.fillStyle = "#8b5cf6"
+      ctx.fillText("little moments · photobooth", x + sw / 2, y + sh * 0.97)
+      ctx.restore()
+    }
+    drawStrip(w * 0.09, h * 0.06, w * 0.4, h * 0.88)
+    drawStrip(w * 0.51, h * 0.06, w * 0.4, h * 0.88)
+  } else if (p === "K-Booth Espresso Velvet") {
+    // Rich espresso velvet gradient
+    const g = ctx.createLinearGradient(0, 0, 0, h)
+    g.addColorStop(0, "#2c1d16")
+    g.addColorStop(0.5, "#221611")
+    g.addColorStop(1, "#180f0b")
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, w, h)
+
+    // Fine velvet weave
+    ctx.strokeStyle = "rgba(255, 230, 200, 0.03)"
+    ctx.lineWidth = 1
+    for (let x = -h; x < w + h; x += w * 0.015) {
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x + h, h)
+      ctx.stroke()
+    }
+
+    // Fanned twin strips in a V shape
+    const drawFannedStrip = (
+      x: number,
+      y: number,
+      sw: number,
+      sh: number,
+      angleDeg: number,
+    ) => {
+      ctx.save()
+      ctx.translate(x + sw / 2, y + sh / 2)
+      ctx.rotate((angleDeg * Math.PI) / 180)
+      ctx.shadowColor = "rgba(0,0,0,0.5)"
+      ctx.shadowBlur = w * 0.025
+      ctx.shadowOffsetY = h * 0.015
+      ctx.fillStyle = "#f5eee6"
+      ctx.beginPath()
+      ctx.roundRect(-sw / 2, -sh / 2, sw, sh, w * 0.012)
+      ctx.fill()
+      ctx.strokeStyle = "#decbc0"
+      ctx.lineWidth = w * 0.002
+      ctx.stroke()
+
+      // Header & footer branding
+      ctx.fillStyle = "#3e271d"
+      ctx.font = `bold ${w * 0.024}px Georgia, serif`
+      ctx.textAlign = "center"
+      ctx.fillText("RETRO MEMORIES", 0, -sh / 2 + sh * 0.04)
+      ctx.font = `${w * 0.018}px 'Caveat', cursive`
+      ctx.fillStyle = "#8c5338"
+      ctx.fillText("photobooth keepsake", 0, sh / 2 - sh * 0.02)
+      ctx.restore()
+    }
+
+    drawFannedStrip(w * 0.09, h * 0.1, w * 0.42, h * 0.81, -3.5)
+    drawFannedStrip(w * 0.49, h * 0.1, w * 0.42, h * 0.81, 3.5)
+
+    // White delicate lace ribbon bow at top center
+    const bx = w * 0.5,
+      by = h * 0.11
+    ctx.save()
+    ctx.fillStyle = "rgba(255,255,255,0.92)"
+    ctx.shadowColor = "rgba(0,0,0,0.3)"
+    ctx.shadowBlur = w * 0.015
+    // Bow center knot
+    ctx.beginPath()
+    ctx.ellipse(bx, by, w * 0.02, h * 0.012, 0, 0, Math.PI * 2)
+    ctx.fill()
+    // Left ribbon loop
+    ctx.beginPath()
+    ctx.ellipse(
+      bx - w * 0.04,
+      by - h * 0.008,
+      w * 0.038,
+      h * 0.02,
+      -0.2,
+      0,
+      Math.PI * 2,
+    )
+    ctx.fill()
+    // Right ribbon loop
+    ctx.beginPath()
+    ctx.ellipse(
+      bx + w * 0.04,
+      by - h * 0.008,
+      w * 0.038,
+      h * 0.02,
+      0.2,
+      0,
+      Math.PI * 2,
+    )
+    ctx.fill()
+    // Hanging ribbon tails
+    ctx.beginPath()
+    ctx.moveTo(bx - w * 0.01, by + h * 0.005)
+    ctx.quadraticCurveTo(
+      bx - w * 0.03,
+      by + h * 0.04,
+      bx - w * 0.05,
+      by + h * 0.065,
+    )
+    ctx.lineTo(bx - w * 0.035, by + h * 0.065)
+    ctx.quadraticCurveTo(bx - w * 0.02, by + h * 0.035, bx, by + h * 0.01)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.moveTo(bx + w * 0.01, by + h * 0.005)
+    ctx.quadraticCurveTo(
+      bx + w * 0.03,
+      by + h * 0.04,
+      bx + w * 0.05,
+      by + h * 0.065,
+    )
+    ctx.lineTo(bx + w * 0.035, by + h * 0.065)
+    ctx.quadraticCurveTo(bx + w * 0.02, by + h * 0.035, bx, by + h * 0.01)
+    ctx.fill()
+    ctx.restore()
+  } else if (p === "K-Booth Starry Midnight") {
+    // Starry midnight constellations
+    for (let i = 0; i < 70; i++) {
+      const sx = (((i * 223) % 1000) / 1000) * w
+      const sy = (((i * 439) % 1000) / 1000) * h
+      const r = i % 3 === 0 ? w * 0.003 : w * 0.0015
+      ctx.fillStyle =
+        i % 4 === 0 ? "rgba(56, 189, 248, 0.7)" : "rgba(255, 255, 255, 0.6)"
+      ctx.beginPath()
+      ctx.arc(sx, sy, r, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    // Twin ticket strips
+    const drawTicketStrip = (x: number, y: number, sw: number, sh: number) => {
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.4)"
+      ctx.shadowBlur = w * 0.02
+      ctx.fillStyle = "#ffffff"
+      ctx.beginPath()
+      ctx.roundRect(x, y, sw, sh, w * 0.012)
+      ctx.fill()
+
+      // Side punch-out notches
+      ctx.fillStyle = "#0e1a2f"
+      const notchR = w * 0.018
+      for (const ny of [y + sh * 0.35, y + sh * 0.58]) {
+        ctx.beginPath()
+        ctx.arc(x, ny, notchR, -Math.PI / 2, Math.PI / 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(x + sw, ny, notchR, Math.PI / 2, -Math.PI / 2)
+        ctx.fill()
+      }
+
+      // Ticket header
+      ctx.fillStyle = "#0c4a6e"
+      ctx.font = `bold ${w * 0.022}px 'DM Sans', sans-serif`
+      ctx.textAlign = "center"
+      ctx.fillText("★ ADMIT ONE ★", x + sw / 2, y + sh * 0.05)
+      ctx.font = `${w * 0.016}px 'Caveat', cursive`
+      ctx.fillStyle = "#0284c7"
+      ctx.fillText("Couple Memories", x + sw / 2, y + sh * 0.08)
+
+      // Barcode lines at bottom
+      const barY = y + sh * 0.88
+      const barH = sh * 0.06
+      const barX = x + sw * 0.12
+      const barW = sw * 0.76
+      ctx.fillStyle = "#0f172a"
+      for (let bx = 0; bx < barW; bx += w * 0.006) {
+        const lineW = (bx * 7) % 3 === 0 ? w * 0.0035 : w * 0.0018
+        ctx.fillRect(barX + bx, barY, lineW, barH)
+      }
+      ctx.font = `${w * 0.014}px monospace`
+      ctx.fillText("№ 2026-COUPLE-08", x + sw / 2, barY + barH + w * 0.02)
+      ctx.restore()
+    }
+    drawTicketStrip(w * 0.08, h * 0.08, w * 0.41, h * 0.84)
+    drawTicketStrip(w * 0.51, h * 0.08, w * 0.41, h * 0.84)
+  } else if (p === "K-Booth Dark Plum Noir") {
+    // Twin staggered monochrome ticket strips
+    const drawPlumStrip = (
+      x: number,
+      y: number,
+      sw: number,
+      sh: number,
+      label: string,
+    ) => {
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.4)"
+      ctx.shadowBlur = w * 0.02
+      ctx.fillStyle = "#f8fafc"
+      ctx.beginPath()
+      ctx.roundRect(x, y, sw, sh, w * 0.01)
+      ctx.fill()
+
+      // Ticket punch notches
+      ctx.fillStyle = "#1c181e"
+      const nr = w * 0.016
+      ctx.beginPath()
+      ctx.arc(x, y + sh * 0.48, nr, -Math.PI / 2, Math.PI / 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(x + sw, y + sh * 0.48, nr, Math.PI / 2, -Math.PI / 2)
+      ctx.fill()
+
+      ctx.fillStyle = "#0f172a"
+      ctx.font = `bold ${w * 0.02}px 'DM Sans', sans-serif`
+      ctx.textAlign = "center"
+      ctx.fillText(label, x + sw / 2, y + sh * 0.05)
+      ctx.font = `${w * 0.015}px monospace`
+      ctx.fillStyle = "#64748b"
+      ctx.fillText("MOMENTS · ARCHIVE", x + sw / 2, y + sh * 0.96)
+      ctx.restore()
+    }
+    drawPlumStrip(w * 0.07, h * 0.06, w * 0.42, h * 0.8, "BEST FRIENDS")
+    drawPlumStrip(w * 0.51, h * 0.12, w * 0.42, h * 0.8, "FOREVER TOGETHER")
+  } else if (p === "K-Booth Blush Noir") {
+    // Soft blush background with fine fiber
+    ctx.strokeStyle = "rgba(180, 120, 120, 0.05)"
+    for (let y = 0; y < h; y += w * 0.02) {
+      ctx.beginPath()
+      ctx.moveTo(0, y)
+      ctx.lineTo(w, y)
+      ctx.stroke()
+    }
+    // Twin matte noir strip card backings
+    const drawBlushNoirStrip = (
+      x: number,
+      y: number,
+      sw: number,
+      sh: number,
+    ) => {
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.25)"
+      ctx.shadowBlur = w * 0.02
+      ctx.shadowOffsetY = h * 0.008
+      ctx.fillStyle = "#1c1b1a"
+      ctx.beginPath()
+      ctx.roundRect(x, y, sw, sh, w * 0.01)
+      ctx.fill()
+      // Fine interior border
+      ctx.strokeStyle = "rgba(255,255,255,0.18)"
+      ctx.lineWidth = 1
+      ctx.strokeRect(x + sw * 0.03, y + sh * 0.02, sw * 0.94, sh * 0.96)
+
+      ctx.fillStyle = "#f5ebe6"
+      ctx.font = `italic ${w * 0.022}px 'Caveat', cursive`
+      ctx.textAlign = "center"
+      ctx.fillText("Forever Young · 2026", x + sw / 2, y + sh * 0.045)
+      ctx.font = `${w * 0.014}px 'DM Sans', sans-serif`
+      ctx.fillStyle = "rgba(255,255,255,0.6)"
+      ctx.fillText("LITTLE MOMENTS", x + sw / 2, y + sh * 0.97)
+      ctx.restore()
+    }
+    drawBlushNoirStrip(w * 0.09, h * 0.06, w * 0.4, h * 0.88)
+    drawBlushNoirStrip(w * 0.51, h * 0.06, w * 0.4, h * 0.88)
+  } else if (p === "K-Booth Olive Slat Shadow") {
+    // Leather pebble grain
+    for (let i = 0; i < 600; i++) {
+      const px = (((i * 269) % 1000) / 1000) * w
+      const py = (((i * 571) % 1000) / 1000) * h
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)"
+      ctx.fillRect(px, py, w * 0.004, w * 0.004)
+    }
+    // Off-white photostrip panel in center
+    const sx = w * 0.27,
+      sy = h * 0.05,
+      sw = w * 0.46,
+      sh = h * 0.9
+    ctx.save()
+    ctx.shadowColor = "rgba(0,0,0,0.35)"
+    ctx.shadowBlur = w * 0.03
+    ctx.shadowOffsetY = h * 0.01
+    ctx.fillStyle = "#fcf9f2"
+    ctx.beginPath()
+    ctx.roundRect(sx, sy, sw, sh, w * 0.01)
+    ctx.fill()
+    ctx.fillStyle = "#2c2f24"
+    ctx.font = `bold ${w * 0.02}px 'DM Sans', sans-serif`
+    ctx.textAlign = "center"
+    ctx.fillText("2026 · AUGUST", sx + sw / 2, sy + sh * 0.035)
+    ctx.font = `${w * 0.014}px monospace`
+    ctx.fillStyle = "#78716c"
+    ctx.fillText("LIFE FOUR CUTS", sx + sw / 2, sy + sh * 0.97)
+    ctx.restore()
+
+    // Diagonal window blind cast shadows across the whole canvas
+    ctx.save()
+    ctx.fillStyle = "rgba(0, 0, 0, 0.16)"
+    for (let y = -w; y < h + w; y += w * 0.12) {
+      ctx.beginPath()
+      ctx.moveTo(0, y)
+      ctx.lineTo(w, y + w * 0.6)
+      ctx.lineTo(w, y + w * 0.6 + w * 0.06)
+      ctx.lineTo(0, y + w * 0.06)
+      ctx.fill()
+    }
+    ctx.restore()
+  } else if (p === "K-Booth Wood Slat Beam") {
+    // Architectural wood slats
+    const slatW = w * 0.04
+    for (let x = 0; x < w; x += slatW) {
+      ctx.fillStyle = "#1c140e"
+      ctx.fillRect(x, 0, slatW - 2, h)
+      ctx.fillStyle = "#2a1e16"
+      ctx.fillRect(x + 2, 0, slatW - 6, h)
+    }
+    // Centered bone-white strip
+    const sx = w * 0.27,
+      sy = h * 0.05,
+      sw = w * 0.46,
+      sh = h * 0.9
+    ctx.save()
+    ctx.shadowColor = "rgba(0,0,0,0.5)"
+    ctx.shadowBlur = w * 0.035
+    ctx.fillStyle = "#f8f5ee"
+    ctx.beginPath()
+    ctx.roundRect(sx, sy, sw, sh, w * 0.01)
+    ctx.fill()
+    ctx.fillStyle = "#181411"
+    ctx.font = `bold ${w * 0.02}px 'DM Sans', sans-serif`
+    ctx.textAlign = "center"
+    ctx.fillText("PORTRAIT · ARCHIVE", sx + sw / 2, sy + sh * 0.035)
+    ctx.font = `${w * 0.015}px Georgia, serif`
+    ctx.fillStyle = "#574c43"
+    ctx.fillText("Authentic Studio Edition", sx + sw / 2, sy + sh * 0.97)
+    ctx.restore()
+
+    // Warm diagonal sunbeam ray
+    ctx.save()
+    const ray = ctx.createLinearGradient(0, 0, w, h)
+    ray.addColorStop(0, "rgba(255, 235, 180, 0.25)")
+    ray.addColorStop(0.5, "rgba(255, 235, 180, 0.12)")
+    ray.addColorStop(1, "rgba(255, 235, 180, 0.0)")
+    ctx.fillStyle = ray
+    ctx.beginPath()
+    ctx.moveTo(w * 0.1, 0)
+    ctx.lineTo(w * 0.7, 0)
+    ctx.lineTo(w, h * 0.8)
+    ctx.lineTo(w * 0.4, h)
+    ctx.fill()
+    ctx.restore()
+  } else if (p === "K-Booth Pink Croc Leather") {
+    // Embossed crocodile leather pattern
+    ctx.save()
+    ctx.strokeStyle = "rgba(0,0,0,0.22)"
+    ctx.lineWidth = w * 0.003
+    const tileW = w * 0.08,
+      tileH = h * 0.06
+    for (let y = 0; y < h; y += tileH) {
+      for (let x = 0; x < w; x += tileW) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.06)"
+        ctx.beginPath()
+        ctx.roundRect(x + 2, y + 2, tileW - 4, tileH - 4, w * 0.01)
+        ctx.fill()
+        ctx.stroke()
+      }
+    }
+    ctx.restore()
+
+    // Stamp backing frame
+    if (
+      c.photos.length <= 1 &&
+      (!c.templateId || c.templateId.includes("09"))
+    ) {
+      // Giant postage stamp frame
+      const sx = w * 0.13,
+        sy = h * 0.11,
+        sw = w * 0.74,
+        sh = h * 0.74
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.3)"
+      ctx.shadowBlur = w * 0.03
+      ctx.fillStyle = "#fffdfa"
+      ctx.fillRect(sx, sy, sw, sh)
+      ctx.fillStyle = c.background
+      const pr = w * 0.012
+      for (let x = sx; x <= sx + sw; x += w * 0.03) {
+        ctx.beginPath()
+        ctx.arc(x, sy, pr, 0, Math.PI)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(x, sy + sh, pr, Math.PI, 0)
+        ctx.fill()
+      }
+      for (let y = sy; y <= sy + sh; y += h * 0.03) {
+        ctx.beginPath()
+        ctx.arc(sx, y, pr, -Math.PI / 2, Math.PI / 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(sx + sw, y, pr, Math.PI / 2, -Math.PI / 2)
+        ctx.fill()
+      }
+      ctx.restore()
+    } else {
+      // 3-Cut stamp strip
+      const sx = w * 0.23,
+        sy = h * 0.07,
+        sw = w * 0.54,
+        sh = h * 0.86
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.3)"
+      ctx.shadowBlur = w * 0.03
+      ctx.fillStyle = "#fffdfa"
+      ctx.fillRect(sx, sy, sw, sh)
+      ctx.fillStyle = c.background
+      const pr = w * 0.012
+      for (let x = sx; x <= sx + sw; x += w * 0.03) {
+        ctx.beginPath()
+        ctx.arc(x, sy, pr, 0, Math.PI)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(x, sy + sh, pr, Math.PI, 0)
+        ctx.fill()
+      }
+      for (let y = sy; y <= sy + sh; y += h * 0.03) {
+        ctx.beginPath()
+        ctx.arc(sx, y, pr, -Math.PI / 2, Math.PI / 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(sx + sw, y, pr, Math.PI / 2, -Math.PI / 2)
+        ctx.fill()
+      }
+      // Cute pink polka dots border
+      ctx.fillStyle = "#f472b6"
+      for (let y = sy + h * 0.03; y < sy + sh - h * 0.03; y += h * 0.02) {
+        ctx.beginPath()
+        ctx.arc(sx + sw * 0.04, y, w * 0.003, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(sx + sw * 0.96, y, w * 0.003, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      ctx.restore()
+    }
+  } else if (p === "K-Booth Vintage Parchment") {
+    // Parchment texture flecks
+    for (let i = 0; i < 400; i++) {
+      const px = (((i * 197) % 1000) / 1000) * w
+      const py = (((i * 431) % 1000) / 1000) * h
+      ctx.fillStyle = "rgba(100, 70, 40, 0.04)"
+      ctx.fillRect(px, py, w * 0.006, h * 0.004)
+    }
+  } else if (p === "K-Booth Kraft Scrapbook") {
+    // Kraft cardboard fiber
+    ctx.strokeStyle = "rgba(0,0,0,0.06)"
+    for (let i = 0; i < 200; i++) {
+      const px = (((i * 311) % 1000) / 1000) * w
+      const py = (((i * 617) % 1000) / 1000) * h
+      ctx.beginPath()
+      ctx.moveTo(px, py)
+      ctx.lineTo(px + w * 0.015, py + ((i % 3) - 1))
+      ctx.stroke()
+    }
+  } else if (p === "K-Booth Purple Cinema Night") {
+    // Deep royal purple cinema background
+    const drawCinemaStrip = (
+      x: number,
+      y: number,
+      sw: number,
+      sh: number,
+    ) => {
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.4)"
+      ctx.shadowBlur = w * 0.025
+      ctx.fillStyle = "#faf4eb"
+      ctx.beginPath()
+      ctx.roundRect(x, y, sw, sh, w * 0.012)
+      ctx.fill()
+
+      // Ticket punch notches
+      ctx.fillStyle = "#211029"
+      const nr = w * 0.018
+      for (const ny of [y + sh * 0.38, y + sh * 0.62]) {
+        ctx.beginPath()
+        ctx.arc(x, ny, nr, -Math.PI / 2, Math.PI / 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(x + sw, ny, nr, Math.PI / 2, -Math.PI / 2)
+        ctx.fill()
+      }
+
+      // Title banner
+      ctx.fillStyle = "#3b0764"
+      ctx.font = `italic bold ${w * 0.03}px 'Caveat', cursive`
+      ctx.textAlign = "center"
+      ctx.fillText("Night Movie", x + sw / 2, y + sh * 0.06)
+      ctx.font = `${w * 0.014}px monospace`
+      ctx.fillStyle = "#7e22ce"
+      ctx.fillText("CINEMA TICKETS · ROW A", x + sw / 2, y + sh * 0.09)
+
+      // Barcode footer
+      const barY = y + sh * 0.88,
+        barH = sh * 0.05,
+        barX = x + sw * 0.12,
+        barW = sw * 0.76
+      ctx.fillStyle = "#1e1b4b"
+      for (let bx = 0; bx < barW; bx += w * 0.006) {
+        const lineW = (bx * 9) % 4 === 0 ? w * 0.004 : w * 0.0018
+        ctx.fillRect(barX + bx, barY, lineW, barH)
+      }
+      ctx.font = `${w * 0.013}px monospace`
+      ctx.fillText("* 0 8 2 4 9 9 1 2 *", x + sw / 2, barY + barH + w * 0.018)
+      ctx.restore()
+    }
+    drawCinemaStrip(w * 0.07, h * 0.08, w * 0.42, h * 0.84)
+    drawCinemaStrip(w * 0.51, h * 0.08, w * 0.42, h * 0.84)
+  }
+
+  ctx.restore()
+}
+
 function background(
   ctx: CanvasRenderingContext2D,
   c: Composition,
@@ -244,6 +815,12 @@ function background(
   ctx.fillRect(0, 0, w, h)
   const p = c.backgroundPattern
   if (!p || p === "none") return
+
+  if (p.startsWith("K-Booth")) {
+    drawKBoothPattern(ctx, p, w, h, c)
+    return
+  }
+
   ctx.save()
   ctx.globalAlpha = c.backgroundOpacity ?? 0.35
   ctx.strokeStyle = "#777262"
