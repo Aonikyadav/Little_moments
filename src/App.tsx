@@ -61,9 +61,12 @@ import { TemplateThumbnail } from "./components/TemplateThumbnail"
 
 const Studio = lazy(() => import("./studio/Studio"))
 const samples = [
+  "/photos/couple.jpg",
   "/photos/booth.jpg",
+  "/photos/kiss.jpg",
   "/photos/friends.jpg",
   "/photos/moments.jpg",
+  "/photos/bday.jpg",
 ]
 
 const counts: PhotoCount[] = [1, 2, 3, 4, 5, 6, 8, 9]
@@ -1094,15 +1097,15 @@ export default function App() {
       {flashActive && <div className="flash-overlay" aria-hidden="true" />}
 
       {/* Site Header - Android APK Top App Bar */}
-      <header className="site-header">
+      {page !== "editor" && (
+        <header className="site-header">
         <div className="flex items-center gap-2">
           {page !== "home" && (
             <button
               type="button"
               className="w-8 h-8 rounded-full border border-stone-800 bg-stone-100 flex items-center justify-center text-stone-900 active:scale-90 transition-transform mr-1"
               onClick={() => {
-                if (page === "editor") setPage("templates")
-                else if (page === "camera" || page === "setup") setPage("templates")
+                if (page === "camera" || page === "setup") setPage("templates")
                 else setPage("home")
               }}
               title="Navigate back"
@@ -1161,7 +1164,6 @@ export default function App() {
           </button>
           <button
             type="button"
-            className={page === "editor" ? "is-active" : ""}
             onClick={() => {
               if (!composition.photos.length) {
                 setComposition((c) => ({
@@ -1220,10 +1222,11 @@ export default function App() {
           </button>
         </div>
       </header>
+      )}
 
       {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-b-2 border-stone-900 bg-[#faf8f0] p-4 flex flex-col gap-2 relative z-30 shadow-[0_8px_20px_rgba(0,0,0,0.12)]">
+      {mobileMenuOpen && page !== "editor" && (
+        <div className="lg:hidden border-b-2 border-stone-900 bg-[#faf8f0] p-4 flex flex-col gap-2 relative z-30 shadow-[0_8px_20px_rgba(0,0,0,0.12)]">
           <div className="flex items-center justify-between pb-2 mb-1 border-b border-dashed border-stone-300 text-xs text-stone-500 font-mono">
             <span>Navigation Menu</span>
             <span className="text-[10px]">Little Moments Studio</span>
@@ -1316,11 +1319,11 @@ export default function App() {
               </div>
             )}
 
-            {/* CodePen Hero Section */}
+            {/* Hero Section */}
             <section className="hero">
               <div className="hero-copy">
                 <p className="eyebrow">
-                  Hand-crafted memories for questionable priorities
+                  Authentic Photobooth Strips & Scrapbook Keepsakes
                 </p>
 
                 <h1>
@@ -1329,8 +1332,8 @@ export default function App() {
                 </h1>
 
                 <p className="hero-description">
-                  A tactile virtual photobooth and print studio. Choose from 86
-                  authentic photo strips and scrapbooks, take live camera bursts,
+                  A tactile virtual photobooth and keepsake print studio. Choose from {templates.length}
+                  authentic photobooth covers, romantic aesthetic scrapbooks, and multi-cut strips, take live camera bursts,
                   drag photos into exact slots, and customize every frame.
                 </p>
 
@@ -1351,7 +1354,7 @@ export default function App() {
                     className="sketch-button"
                     onClick={() => setPage("templates")}
                   >
-                    Browse 86 Templates
+                    Browse {templates.length} Authentic Templates
                   </button>
 
                   <button
@@ -1367,28 +1370,28 @@ export default function App() {
                 </div>
 
                 <p className="pencil-note pencil-note--hero">
-                  ↑ legal advised us to call them “keepsakes”
+                  ★ Handcrafted real photobooth covers & aesthetic keepsakes
                 </p>
               </div>
 
-              {/* CodePen Hero Sketch Package Frame */}
+              {/* Hero Real Keepsake Frame */}
               <div className="hero-sketch" aria-hidden="true">
                 <div className="construction-circle construction-circle--one" />
                 <div className="construction-circle construction-circle--two" />
 
                 <div className="hero-package">
-                  <div className="w-32 sm:w-36 mx-auto mb-2 aspect-[1/2.35] shadow-md border-2 border-stone-900 overflow-hidden bg-[#09090b] p-1">
-                    <TemplateThumbnail template={templates[0]} className="w-full h-full object-contain" />
+                  <div className="hero-photo-wrapper">
+                    <TemplateThumbnail template={getTemplate("tmpl-user-053") || templates[0]} className="w-full h-full object-contain" />
                   </div>
                   <span className="package-label">
-                    ABSOLUTELY
+                    AUTHENTIC
                     <br />
-                    ESSENTIAL
+                    KEEPSAKE
                   </span>
-                  <span className="package-stamp">probably</span>
+                  <span className="package-stamp">Original</span>
                 </div>
 
-                <p className="hero-sketch-note">approved booth strip no. 01</p>
+                <p className="hero-sketch-note">authentic studio keepsake #053 · red string romance</p>
               </div>
             </section>
 
@@ -1453,25 +1456,25 @@ export default function App() {
               </div>
             </section>
 
-            {/* Wireframe Process Section */}
+            {/* Process Section */}
             <section className="about-section border-t-2 border-stone-900 pt-16 mt-8 grid md:grid-cols-2 gap-10 items-center">
               <div className="border-2 border-stone-900 p-8 bg-[#faf8f0] shadow-[6px_6px_0_#171717]">
                 <p className="eyebrow">How it works</p>
-                <h2 className="font-gochi text-4xl mb-4">We stopped at the wireframe.</h2>
+                <h2 className="font-gochi text-4xl mb-4">Crafted for Real Memories.</h2>
                 <p className="text-xs text-stone-600 leading-relaxed mb-6">
-                  Every keepsake begins with an impulse, survives zero meaningful scrutiny,
-                  and is printed with enough love to preserve forever.
+                  Every keepsake begins with an authentic photobooth cover or vintage scrapbook layout,
+                  designed with real paper textures, romantic aesthetics, and crafted with love.
                 </p>
                 <ul className="space-y-3 font-caveat text-xl">
-                  <li>☑ Step 1: Select from 86 authentic reference layouts</li>
+                  <li>☑ Step 1: Select from {templates.length} authentic photobooth covers & scrapbooks</li>
                   <li>☑ Step 2: Live camera burst with countdown or instant upload</li>
                   <li>☑ Step 3: Match & assign photos into exact slots</li>
-                  <li>☑ Step 4: Add stickers, ribbon bows, and print!</li>
+                  <li>☑ Step 4: Add stickers, ribbon bows, and print or export!</li>
                 </ul>
               </div>
 
               <div className="p-8 border-t-2 border-b-2 border-stone-900">
-                <span className="font-caveat text-lg text-stone-500 block mb-2">user research</span>
+                <span className="font-caveat text-lg text-stone-500 block mb-2">user review</span>
                 <span className="text-amber-600 tracking-widest text-lg">★★★★★</span>
                 <blockquote className="font-gochi text-3xl my-4 leading-tight">
                   “The photos printed so beautifully, my friends demanded strips of their own.”
@@ -1485,18 +1488,18 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* SCREEN 2: TEMPLATE GALLERY (86 Templates Inventory)      */}
+        {/* SCREEN 2: TEMPLATE GALLERY                               */}
         {/* ======================================================== */}
         {page === "templates" && (
           <section className="shop-section border-t-0 pt-6">
             <header className="section-heading">
               <div>
-                <p className="eyebrow">Catalog Draft · 86 Curated Templates</p>
+                <p className="eyebrow">Authentic Keepsakes · {templates.length} Curated Covers</p>
                 <h2>Featured Layouts & Strips</h2>
               </div>
               <p>
                 Every card corresponds to an authentic photo booth strip or scrapbook
-                composition. Click any template to inspect its slots and start your session.
+                composition directly from our curated collections. Click any template to inspect its slots and start your session.
               </p>
             </header>
 
@@ -1793,7 +1796,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
               {/* Camera Stream Viewport */}
               <div className="booth-card">
                 <div className="camera-frame relative overflow-hidden bg-[#121212]">
@@ -2023,11 +2026,12 @@ export default function App() {
                 {/* Target Template Info Card */}
                 <div className="mt-6 pt-4 border-t border-stone-300">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={currentTemplate.thumbnail}
-                      alt={currentTemplate.name}
-                      className="w-12 h-16 object-contain border border-stone-900 bg-stone-100 p-0.5"
-                    />
+                    <div className="w-12 h-16 border border-stone-900 bg-stone-100 p-0.5 overflow-hidden flex items-center justify-center">
+                      <TemplateThumbnail
+                        template={currentTemplate}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                     <div>
                       <strong className="text-xs block font-mono">{currentTemplate.name}</strong>
                       <span className="text-[10px] text-stone-500 font-mono">
@@ -2189,42 +2193,42 @@ export default function App() {
         {/* SCREEN 5: STUDIO EDITOR (Full Interactive Customization) */}
         {/* ======================================================== */}
         {page === "editor" && (
-          <section className="py-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b-2 border-stone-900">
-              <div className="flex items-center justify-between sm:justify-start gap-2.5">
+          <section className="flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden">
+            <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[#faf8f2] border-b-2 border-stone-900 flex-shrink-0 z-20">
+              <div className="flex items-center gap-2 min-w-0">
                 <button
                   type="button"
-                  className="sketch-button sketch-button--sm flex items-center gap-1.5"
-                  onClick={() => setPage("review")}
+                  className="sketch-button sketch-button--sm flex items-center gap-1 text-xs py-1 px-2.5 active:scale-95 flex-shrink-0"
+                  onClick={() => setPage("templates")}
                 >
-                  <ArrowLeft size={14} /> Back
+                  <ArrowLeft size={13} /> Back
                 </button>
-                <h2 className="font-gochi text-2xl sm:text-3xl truncate max-w-[220px] sm:max-w-none">{currentTemplate.name}</h2>
+                <h2 className="font-gochi text-lg sm:text-2xl truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">{currentTemplate.name}</h2>
               </div>
 
-              <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
-                    className="sketch-button sketch-button--sm px-2.5"
+                    className="sketch-button sketch-button--sm p-1.5 text-xs disabled:opacity-40 active:scale-95"
                     onClick={() => undo()}
                     disabled={!history.length}
                     title="Undo"
                   >
-                    <Undo2 size={14} />
+                    <Undo2 size={13} />
                   </button>
                   <button
                     type="button"
-                    className="sketch-button sketch-button--sm px-2.5"
+                    className="sketch-button sketch-button--sm p-1.5 text-xs disabled:opacity-40 active:scale-95"
                     onClick={() => redo()}
                     disabled={!future.length}
                     title="Redo"
                   >
-                    <Redo2 size={14} />
+                    <Redo2 size={13} />
                   </button>
                   <button
                     type="button"
-                    className="sketch-button sketch-button--sm text-xs"
+                    className="sketch-button sketch-button--sm text-xs py-1 px-2.5 active:scale-95 hidden xs:inline-block"
                     onClick={() => saveCurrentCreation()}
                   >
                     Save
@@ -2233,7 +2237,7 @@ export default function App() {
 
                 <button
                   type="button"
-                  className="sketch-button sketch-button--dark text-xs whitespace-nowrap"
+                  className="sketch-button sketch-button--dark text-xs py-1 px-3 whitespace-nowrap active:scale-95"
                   onClick={() => setPage("export")}
                 >
                   Export →
@@ -2279,7 +2283,7 @@ export default function App() {
               <h2 className="font-gochi text-3xl">Export & Share</h2>
             </div>
 
-            <div className="grid md:grid-cols-[1fr_360px] gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 sm:gap-8">
               {/* Composition Final Preview */}
               <div className="booth-card flex flex-col items-center justify-center p-8 bg-[#faf8f0]">
                 <div className="max-w-[340px] max-h-[580px] p-2 bg-white shadow-[8px_8px_0_#171717] border-2 border-stone-900">

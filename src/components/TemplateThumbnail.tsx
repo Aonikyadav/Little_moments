@@ -7,7 +7,7 @@ import {
 
 export interface TemplateThumbnailProps {
   /** Template object or partial template with an ID */
-  template?: PhotoTemplate | { id: string; name?: string; count?: number; category?: string; background?: string } | null
+  template?: PhotoTemplate | { id: string; name?: string; count?: number; category?: string; background?: string; thumbnail?: string } | null
   /** Explicit template ID (e.g. 'tmpl-001', 'tmpl-user-001') */
   templateId?: string
   /** Custom CSS classes for the <img> element */
@@ -25,14 +25,12 @@ export interface TemplateThumbnailProps {
 /**
  * TemplateThumbnail Component
  *
- * Exclusively uses paths derived from the local '/images' folder structure.
- * Implements a robust resolver that maps any template ID (like 'tmpl-001', 'tmpl-user-001',
- * 'tmpl-015', or numeric string) to its corresponding physical asset in the provided sub-folders:
- *   - /images/#cool #animated #romantic/...
- *   - /images/#propose #love #greeting #years #birthday/...
- *   - /images/#romantic #love #kisspose #asthetic/...
+ * Exclusively displays authentic user-provided cover images from the Images/ folders:
+ *   - /Images/#cool #animated #romantic/...
+ *   - /Images/#propose #love #greeting #years #birthday/...
+ *   - /Images/#romantic #love #kisspose #asthetic/...
  *
- * Guarantees that NO remote or generated images are ever displayed.
+ * Guarantees that only authentic user covers/images are displayed, never dummy cartoons or synthetic graphics.
  */
 export function TemplateThumbnail({
   template,
@@ -45,40 +43,44 @@ export function TemplateThumbnail({
 }: TemplateThumbnailProps) {
   const targetId = templateId || template?.id || ""
 
-  // Resolve exclusively to local /images asset
+  // Resolve to authentic local asset from Images/ folders
   const resolvedAsset: TemplateImageAsset = resolveTemplateLocalAsset(
     targetId ? targetId : template
   )
 
-  // Candidate paths derived strictly from the /images folder structure
-  const directThumb =
-    template &&
-    "thumbnail" in template &&
-    typeof template.thumbnail === "string" &&
-    template.thumbnail.startsWith("/images/")
-      ? template.thumbnail
-      : null
-
   const candidates: string[] = []
-  if (directThumb) {
-    candidates.push(directThumb)
+
+  // 1. Direct thumbnail property on template if provided
+  if (template && "thumbnail" in template && typeof template.thumbnail === "string" && template.thumbnail) {
+    candidates.push(template.thumbnail)
   }
+
+  // 2. Primary encodedUrl from resolved asset
+  if (resolvedAsset?.encodedUrl && !candidates.includes(resolvedAsset.encodedUrl)) {
+    candidates.push(resolvedAsset.encodedUrl)
+  }
+
+  // 3. Fallback candidate URLs from asset registry
   if (resolvedAsset?.allCandidateUrls) {
     for (const url of resolvedAsset.allCandidateUrls) {
-      if (url.startsWith("/images/") && !candidates.includes(url)) {
+      if (url && !candidates.includes(url)) {
         candidates.push(url)
       }
     }
   }
-  if (candidates.length === 0 && resolvedAsset) {
-    candidates.push(`/images/${encodeURIComponent(resolvedAsset.folder)}/${encodeURIComponent(resolvedAsset.fileName)}`)
+
+  // 4. Fallback directly to tmpl-user-XXX.jpg
+  const paddedIdx = String(resolvedAsset.index || 1).padStart(3, "0")
+  const defaultTmplUrl = `/templates/tmpl-user-${paddedIdx}.jpg`
+  if (!candidates.includes(defaultTmplUrl)) {
+    candidates.push(defaultTmplUrl)
   }
 
   const [candidateIndex, setCandidateIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasFailed, setHasFailed] = useState(false)
 
-  // Reset state whenever the resolved asset or template changes
+  // Reset state whenever target template changes
   useEffect(() => {
     setCandidateIndex(0)
     setIsLoaded(false)
@@ -100,7 +102,7 @@ export function TemplateThumbnail({
     onLoad?.()
   }
 
-  // Graceful pure HTML/CSS badge if image cannot be rendered (NO remote or generated images)
+  // Graceful pure HTML/CSS badge only if image cannot be rendered
   if (hasFailed || !currentSrc) {
     const bgColor = template?.background || "#f5f5f4"
     const displayName = template?.name || resolvedAsset.title
@@ -134,23 +136,23 @@ export function TemplateThumbnail({
       className="relative w-full h-full overflow-hidden bg-transparent flex items-center justify-center"
       style={aspectRatio ? { aspectRatio } : undefined}
     >
-      {/* Smooth skeleton loader while image loads */}
+      {/* Subtle skeleton pulse while loading */}
       {!isLoaded && (
         <div
-          className="absolute inset-0 animate-pulse bg-stone-800/40 z-10"
+          className="absolute inset-0 animate-pulse bg-stone-300/30 z-10"
           aria-hidden="true"
         />
       )}
 
-      {/* Real local photo from /images folder structure */}
+      {/* Real authentic cover photo */}
       <img
         src={currentSrc}
         alt={resolvedAlt}
         loading={loading}
         onLoad={handleImageLoad}
         onError={handleImageError}
-        className={`${className} transition-opacity duration-250 ease-out ${
-          isLoaded ? "opacity-100" : "opacity-0"
+        className={`${className} transition-opacity duration-200 ease-out ${
+          isLoaded ? "opacity-100" : "opacity-90"
         }`}
         data-local-folder={resolvedAsset.folder}
         data-asset-index={resolvedAsset.index}

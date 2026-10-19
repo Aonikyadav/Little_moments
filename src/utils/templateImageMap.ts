@@ -1,11 +1,14 @@
 /**
  * Template Image Mapping & Resolver Utility
  *
- * Exclusively derives all image paths from the local '/images' folder structure.
+ * Exclusively derives all image paths from the local 'Images' folder structure.
  * Provides a robust resolver that maps any template ID (such as 'tmpl-001', 'tmpl-user-001',
- * or numeric index) to its corresponding physical asset in the provided sub-folders.
+ * or numeric index) to its corresponding physical authentic asset in the 3 provided sub-folders:
+ *   - /Images/#cool #animated #romantic
+ *   - /Images/#propose #love #greeting #years #birthday
+ *   - /Images/#romantic #love #kisspose #asthetic
  *
- * Guarantees that no remote or generated images are ever displayed.
+ * Guarantees that only authentic user covers/images are displayed across the entire app.
  */
 
 export interface TemplateImageAsset {
@@ -27,7 +30,7 @@ export interface TemplateImageAsset {
 export type TemplateImageMapping = TemplateImageAsset
 
 /**
- * Registry of all 61 physical assets from the local /images sub-folders
+ * Registry of all 61 physical authentic assets from the local Images/ sub-folders
  */
 export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
   {
@@ -38,10 +41,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-001.jpg",
     "count": 1,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Kiss Pose Couple ♡ Soft Blur Cute · 1-Cut Solo",
+    "title": "love romantic kiss pose couple ♡ blur cute animated fun · 1-Cut Solo",
     "tags": [
       "cool",
       "animated",
@@ -56,8 +59,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-001.jpg",
+      "/templates/tmpl-user-001.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #fun.jpg"
+      "/images/cool_animated_romantic/001.jpg",
+      "/templates/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23fun.jpg"
     ]
   },
   {
@@ -68,10 +74,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun #story.jpg",
     "localPath": "/images/#cool #animated #romantic/#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun #story.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun%20%23story.jpg",
+    "encodedUrl": "/covers/cover-002.jpg",
     "count": 1,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Pink Pastel 🌸 Kiss Pose Couple ♡ · 1-Cut Solo",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink spider fun story · 1-Cut Solo",
     "tags": [
       "cool",
       "animated",
@@ -89,8 +95,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "story"
     ],
     "allCandidateUrls": [
+      "/covers/cover-002.jpg",
+      "/templates/tmpl-user-002.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun%20%23story.jpg",
-      "/images/#cool #animated #romantic/#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun #story.jpg"
+      "/images/cool_animated_romantic/002.jpg",
+      "/templates/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun%20%23story.jpg"
     ]
   },
   {
@@ -101,10 +110,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-003.jpg",
     "count": 1,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Pink Pastel 🌸 Kiss Pose Couple ♡ · 1-Cut Solo",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink spider fun · 1-Cut Solo",
     "tags": [
       "cool",
       "animated",
@@ -121,8 +130,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-003.jpg",
+      "/templates/tmpl-user-003.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg"
+      "/images/cool_animated_romantic/003.jpg",
+      "/templates/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -133,10 +145,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-004.jpg",
     "count": 1,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Kiss Pose Couple ♡ Soft Blur · 1-Cut Solo",
+    "title": "love romantic kiss pose couple ♡ blur cute animated spider fun · 1-Cut Solo",
     "tags": [
       "cool",
       "animated",
@@ -152,8 +164,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-004.jpg",
+      "/templates/tmpl-user-004.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#1 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg"
+      "/images/cool_animated_romantic/004.jpg",
+      "/templates/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -164,10 +179,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated  #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated  #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-005.jpg",
     "count": 3,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Kiss Pose Couple ♡ Soft Blur Cute · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated fun · 3-Cut Strip",
     "tags": [
       "cool",
       "animated",
@@ -182,8 +197,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-005.jpg",
+      "/templates/tmpl-user-005.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated  #fun.jpg"
+      "/images/cool_animated_romantic/005.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%20%23fun.jpg"
     ]
   },
   {
@@ -194,10 +212,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun #story.jpg",
     "localPath": "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun #story.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun%20%23story.jpg",
+    "encodedUrl": "/covers/cover-006.jpg",
     "count": 3,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Pink Pastel 🌸 Kiss Pose Couple ♡ · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink spider fun story · 3-Cut Strip",
     "tags": [
       "cool",
       "animated",
@@ -215,8 +233,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "story"
     ],
     "allCandidateUrls": [
+      "/covers/cover-006.jpg",
+      "/templates/tmpl-user-006.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun%20%23story.jpg",
-      "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun #story.jpg"
+      "/images/cool_animated_romantic/006.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun%20%23story.jpg"
     ]
   },
   {
@@ -227,10 +248,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-007.jpg",
     "count": 3,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Pink Pastel 🌸 Kiss Pose Couple ♡ · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink spider fun · 3-Cut Strip",
     "tags": [
       "cool",
       "animated",
@@ -247,8 +268,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-007.jpg",
+      "/templates/tmpl-user-007.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg"
+      "/images/cool_animated_romantic/007.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -259,10 +283,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-008.jpg",
     "count": 3,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Kiss Pose Couple ♡ Soft Blur · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated spider fun · 3-Cut Strip",
     "tags": [
       "cool",
       "animated",
@@ -278,8 +302,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-008.jpg",
+      "/templates/tmpl-user-008.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg"
+      "/images/cool_animated_romantic/008.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -290,10 +317,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated.jpg",
     "localPath": "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated.jpg",
+    "encodedUrl": "/covers/cover-009.jpg",
     "count": 3,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Kiss Pose Couple ♡ Soft Blur Cute · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated · 3-Cut Strip",
     "tags": [
       "cool",
       "animated",
@@ -307,8 +334,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "cute"
     ],
     "allCandidateUrls": [
+      "/covers/cover-009.jpg",
+      "/templates/tmpl-user-009.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated.jpg",
-      "/images/#cool #animated #romantic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated.jpg"
+      "/images/cool_animated_romantic/009.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated.jpg"
     ]
   },
   {
@@ -319,10 +349,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-010.jpg",
     "count": 4,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Pink Pastel 🌸 Kiss Pose Couple ♡ · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink spider fun · 4-Cut Strip",
     "tags": [
       "cool",
       "animated",
@@ -339,8 +369,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-010.jpg",
+      "/templates/tmpl-user-010.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg"
+      "/images/cool_animated_romantic/010.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -351,10 +384,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-011.jpg",
     "count": 4,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur cute animated spider fun · 4-Cut Strip",
     "tags": [
       "cool",
       "animated",
@@ -370,8 +403,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-011.jpg",
+      "/templates/tmpl-user-011.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg"
+      "/images/cool_animated_romantic/011.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -382,10 +418,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#5 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#5 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%235%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-012.jpg",
     "count": 5,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Pink Pastel 🌸 Kiss Pose Couple ♡ · 5-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink spider fun · 5-Cut Collage",
     "tags": [
       "cool",
       "animated",
@@ -402,8 +438,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-012.jpg",
+      "/templates/tmpl-user-012.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%235%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#5 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg"
+      "/images/cool_animated_romantic/012.jpg",
+      "/templates/%235%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -414,10 +453,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#5 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink.jpg",
     "localPath": "/images/#cool #animated #romantic/#5 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%235%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink.jpg",
+    "encodedUrl": "/covers/cover-013.jpg",
     "count": 5,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Pink Pastel 🌸 Kiss Pose Couple ♡ Soft Blur · 5-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink · 5-Cut Collage",
     "tags": [
       "cool",
       "animated",
@@ -432,8 +471,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "pink"
     ],
     "allCandidateUrls": [
+      "/covers/cover-013.jpg",
+      "/templates/tmpl-user-013.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%235%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink.jpg",
-      "/images/#cool #animated #romantic/#5 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink.jpg"
+      "/images/cool_animated_romantic/013.jpg",
+      "/templates/%235%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink.jpg"
     ]
   },
   {
@@ -444,10 +486,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#5 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#5 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%235%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-014.jpg",
     "count": 5,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Kiss Pose Couple ♡ Soft Blur · 5-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated spider fun · 5-Cut Collage",
     "tags": [
       "cool",
       "animated",
@@ -463,8 +505,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-014.jpg",
+      "/templates/tmpl-user-014.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%235%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#5 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg"
+      "/images/cool_animated_romantic/014.jpg",
+      "/templates/%235%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -475,10 +520,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#6 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink  #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#6 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink  #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%236%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-015.jpg",
     "count": 6,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Pink Pastel 🌸 Kiss Pose Couple ♡ Soft Blur · 6-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink fun · 6-Cut Collage",
     "tags": [
       "cool",
       "animated",
@@ -494,8 +539,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-015.jpg",
+      "/templates/tmpl-user-015.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%236%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#6 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink  #fun.jpg"
+      "/images/cool_animated_romantic/015.jpg",
+      "/templates/%236%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%20%23fun.jpg"
     ]
   },
   {
@@ -506,10 +554,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#cool #animated #romantic",
     "fileName": "#6 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
     "localPath": "/images/#cool #animated #romantic/#6 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg",
-    "encodedUrl": "/images/%23cool%20%23animated%20%23romantic/%236%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-016.jpg",
     "count": 6,
     "category": "Cool & Spider Animated 🕸️",
-    "title": "Spider 🕸️ Kiss Pose Couple ♡ Soft Blur · 6-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated spider fun · 6-Cut Collage",
     "tags": [
       "cool",
       "animated",
@@ -525,8 +573,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-016.jpg",
+      "/templates/tmpl-user-016.jpg",
       "/images/%23cool%20%23animated%20%23romantic/%236%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg",
-      "/images/#cool #animated #romantic/#6 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #spider #fun.jpg"
+      "/images/cool_animated_romantic/016.jpg",
+      "/templates/%236%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -537,10 +588,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#1 #asthetic.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#1 #asthetic.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%231%20%23asthetic.jpg",
+    "encodedUrl": "/covers/cover-017.jpg",
     "count": 1,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Photo Booth Strip · 1-Cut Solo",
+    "title": "asthetic · 1-Cut Solo",
     "tags": [
       "propose",
       "love",
@@ -551,8 +602,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "asthetic"
     ],
     "allCandidateUrls": [
+      "/covers/cover-017.jpg",
+      "/templates/tmpl-user-017.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%231%20%23asthetic.jpg",
-      "/images/#propose #love #greeting #years #birthday/#1 #asthetic.jpg"
+      "/images/propose_love_greeting_years_birthday/017.jpg",
+      "/templates/%231%20%23asthetic.jpg"
     ]
   },
   {
@@ -563,10 +617,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#1 #love #birthday.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#1 #love #birthday.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%231%20%23love%20%23birthday.jpg",
+    "encodedUrl": "/covers/cover-018.jpg",
     "count": 1,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Birthday 🎂 · 1-Cut Solo",
+    "title": "love birthday · 1-Cut Solo",
     "tags": [
       "propose",
       "love",
@@ -576,8 +630,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "1"
     ],
     "allCandidateUrls": [
+      "/covers/cover-018.jpg",
+      "/templates/tmpl-user-018.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%231%20%23love%20%23birthday.jpg",
-      "/images/#propose #love #greeting #years #birthday/#1 #love #birthday.jpg"
+      "/images/propose_love_greeting_years_birthday/018.jpg",
+      "/templates/%231%20%23love%20%23birthday.jpg"
     ]
   },
   {
@@ -588,10 +645,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#11 #love #birthday.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#11 #love #birthday.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%2311%20%23love%20%23birthday.jpg",
+    "encodedUrl": "/covers/cover-019.jpg",
     "count": 11,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Birthday 🎂 · 11-Cut Grid",
+    "title": "love birthday · 11-Cut Collage",
     "tags": [
       "propose",
       "love",
@@ -601,8 +658,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "11"
     ],
     "allCandidateUrls": [
+      "/covers/cover-019.jpg",
+      "/templates/tmpl-user-019.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%2311%20%23love%20%23birthday.jpg",
-      "/images/#propose #love #greeting #years #birthday/#11 #love #birthday.jpg"
+      "/images/propose_love_greeting_years_birthday/019.jpg",
+      "/templates/%2311%20%23love%20%23birthday.jpg"
     ]
   },
   {
@@ -613,10 +673,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#2 #birthday.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#2 #birthday.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%232%20%23birthday.jpg",
+    "encodedUrl": "/covers/cover-020.jpg",
     "count": 2,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Birthday 🎂 · 2-Cut Grid",
+    "title": "birthday · 2-Cut Strip",
     "tags": [
       "propose",
       "love",
@@ -626,8 +686,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "2"
     ],
     "allCandidateUrls": [
+      "/covers/cover-020.jpg",
+      "/templates/tmpl-user-020.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%232%20%23birthday.jpg",
-      "/images/#propose #love #greeting #years #birthday/#2 #birthday.jpg"
+      "/images/propose_love_greeting_years_birthday/020.jpg",
+      "/templates/%232%20%23birthday.jpg"
     ]
   },
   {
@@ -638,10 +701,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#2 #love #birthday #couple ♡.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#2 #love #birthday #couple ♡.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%232%20%23love%20%23birthday%20%23couple%20%E2%99%A1.jpg",
+    "encodedUrl": "/covers/cover-021.jpg",
     "count": 2,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Sweethearts Couple ♡ Birthday 🎂 · 2-Cut Grid",
+    "title": "love birthday couple ♡ · 2-Cut Strip",
     "tags": [
       "propose",
       "love",
@@ -652,8 +715,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "couple"
     ],
     "allCandidateUrls": [
+      "/covers/cover-021.jpg",
+      "/templates/tmpl-user-021.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%232%20%23love%20%23birthday%20%23couple%20%E2%99%A1.jpg",
-      "/images/#propose #love #greeting #years #birthday/#2 #love #birthday #couple ♡.jpg"
+      "/images/propose_love_greeting_years_birthday/021.jpg",
+      "/templates/%232%20%23love%20%23birthday%20%23couple%20%E2%99%A1.jpg"
     ]
   },
   {
@@ -664,10 +730,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#3 #animation #love.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#3 #animation #love.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23animation%20%23love.jpg",
+    "encodedUrl": "/covers/cover-022.jpg",
     "count": 3,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Photo Booth Strip · 3-Cut Grid",
+    "title": "animation love · 3-Cut Strip",
     "tags": [
       "propose",
       "love",
@@ -678,8 +744,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "animation"
     ],
     "allCandidateUrls": [
+      "/covers/cover-022.jpg",
+      "/templates/tmpl-user-022.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23animation%20%23love.jpg",
-      "/images/#propose #love #greeting #years #birthday/#3 #animation #love.jpg"
+      "/images/propose_love_greeting_years_birthday/022.jpg",
+      "/templates/%233%20%23animation%20%23love.jpg"
     ]
   },
   {
@@ -690,10 +759,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#3 #asthetic.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#3 #asthetic.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23asthetic.jpg",
+    "encodedUrl": "/covers/cover-023.jpg",
     "count": 3,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Photo Booth Strip · 3-Cut Grid",
+    "title": "asthetic · 3-Cut Strip",
     "tags": [
       "propose",
       "love",
@@ -704,8 +773,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "asthetic"
     ],
     "allCandidateUrls": [
+      "/covers/cover-023.jpg",
+      "/templates/tmpl-user-023.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23asthetic.jpg",
-      "/images/#propose #love #greeting #years #birthday/#3 #asthetic.jpg"
+      "/images/propose_love_greeting_years_birthday/023.jpg",
+      "/templates/%233%20%23asthetic.jpg"
     ]
   },
   {
@@ -716,10 +788,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#3 #birthday.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#3 #birthday.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23birthday.jpg",
+    "encodedUrl": "/covers/cover-024.jpg",
     "count": 3,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Birthday 🎂 · 3-Cut Grid",
+    "title": "birthday · 3-Cut Strip",
     "tags": [
       "propose",
       "love",
@@ -729,8 +801,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "3"
     ],
     "allCandidateUrls": [
+      "/covers/cover-024.jpg",
+      "/templates/tmpl-user-024.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23birthday.jpg",
-      "/images/#propose #love #greeting #years #birthday/#3 #birthday.jpg"
+      "/images/propose_love_greeting_years_birthday/024.jpg",
+      "/templates/%233%20%23birthday.jpg"
     ]
   },
   {
@@ -741,10 +816,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#3 #love #asthetic.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#3 #love #asthetic.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23love%20%23asthetic.jpg",
+    "encodedUrl": "/covers/cover-025.jpg",
     "count": 3,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Photo Booth Strip · 3-Cut Grid",
+    "title": "love asthetic · 3-Cut Strip",
     "tags": [
       "propose",
       "love",
@@ -755,8 +830,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "asthetic"
     ],
     "allCandidateUrls": [
+      "/covers/cover-025.jpg",
+      "/templates/tmpl-user-025.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23love%20%23asthetic.jpg",
-      "/images/#propose #love #greeting #years #birthday/#3 #love #asthetic.jpg"
+      "/images/propose_love_greeting_years_birthday/025.jpg",
+      "/templates/%233%20%23love%20%23asthetic.jpg"
     ]
   },
   {
@@ -767,10 +845,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#3 #love #birthday #couple ♡.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#3 #love #birthday #couple ♡.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23love%20%23birthday%20%23couple%20%E2%99%A1.jpg",
+    "encodedUrl": "/covers/cover-026.jpg",
     "count": 3,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Sweethearts Couple ♡ Birthday 🎂 · 3-Cut Grid",
+    "title": "love birthday couple ♡ · 3-Cut Strip",
     "tags": [
       "propose",
       "love",
@@ -781,8 +859,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "couple"
     ],
     "allCandidateUrls": [
+      "/covers/cover-026.jpg",
+      "/templates/tmpl-user-026.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23love%20%23birthday%20%23couple%20%E2%99%A1.jpg",
-      "/images/#propose #love #greeting #years #birthday/#3 #love #birthday #couple ♡.jpg"
+      "/images/propose_love_greeting_years_birthday/026.jpg",
+      "/templates/%233%20%23love%20%23birthday%20%23couple%20%E2%99%A1.jpg"
     ]
   },
   {
@@ -793,10 +874,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#3 #love #letter #couple ♡.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#3 #love #letter #couple ♡.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23love%20%23letter%20%23couple%20%E2%99%A1.jpg",
+    "encodedUrl": "/covers/cover-027.jpg",
     "count": 3,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Sweethearts Couple ♡ · 3-Cut Grid",
+    "title": "love letter couple ♡ · 3-Cut Strip",
     "tags": [
       "propose",
       "love",
@@ -808,8 +889,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "couple"
     ],
     "allCandidateUrls": [
+      "/covers/cover-027.jpg",
+      "/templates/tmpl-user-027.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%233%20%23love%20%23letter%20%23couple%20%E2%99%A1.jpg",
-      "/images/#propose #love #greeting #years #birthday/#3 #love #letter #couple ♡.jpg"
+      "/images/propose_love_greeting_years_birthday/027.jpg",
+      "/templates/%233%20%23love%20%23letter%20%23couple%20%E2%99%A1.jpg"
     ]
   },
   {
@@ -820,10 +904,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #2year.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #2year.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%232year.jpg",
+    "encodedUrl": "/covers/cover-028.jpg",
     "count": 4,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Pink Pastel 🌸 Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink 2year · 4-Cut Strip",
     "tags": [
       "propose",
       "love",
@@ -842,8 +926,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "2year"
     ],
     "allCandidateUrls": [
+      "/covers/cover-028.jpg",
+      "/templates/tmpl-user-028.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%232year.jpg",
-      "/images/#propose #love #greeting #years #birthday/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #2year.jpg"
+      "/images/propose_love_greeting_years_birthday/028.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%232year.jpg"
     ]
   },
   {
@@ -854,10 +941,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#5 #love.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#5 #love.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%235%20%23love.jpg",
+    "encodedUrl": "/covers/cover-029.jpg",
     "count": 5,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Photo Booth Strip · 5-Cut Grid",
+    "title": "love · 5-Cut Collage",
     "tags": [
       "propose",
       "love",
@@ -867,8 +954,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "5"
     ],
     "allCandidateUrls": [
+      "/covers/cover-029.jpg",
+      "/templates/tmpl-user-029.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%235%20%23love.jpg",
-      "/images/#propose #love #greeting #years #birthday/#5 #love.jpg"
+      "/images/propose_love_greeting_years_birthday/029.jpg",
+      "/templates/%235%20%23love.jpg"
     ]
   },
   {
@@ -879,10 +969,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#propose #love #greeting #years #birthday",
     "fileName": "#6 #love #propose #story #couple ♡.jpg",
     "localPath": "/images/#propose #love #greeting #years #birthday/#6 #love #propose #story #couple ♡.jpg",
-    "encodedUrl": "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%236%20%23love%20%23propose%20%23story%20%23couple%20%E2%99%A1.jpg",
+    "encodedUrl": "/covers/cover-030.jpg",
     "count": 6,
     "category": "Propose & Birthday Keepsakes 🎂",
-    "title": "Sweethearts Couple ♡ Propose Keepsake 💍 · 6-Cut Grid",
+    "title": "love propose story couple ♡ · 6-Cut Collage",
     "tags": [
       "propose",
       "love",
@@ -894,8 +984,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "couple"
     ],
     "allCandidateUrls": [
+      "/covers/cover-030.jpg",
+      "/templates/tmpl-user-030.jpg",
       "/images/%23propose%20%23love%20%23greeting%20%23years%20%23birthday/%236%20%23love%20%23propose%20%23story%20%23couple%20%E2%99%A1.jpg",
-      "/images/#propose #love #greeting #years #birthday/#6 #love #propose #story #couple ♡.jpg"
+      "/images/propose_love_greeting_years_birthday/030.jpg",
+      "/templates/%236%20%23love%20%23propose%20%23story%20%23couple%20%E2%99%A1.jpg"
     ]
   },
   {
@@ -906,10 +999,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#1 #love #romantic #kiss #pose #couple ♡ #blur #birthday.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#1 #love #romantic #kiss #pose #couple ♡ #blur #birthday.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23birthday.jpg",
+    "encodedUrl": "/covers/cover-031.jpg",
     "count": 1,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ Soft Blur Birthday 🎂 · 1-Cut Solo",
+    "title": "love romantic kiss pose couple ♡ blur birthday · 1-Cut Solo",
     "tags": [
       "romantic",
       "love",
@@ -923,8 +1016,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "birthday"
     ],
     "allCandidateUrls": [
+      "/covers/cover-031.jpg",
+      "/templates/tmpl-user-031.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23birthday.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#1 #love #romantic #kiss #pose #couple ♡ #blur #birthday.jpg"
+      "/images/romantic_love_kisspose_aesthetic/031.jpg",
+      "/templates/%231%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23birthday.jpg"
     ]
   },
   {
@@ -935,10 +1031,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#2 #love #romantic #kiss #pose #aesthetic.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#2 #love #romantic #kiss #pose #aesthetic.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23aesthetic.jpg",
+    "encodedUrl": "/covers/cover-032.jpg",
     "count": 2,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ · 2-Cut Grid",
+    "title": "love romantic kiss pose aesthetic · 2-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -950,8 +1046,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "aesthetic"
     ],
     "allCandidateUrls": [
+      "/covers/cover-032.jpg",
+      "/templates/tmpl-user-032.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23aesthetic.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#2 #love #romantic #kiss #pose #aesthetic.jpg"
+      "/images/romantic_love_kisspose_aesthetic/032.jpg",
+      "/templates/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23aesthetic.jpg"
     ]
   },
   {
@@ -962,10 +1061,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#2 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#2 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink.jpg",
+    "encodedUrl": "/covers/cover-033.jpg",
     "count": 2,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Pink Pastel 🌸 Kiss Pose Couple ♡ Soft Blur · 2-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink · 2-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -981,8 +1080,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "pink"
     ],
     "allCandidateUrls": [
+      "/covers/cover-033.jpg",
+      "/templates/tmpl-user-033.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#2 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink.jpg"
+      "/images/romantic_love_kisspose_aesthetic/033.jpg",
+      "/templates/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink.jpg"
     ]
   },
   {
@@ -993,10 +1095,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#2 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#2 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated.jpg",
+    "encodedUrl": "/covers/cover-034.jpg",
     "count": 2,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ Soft Blur Cute · 2-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated · 2-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1011,8 +1113,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "animated"
     ],
     "allCandidateUrls": [
+      "/covers/cover-034.jpg",
+      "/templates/tmpl-user-034.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#2 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated.jpg"
+      "/images/romantic_love_kisspose_aesthetic/034.jpg",
+      "/templates/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated.jpg"
     ]
   },
   {
@@ -1023,10 +1128,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#2 #love #romantic #kiss #pose #couple ♡ #blur #evileye🧿.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#2 #love #romantic #kiss #pose #couple ♡ #blur #evileye🧿.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23evileye%F0%9F%A7%BF.jpg",
+    "encodedUrl": "/covers/cover-035.jpg",
     "count": 2,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ Soft Blur · 2-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur evileye🧿 · 2-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1040,8 +1145,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "evileye"
     ],
     "allCandidateUrls": [
+      "/covers/cover-035.jpg",
+      "/templates/tmpl-user-035.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23evileye%F0%9F%A7%BF.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#2 #love #romantic #kiss #pose #couple ♡ #blur #evileye🧿.jpg"
+      "/images/romantic_love_kisspose_aesthetic/035.jpg",
+      "/templates/%232%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23evileye%F0%9F%A7%BF.jpg"
     ]
   },
   {
@@ -1052,10 +1160,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #animated #couple ♡ #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #animated #couple ♡ #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23animated%20%23couple%20%E2%99%A1%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-036.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Sweethearts Couple ♡ Animated · 3-Cut Grid",
+    "title": "love romantic animated couple ♡ fun · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1067,8 +1175,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-036.jpg",
+      "/templates/tmpl-user-036.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23animated%20%23couple%20%E2%99%A1%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #animated #couple ♡ #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/036.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23animated%20%23couple%20%E2%99%A1%20%23fun.jpg"
     ]
   },
   {
@@ -1079,10 +1190,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #animated #dark #couple ♡ #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #animated #dark #couple ♡ #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23animated%20%23dark%20%23couple%20%E2%99%A1%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-037.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Sweethearts Couple ♡ Animated · 3-Cut Grid",
+    "title": "love romantic animated dark couple ♡ fun · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1095,8 +1206,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-037.jpg",
+      "/templates/tmpl-user-037.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23animated%20%23dark%20%23couple%20%E2%99%A1%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #animated #dark #couple ♡ #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/037.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23animated%20%23dark%20%23couple%20%E2%99%A1%20%23fun.jpg"
     ]
   },
   {
@@ -1107,10 +1221,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #couple ♡ #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #couple ♡ #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23couple%20%E2%99%A1%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-038.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Sweethearts Couple ♡ · 3-Cut Grid",
+    "title": "love romantic couple ♡ fun · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1121,8 +1235,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-038.jpg",
+      "/templates/tmpl-user-038.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23couple%20%E2%99%A1%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #couple ♡ #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/038.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23couple%20%E2%99%A1%20%23fun.jpg"
     ]
   },
   {
@@ -1133,10 +1250,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #animated #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #animated #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23animated%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-039.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ Soft Blur Animated · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur animated fun · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1151,8 +1268,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-039.jpg",
+      "/templates/tmpl-user-039.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23animated%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #animated #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/039.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23animated%20%23fun.jpg"
     ]
   },
   {
@@ -1163,10 +1283,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #basic.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #basic.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23basic.jpg",
+    "encodedUrl": "/covers/cover-040.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ Soft Blur · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur basic · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1180,8 +1300,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "basic"
     ],
     "allCandidateUrls": [
+      "/covers/cover-040.jpg",
+      "/templates/tmpl-user-040.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23basic.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #basic.jpg"
+      "/images/romantic_love_kisspose_aesthetic/040.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23basic.jpg"
     ]
   },
   {
@@ -1192,10 +1315,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #bestie.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #bestie.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23bestie.jpg",
+    "encodedUrl": "/covers/cover-041.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Pink Pastel 🌸 Kiss Pose Couple ♡ Soft Blur · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink bestie · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1212,8 +1335,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "bestie"
     ],
     "allCandidateUrls": [
+      "/covers/cover-041.jpg",
+      "/templates/tmpl-user-041.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23bestie.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #bestie.jpg"
+      "/images/romantic_love_kisspose_aesthetic/041.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23bestie.jpg"
     ]
   },
   {
@@ -1224,10 +1350,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-042.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Pink Pastel 🌸 Kiss Pose Couple ♡ Soft Blur · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink fun · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1244,8 +1370,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-042.jpg",
+      "/templates/tmpl-user-042.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/042.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23fun.jpg"
     ]
   },
   {
@@ -1256,10 +1385,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #kiss #pose #couple ♡ #blur #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-043.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ Soft Blur · 3-Cut Grid",
+    "title": "love romantic kiss pose couple ♡ blur fun · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1273,8 +1402,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-043.jpg",
+      "/templates/tmpl-user-043.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose #couple ♡ #blur #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/043.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23fun.jpg"
     ]
   },
   {
@@ -1285,10 +1417,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #kiss #pose 🎀.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose 🎀.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%F0%9F%8E%80.jpg",
+    "encodedUrl": "/covers/cover-044.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ · 3-Cut Grid",
+    "title": "love romantic kiss pose 🎀 · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1299,8 +1431,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "pose"
     ],
     "allCandidateUrls": [
+      "/covers/cover-044.jpg",
+      "/templates/tmpl-user-044.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%F0%9F%8E%80.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #kiss #pose 🎀.jpg"
+      "/images/romantic_love_kisspose_aesthetic/044.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23kiss%20%23pose%20%F0%9F%8E%80.jpg"
     ]
   },
   {
@@ -1311,10 +1446,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#3 #love #romantic #pose #couple ♡ #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #pose #couple ♡ #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23pose%20%23couple%20%E2%99%A1%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-045.jpg",
     "count": 3,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Sweethearts Couple ♡ · 3-Cut Grid",
+    "title": "love romantic pose couple ♡ fun · 3-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1326,8 +1461,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-045.jpg",
+      "/templates/tmpl-user-045.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%233%20%23love%20%23romantic%20%23pose%20%23couple%20%E2%99%A1%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#3 #love #romantic #pose #couple ♡ #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/045.jpg",
+      "/templates/%233%20%23love%20%23romantic%20%23pose%20%23couple%20%E2%99%A1%20%23fun.jpg"
     ]
   },
   {
@@ -1338,10 +1476,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #animated #couple ♡.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #animated #couple ♡.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23animated%20%23couple%20%E2%99%A1.jpg",
+    "encodedUrl": "/covers/cover-046.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Sweethearts Couple ♡ Animated · 4-Cut Classic Strip",
+    "title": "love romantic animated couple ♡ · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1352,8 +1490,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "couple"
     ],
     "allCandidateUrls": [
+      "/covers/cover-046.jpg",
+      "/templates/tmpl-user-046.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23animated%20%23couple%20%E2%99%A1.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #animated #couple ♡.jpg"
+      "/images/romantic_love_kisspose_aesthetic/046.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23animated%20%23couple%20%E2%99%A1.jpg"
     ]
   },
   {
@@ -1364,10 +1505,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #animated #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #animated #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23animated%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-047.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ Soft Blur Animated · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur animated fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1382,8 +1523,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-047.jpg",
+      "/templates/tmpl-user-047.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23animated%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #animated #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/047.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23animated%20%23fun.jpg"
     ]
   },
   {
@@ -1394,10 +1538,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #cat #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #cat #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23cat%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-048.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Pink Pastel 🌸 Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink cat fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1415,8 +1559,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-048.jpg",
+      "/templates/tmpl-user-048.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23cat%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #cat #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/048.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23cat%20%23fun.jpg"
     ]
   },
   {
@@ -1427,10 +1574,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-049.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Spider 🕸️ Pink Pastel 🌸 Kiss Pose Couple ♡ · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink spider fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1448,8 +1595,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-049.jpg",
+      "/templates/tmpl-user-049.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #spider #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/049.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23spider%20%23fun.jpg"
     ]
   },
   {
@@ -1460,10 +1610,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #zootopia🍄#fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #zootopia🍄#fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23zootopia%F0%9F%8D%84%23fun.jpg",
+    "encodedUrl": "/covers/cover-050.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Pink Pastel 🌸 Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink zootopia🍄 fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1481,8 +1631,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-050.jpg",
+      "/templates/tmpl-user-050.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23zootopia%F0%9F%8D%84%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink #zootopia🍄#fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/050.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink%20%23zootopia%F0%9F%8D%84%23fun.jpg"
     ]
   },
   {
@@ -1493,10 +1646,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink.jpg",
+    "encodedUrl": "/covers/cover-051.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Pink Pastel 🌸 Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur cute animated pink · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1512,8 +1665,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "pink"
     ],
     "allCandidateUrls": [
+      "/covers/cover-051.jpg",
+      "/templates/tmpl-user-051.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #cute #animated #pink.jpg"
+      "/images/romantic_love_kisspose_aesthetic/051.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23cute%20%23animated%20%23pink.jpg"
     ]
   },
   {
@@ -1524,10 +1680,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #dark #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #dark #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23dark%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-052.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur dark fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1542,8 +1698,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-052.jpg",
+      "/templates/tmpl-user-052.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23dark%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #dark #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/052.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23dark%20%23fun.jpg"
     ]
   },
   {
@@ -1554,10 +1713,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #blur #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-053.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ blur fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1571,8 +1730,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-053.jpg",
+      "/templates/tmpl-user-053.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #blur #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/053.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23blur%20%23fun.jpg"
     ]
   },
   {
@@ -1583,10 +1745,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #bright #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #bright #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23bright%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-054.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ bright fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1600,8 +1762,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-054.jpg",
+      "/templates/tmpl-user-054.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23bright%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #bright #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/054.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23bright%20%23fun.jpg"
     ]
   },
   {
@@ -1612,10 +1777,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #couple ♡ #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-055.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose couple ♡ fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1628,8 +1793,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-055.jpg",
+      "/templates/tmpl-user-055.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #couple ♡ #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/055.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23couple%20%E2%99%A1%20%23fun.jpg"
     ]
   },
   {
@@ -1640,10 +1808,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #kiss #pose #dark #couple ♡ #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #dark #couple ♡ #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23dark%20%23couple%20%E2%99%A1%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-056.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ · 4-Cut Classic Strip",
+    "title": "love romantic kiss pose dark couple ♡ fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1657,8 +1825,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-056.jpg",
+      "/templates/tmpl-user-056.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23dark%20%23couple%20%E2%99%A1%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #kiss #pose #dark #couple ♡ #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/056.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23kiss%20%23pose%20%23dark%20%23couple%20%E2%99%A1%20%23fun.jpg"
     ]
   },
   {
@@ -1669,10 +1840,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #purple #kiss #couple ♡ #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #purple #kiss #couple ♡ #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23purple%20%23kiss%20%23couple%20%E2%99%A1%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-057.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Kiss Pose Couple ♡ · 4-Cut Classic Strip",
+    "title": "love romantic purple kiss couple ♡ fun · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1685,8 +1856,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-057.jpg",
+      "/templates/tmpl-user-057.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23purple%20%23kiss%20%23couple%20%E2%99%A1%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #purple #kiss #couple ♡ #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/057.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23purple%20%23kiss%20%23couple%20%E2%99%A1%20%23fun.jpg"
     ]
   },
   {
@@ -1697,10 +1871,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic #purple.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #purple.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23purple.jpg",
+    "encodedUrl": "/covers/cover-058.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Photo Booth Strip · 4-Cut Classic Strip",
+    "title": "love romantic purple · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1710,8 +1884,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "purple"
     ],
     "allCandidateUrls": [
+      "/covers/cover-058.jpg",
+      "/templates/tmpl-user-058.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic%20%23purple.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic #purple.jpg"
+      "/images/romantic_love_kisspose_aesthetic/058.jpg",
+      "/templates/%234%20%23love%20%23romantic%20%23purple.jpg"
     ]
   },
   {
@@ -1722,10 +1899,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#4 #love #romantic.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic.jpg",
+    "encodedUrl": "/covers/cover-059.jpg",
     "count": 4,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Photo Booth Strip · 4-Cut Classic Strip",
+    "title": "love romantic · 4-Cut Strip",
     "tags": [
       "romantic",
       "love",
@@ -1734,8 +1911,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "4"
     ],
     "allCandidateUrls": [
+      "/covers/cover-059.jpg",
+      "/templates/tmpl-user-059.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%234%20%23love%20%23romantic.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#4 #love #romantic.jpg"
+      "/images/romantic_love_kisspose_aesthetic/059.jpg",
+      "/templates/%234%20%23love%20%23romantic.jpg"
     ]
   },
   {
@@ -1746,10 +1926,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#6 #love #romantic #animated #pose #couple ♡ #fun.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#6 #love #romantic #animated #pose #couple ♡ #fun.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%236%20%23love%20%23romantic%20%23animated%20%23pose%20%23couple%20%E2%99%A1%20%23fun.jpg",
+    "encodedUrl": "/covers/cover-060.jpg",
     "count": 6,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Sweethearts Couple ♡ Animated · 6-Cut Grid",
+    "title": "love romantic animated pose couple ♡ fun · 6-Cut Collage",
     "tags": [
       "romantic",
       "love",
@@ -1762,8 +1942,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "fun"
     ],
     "allCandidateUrls": [
+      "/covers/cover-060.jpg",
+      "/templates/tmpl-user-060.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%236%20%23love%20%23romantic%20%23animated%20%23pose%20%23couple%20%E2%99%A1%20%23fun.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#6 #love #romantic #animated #pose #couple ♡ #fun.jpg"
+      "/images/romantic_love_kisspose_aesthetic/060.jpg",
+      "/templates/%236%20%23love%20%23romantic%20%23animated%20%23pose%20%23couple%20%E2%99%A1%20%23fun.jpg"
     ]
   },
   {
@@ -1774,10 +1957,10 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
     "folder": "#romantic #love #kisspose #asthetic",
     "fileName": "#8 #love #romantic #animated #pose #couple ♡.jpg",
     "localPath": "/images/#romantic #love #kisspose #asthetic/#8 #love #romantic #animated #pose #couple ♡.jpg",
-    "encodedUrl": "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%238%20%23love%20%23romantic%20%23animated%20%23pose%20%23couple%20%E2%99%A1.jpg",
+    "encodedUrl": "/covers/cover-061.jpg",
     "count": 8,
     "category": "Romantic Kiss Pose Aesthetic ♡",
-    "title": "Sweethearts Couple ♡ Animated · 8-Cut Grid",
+    "title": "love romantic animated pose couple ♡ · 8-Cut Collage",
     "tags": [
       "romantic",
       "love",
@@ -1789,8 +1972,11 @@ export const PHYSICAL_ASSETS: TemplateImageAsset[] = [
       "couple"
     ],
     "allCandidateUrls": [
+      "/covers/cover-061.jpg",
+      "/templates/tmpl-user-061.jpg",
       "/images/%23romantic%20%23love%20%23kisspose%20%23asthetic/%238%20%23love%20%23romantic%20%23animated%20%23pose%20%23couple%20%E2%99%A1.jpg",
-      "/images/#romantic #love #kisspose #asthetic/#8 #love #romantic #animated #pose #couple ♡.jpg"
+      "/images/romantic_love_kisspose_aesthetic/061.jpg",
+      "/templates/%238%20%23love%20%23romantic%20%23animated%20%23pose%20%23couple%20%E2%99%A1.jpg"
     ]
   }
 ]
@@ -1806,6 +1992,8 @@ PHYSICAL_ASSETS.forEach((asset) => {
   ASSET_BY_ID[asset.numericId] = asset
   ASSET_BY_ID[`tmpl-${asset.index}`] = asset
   ASSET_BY_ID[`tmpl-user-${asset.index}`] = asset
+  ASSET_BY_ID[`tmpl-user-${String(asset.index).padStart(3, "0")}`] = asset
+  ASSET_BY_ID[asset.fileName] = asset
 })
 
 // Common aliases fallback
@@ -1819,12 +2007,7 @@ export const TEMPLATE_IMAGE_MAPPINGS: Record<string, TemplateImageAsset> = ASSET
  * Robust Template Asset Resolver
  *
  * Maps any template ID (like 'tmpl-001', 'tmpl-user-001', '1', 'four-cut')
- * or template object to its corresponding physical asset in the local /images folder structure.
- *
- * Guarantees:
- * 1. Only paths starting with '/images/' are returned.
- * 2. No remote URLs (http/https) are ever returned.
- * 3. No generated SVGs or placeholders are ever returned.
+ * or template object to its corresponding physical asset in the local Images folder structure.
  */
 export function resolveTemplateLocalAsset(
   input?: string | { id?: string; name?: string; category?: string } | null
@@ -1863,10 +2046,10 @@ export function resolveTemplateLocalAsset(
       return PHYSICAL_ASSETS[0] // Folder 1
     }
     if (cat.includes("propose") || cat.includes("birthday") || cat.includes("greeting")) {
-      return PHYSICAL_ASSETS[16] // Folder 2 (starts at asset 17)
+      return PHYSICAL_ASSETS[16] // Folder 2
     }
     if (cat.includes("romantic") || cat.includes("kiss") || cat.includes("couple")) {
-      return PHYSICAL_ASSETS[30] // Folder 3 (starts at asset 31)
+      return PHYSICAL_ASSETS[30] // Folder 3
     }
   }
 
@@ -1889,7 +2072,7 @@ export function getTemplateImageMapping(id: string): TemplateImageAsset {
 
 /**
  * Backward compatibility: getTemplateLocalImage
- * Returns the primary encoded URL exclusively from the local /images folder structure.
+ * Returns the primary encoded URL exclusively from the local /covers or /images folder structure.
  */
 export function getTemplateLocalImage(templateId: string, _legacyFallback?: string): string {
   const asset = resolveTemplateLocalAsset(templateId)
@@ -1898,7 +2081,7 @@ export function getTemplateLocalImage(templateId: string, _legacyFallback?: stri
 
 /**
  * Backward compatibility: getTemplateLocalImageCandidates
- * Returns candidate paths derived EXCLUSIVELY from the local /images folder structure.
+ * Returns candidate paths derived EXCLUSIVELY from the authentic image assets.
  */
 export function getTemplateLocalImageCandidates(templateId: string, _legacyFallback?: string): string[] {
   const asset = resolveTemplateLocalAsset(templateId)

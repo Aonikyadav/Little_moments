@@ -42,7 +42,7 @@ import type {
   PhotoTemplate,
 } from "../types"
 import { defaultAdjustments } from "../types"
-import { getTemplate, templatesForCount } from "../templates"
+import { getTemplate, templates, templatesForCount } from "../templates"
 import { loadImage, renderComposition } from "../rendering"
 import { adjustmentControls } from "./pixels"
 import { filterPresets } from "./filters"
@@ -57,6 +57,13 @@ import {
 import type { FramePreset } from "./assets"
 import useFontRevision from "./useFontRevision"
 import { TemplateThumbnail } from "../components/TemplateThumbnail"
+import {
+  ASPECT_RATIOS,
+  GRID_LAYOUTS,
+  findGridLayout,
+  getLayoutsForCount,
+} from "./gridEngine"
+import type { AspectRatioId, GridLayout } from "./gridEngine"
 import {
   deleteLayer,
   dimensions,
@@ -79,14 +86,24 @@ type Props = {
   notify: (s: string) => void
 }
 const tools = [
+  { name: "Grid", icon: Grid2X2 },
+  { name: "Templates", icon: Sparkles },
   { name: "Frames", icon: Frame },
-  { name: "Layout", icon: Grid2X2 },
   { name: "Adjust", icon: SlidersHorizontal },
-  { name: "Filters", icon: Sparkles },
+  { name: "Filters", icon: WandSparkles },
   { name: "Stickers", icon: Sticker },
   { name: "Text", icon: Type },
   { name: "Background", icon: Paintbrush },
   { name: "Layers", icon: Layers },
+]
+
+const samplePhotos = [
+  "/photos/couple.jpg",
+  "/photos/booth.jpg",
+  "/photos/kiss.jpg",
+  "/photos/friends.jpg",
+  "/photos/moments.jpg",
+  "/photos/bday.jpg",
 ]
 const colors = [
   "#f8f2e6",
@@ -279,7 +296,11 @@ export default function Studio({
   saveStatus,
   notify,
 }: Props) {
-  const [tool, setTool] = useState("Frames"),
+  const [tool, setTool] = useState("Grid"),
+    [studioTab, setStudioTab] = useState<"grid" | "template">("grid"),
+    [gridCountFilter, setGridCountFilter] = useState<number | "all">("all"),
+    [templateCategoryFilter, setTemplateCategoryFilter] = useState<string>("All styles"),
+    [swapTarget, setSwapTarget] = useState<string | null>(null),
     [selected, setSelected] = useState(c.photos[0]?.id ?? ""),
     [multi, setMulti] = useState<string[]>([]),
     [search, setSearch] = useState(""),
@@ -384,6 +405,8 @@ export default function Studio({
   const setPanel = (name: string) => {
     contextStart.current = c
     setTool(name)
+    if (name === "Grid") setStudioTab("grid")
+    if (name === "Templates") setStudioTab("template")
     setSearch("")
     setLibraryPage(0)
     setFrameCandidate(null)
@@ -482,18 +505,96 @@ export default function Studio({
     window.addEventListener("keydown", key)
     return () => window.removeEventListener("keydown", key)
   }, [c, selected])
-  const switchLayout = (t: PhotoTemplate) => {
-    if (t.count !== c.photos.length) {
-      notify("This layout cannot hold all your photos. Nothing was changed.")
-      return
+  const applyGridLayout = (gl: GridLayout) => {
+    const requiredCount = gl.count
+    let nextPhotos = [...c.photos]
+
+    if (nextPhotos.length < requiredCount) {
+      let sourceIdx = 0
+      while (nextPhotos.length < requiredCount) {
+        const src = samplePhotos[sourceIdx % samplePhotos.length]
+        nextPhotos.push({
+          id: crypto.randomUUID(),
+          src,
+          name: `Photo ${nextPhotos.length + 1}`,
+          adjustments: defaultAdjustments(),
+        })
+        sourceIdx++
+      }
+    } else if (nextPhotos.length > requiredCount) {
+      nextPhotos = nextPhotos.slice(0, requiredCount)
     }
+
     commit({
       ...c,
       mode: "guided",
-      templateId: t.id,
-      photos: c.photos.map((p) => ({ ...p, transform: undefined })),
+      gridLayoutId: gl.id,
+      photos: nextPhotos.map((p) => ({ ...p, transform: undefined })),
     })
-    notify("Layout changed. Photos and adjustments preserved.")
+    notify(`Applied ${gl.name} (${gl.count} photos)`)
+  }
+
+  const applyTemplate = (t: PhotoTemplate) => {
+    let nextPhotos = [...c.photos]
+    if (nextPhotos.length < t.count) {
+      let sourceIdx = 0
+      while (nextPhotos.length < t.count) {
+        const src = samplePhotos[sourceIdx % samplePhotos.length]
+        nextPhotos.push({
+          id: crypto.randomUUID(),
+          src,
+          name: `Photo ${nextPhotos.length + 1}`,
+          adjustments: defaultAdjustments(),
+        })
+        sourceIdx++
+      }
+    } else if (nextPhotos.length > t.count) {
+      nextPhotos = nextPhotos.slice(0, t.count)
+    }
+
+    const next: Composition = {
+      ...c,
+      mode: "guided",
+      templateId: t.id,
+      gridLayoutId: undefined,
+      photos: nextPhotos.map((p) => ({ ...p, transform: undefined })),
+    }
+
+    if (t.background) {
+      next.background = t.background
+    }
+    if (t.backgroundPattern) {
+      next.backgroundPattern = t.backgroundPattern
+    }
+    if (t.frameId) {
+      next.frameId = t.frameId
+    }
+    if (t.frameColor) {
+      next.frameColor = t.frameColor
+    }
+
+    commit(next)
+    notify(`Applied template: ${t.name}`)
+  }
+
+  const swapPhotos = (idA: string, idB: string) => {
+    const idxA = c.photos.findIndex((p) => p.id === idA)
+    const idxB = c.photos.findIndex((p) => p.id === idB)
+    if (idxA < 0 || idxB < 0 || idxA === idxB) return
+    const nextPhotos = [...c.photos]
+    const temp = nextPhotos[idxA]
+    nextPhotos[idxA] = nextPhotos[idxB]
+    nextPhotos[idxB] = temp
+    commit({
+      ...c,
+      photos: nextPhotos,
+    })
+    setSwapTarget(null)
+    notify("Photo positions swapped!")
+  }
+
+  const switchLayout = (t: PhotoTemplate) => {
+    applyTemplate(t)
   }
   const reshapePhoto = async (ratio: string) => {
     if (!photo || photo.locked) return
@@ -1009,7 +1110,7 @@ export default function Studio({
                     notify(
                       "Choose a compatible layout first. All photos will be kept.",
                     )
-                    setPanel("Layout")
+                    setPanel("Grid")
                     return
                   }
                   commit({ ...c, mode: "guided" })
@@ -1260,6 +1361,30 @@ export default function Studio({
             </div>
           </div>
 
+          {/* PicCollage canvas action buttons */}
+          <div className="piccollage-canvas-actions">
+            <button
+              type="button"
+              className="piccollage-canvas-btn btn-secondary"
+              onClick={() => {
+                setReplacing(false)
+                importInput.current?.click()
+              }}
+            >
+              <ImagePlus size={16} />
+              <span>Add More Photos</span>
+            </button>
+            <button
+              type="button"
+              className="piccollage-canvas-btn btn-primary"
+              onClick={onSave}
+              title="Save high-resolution collage"
+            >
+              <Download size={16} />
+              <span>Save Image</span>
+            </button>
+          </div>
+
           <div className="studio-photo-dock">
             <div className="photo-dock-title">
               <span>
@@ -1276,16 +1401,46 @@ export default function Studio({
               </button>
             </div>
             <div className="dock-photos">
-              {c.photos.map((p, i) => (
-                <button
-                  className={selected === p.id ? "selected" : ""}
-                  onClick={() => setSelected(p.id)}
-                  key={p.id}
-                >
-                  <img src={p.src} alt={`Select photo ${i + 1}`} />
-                  <span>{String(i + 1).padStart(2, "0")}</span>
-                </button>
-              ))}
+              {c.photos.map((p, i) => {
+                const isSelected = selected === p.id
+                const isSwapTarget = swapTarget === p.id
+                return (
+                  <div key={p.id} className="relative group flex-shrink-0">
+                    <button
+                      type="button"
+                      className={`${isSelected ? "selected" : ""} ${isSwapTarget ? "ring-2 ring-amber-500 scale-105" : ""}`}
+                      onClick={() => {
+                        if (swapTarget && swapTarget !== p.id) {
+                          swapPhotos(swapTarget, p.id)
+                        } else {
+                          setSelected(p.id)
+                        }
+                      }}
+                    >
+                      <img src={p.src} alt={`Select photo ${i + 1}`} />
+                      <span>{String(i + 1).padStart(2, "0")}</span>
+                    </button>
+                    {isSelected && (
+                      <button
+                        type="button"
+                        className="dock-swap-btn"
+                        title={swapTarget === p.id ? "Cancel swap" : "Swap photo position"}
+                        aria-label="Swap position with another photo"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const nextTarget = swapTarget === p.id ? null : p.id
+                          setSwapTarget(nextTarget)
+                          if (nextTarget) {
+                            notify("Tap another photo in the dock to swap positions")
+                          }
+                        }}
+                      >
+                        ⇄
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
               <button
                 className="dock-add"
                 aria-label="Add photographs"
@@ -1390,8 +1545,10 @@ export default function Studio({
                         ? "Every little piece."
                         : tool === "Stickers"
                           ? "Little things. Big personality."
-                          : tool === "Layout"
-                            ? "Give your moments room."
+                          : tool === "Grid"
+                            ? "Dynamic grids & aspect ratios."
+                            : tool === "Templates"
+                              ? "Scrapbook & photo designs."
                             : tool === "Text"
                               ? "Put it into words."
                               : "Set the scene."}
@@ -1600,90 +1757,304 @@ export default function Studio({
                 </div>
               </>
             )}
-            {tool === "Layout" && (
+            {(tool === "Grid" || tool === "Templates") && (
               <>
-                <p className="inspector-intro">
-                  Layouts arrange your photos. Frames add the finishing touch.
-                  Switch either without losing your edits.
-                </p>
-                <div className="ratio-select">
-                  <span className="mini-label">CANVAS SIZE</span>
-                  <select
-                    aria-label="Canvas aspect ratio"
-                    value={c.aspectRatio ?? "original"}
-                    onChange={(e) =>
-                      commit({
-                        ...c,
-                        aspectRatio: e.target
-                          .value as Composition["aspectRatio"],
-                      })
-                    }
-                  >
-                    <option value="original">
-                      Original · {template.width} × {template.height}
-                    </option>
-                    <option value="square">Square · 1800 × 1800</option>
-                    <option value="story">Story · 1440 × 2560</option>
-                    <option value="landscape">Landscape · 2400 × 1600</option>
-                  </select>
-                </div>
-                <div className="layout-card-grid">
-                  {templatesForCount(
-                    c.photos.length as PhotoTemplate["count"],
-                  ).map((t) => (
-                    <button
-                      className={
-                        c.mode !== "freeform" && c.templateId === t.id
-                          ? "active"
-                          : ""
-                      }
-                      key={t.id}
-                      onClick={() => switchLayout(t)}
-                    >
-                      <div
-                        className="layout-mini overflow-hidden rounded-[2px]"
-                        style={{
-                          aspectRatio: `${t.width}/${t.height}`,
-                          minHeight: "100px",
-                        }}
-                      >
-                        <TemplateThumbnail template={t} className="w-full h-full object-contain" />
-                      </div>
-                      <strong className="text-xs truncate">{t.name}</strong>
-                    </button>
-                  ))}
+                <div className="piccollage-tab-header">
                   <button
-                    className={c.mode === "freeform" ? "active" : ""}
-                    onClick={() => commit(enterFreeform(c, template))}
+                    type="button"
+                    className={`piccollage-top-tab ${studioTab === "grid" ? "active" : ""}`}
+                    onClick={() => {
+                      setStudioTab("grid")
+                      setTool("Grid")
+                    }}
                   >
-                    <div className="freeform-illustration">
-                      <ImagesIllustration />
-                    </div>
-                    <strong>My own arrangement</strong>
-                    <span>Drag, overlap, make it yours</span>
+                    Grid
+                  </button>
+                  <button
+                    type="button"
+                    className={`piccollage-top-tab ${studioTab === "template" ? "active" : ""}`}
+                    onClick={() => {
+                      setStudioTab("template")
+                      setTool("Templates")
+                    }}
+                  >
+                    Templates
                   </button>
                 </div>
-                <button
-                  className="button secondary wide"
-                  onClick={() => {
-                    const base = enterFreeform(c, template)
-                    commit({
-                      ...base,
-                      photos: base.photos.map((p, i) => ({
-                        ...p,
-                        transform: {
-                          x: 8 + (i % 3) * 28,
-                          y: 8 + Math.floor(i / 3) * 28,
-                          width: 35,
-                          height: 35,
-                          rotation: i % 2 ? 6 : -6,
-                        },
-                      })),
-                    })
-                  }}
-                >
-                  Try a scattered scrapbook layout
-                </button>
+
+                {studioTab === "grid" ? (
+                  <>
+                    <p className="inspector-intro">
+                      Pick an aspect ratio and dynamic grid wireframe. Adjust borders, spacing, and surface finishes.
+                    </p>
+
+                    {/* Aspect Ratio Row */}
+                    <div className="piccollage-ratio-row">
+                      {ASPECT_RATIOS.map((r) => {
+                        const isCurrentRatio = (c.aspectRatio ?? "1:1") === r.id
+                        return (
+                          <button
+                            type="button"
+                            key={r.id}
+                            className={`piccollage-ratio-chip ${isCurrentRatio ? "active" : ""}`}
+                            onClick={() => commit({ ...c, aspectRatio: r.id })}
+                            title={`${r.sublabel} · ${r.label}`}
+                          >
+                            <span className={`ratio-box-icon ${r.iconType}`} />
+                            <span>{r.label}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    {/* Cut filter chips */}
+                    <div className="piccollage-filter-row">
+                      <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Cuts:</span>
+                      {(["all", 2, 3, 4, 5, 6, 8, 9] as const).map((cnt) => (
+                        <button
+                          type="button"
+                          key={cnt}
+                          className={`px-2.5 py-0.5 text-xs rounded-full border transition-all ${
+                            gridCountFilter === cnt
+                              ? "bg-stone-900 text-white border-stone-900"
+                              : "bg-white text-stone-700 border-stone-200 hover:border-stone-400"
+                          }`}
+                          onClick={() => setGridCountFilter(cnt)}
+                        >
+                          {cnt === "all" ? "All" : `${cnt}`}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Wireframe Grid Cards */}
+                    <div className="piccollage-grid-cards">
+                      {GRID_LAYOUTS.filter((gl) =>
+                        gridCountFilter === "all" ? true : gl.count === gridCountFilter,
+                      ).map((gl) => {
+                        const isActive = c.gridLayoutId === gl.id
+                        return (
+                          <button
+                            type="button"
+                            key={gl.id}
+                            className={`piccollage-card ${isActive ? "active" : ""}`}
+                            onClick={() => applyGridLayout(gl)}
+                            title={`${gl.name} (${gl.count} photos)`}
+                          >
+                            <div className="card-wireframe">
+                              {gl.wireframe.map((cell, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`wf-cell ${isActive ? "wf-cell-active" : ""}`}
+                                  style={{
+                                    left: `${cell.x}%`,
+                                    top: `${cell.y}%`,
+                                    width: `${cell.w}%`,
+                                    height: `${cell.h}%`,
+                                  }}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-[11px] font-medium text-stone-700 truncate w-full text-center mt-1">
+                              {gl.name}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    {/* Grid Spacing, Padding, and Radius Controls */}
+                    <div className="bg-stone-50 p-3 rounded-xl border border-stone-200/80 mt-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-semibold text-stone-700">
+                        <span>Border & Spacing</span>
+                        <span className="text-stone-400 font-mono text-[10px]">{c.spacing}% gap</span>
+                      </div>
+                      <Range
+                        label="Photo spacing (gap)"
+                        value={c.spacing}
+                        min={0}
+                        max={10}
+                        step={0.5}
+                        onChange={(v) => commit({ ...c, spacing: v })}
+                        onReset={() => commit({ ...c, spacing: 2 })}
+                      />
+                      <Range
+                        label="Border padding (outer margin)"
+                        value={c.padding ?? 3}
+                        min={0}
+                        max={10}
+                        step={0.5}
+                        onChange={(v) => commit({ ...c, padding: v })}
+                        onReset={() => commit({ ...c, padding: 3 })}
+                      />
+                      <Range
+                        label="Corner roundness"
+                        value={c.radius}
+                        min={0}
+                        max={30}
+                        step={1}
+                        onChange={(v) => commit({ ...c, radius: v })}
+                        onReset={() => commit({ ...c, radius: 0 })}
+                      />
+
+                      <div className="pt-2">
+                        <span className="mini-label">BORDER & CANVAS COLOR</span>
+                        <Swatches
+                          value={c.background ?? "#ffffff"}
+                          onChange={(v) => commit({ ...c, background: v })}
+                        />
+                      </div>
+
+                      <div className="pt-2">
+                        <span className="mini-label">SURFACE TEXTURE</span>
+                        <select
+                          className="w-full text-xs py-1.5 px-2 rounded-lg border border-stone-200 bg-white"
+                          value={c.backgroundPattern ?? "none"}
+                          onChange={(e) =>
+                            commit({
+                              ...c,
+                              backgroundPattern: e.target.value === "none" ? undefined : e.target.value,
+                            })
+                          }
+                        >
+                          <option value="none">Solid Color</option>
+                          <option value="Summer grass">Summer grass lawn 🌿</option>
+                          <option value="Checkerboard">Checkerboard</option>
+                          <option value="Grid notebook">Grid notebook paper</option>
+                          <option value="Linen paper">Linen paper</option>
+                          <option value="Watercolor wash">Watercolor wash</option>
+                          <option value="Halftone dots">Halftone dots</option>
+                          <option value="Terrazzo stone">Terrazzo stone</option>
+                          <option value="Woodgrain">Woodgrain</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="button secondary wide mt-3"
+                      onClick={() => commit(enterFreeform(c, template))}
+                    >
+                      Freeform drag & scatter layout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="inspector-intro">
+                      Choose from signature scrapbooks, romantic kiss pose aesthetic, and keepsake templates.
+                    </p>
+
+                    {/* Templates Tab */}
+                    <div className="library-chips">
+                      {[
+                        "All styles",
+                        "Scrapbook & Summer Grass 🌿",
+                        "Romantic Kiss Pose Aesthetic ♡",
+                        "Propose & Birthday Keepsakes 🎂",
+                        "Cool & Spider Animated 🕸️",
+                      ].map((cat) => (
+                        <button
+                          type="button"
+                          className={templateCategoryFilter === cat ? "active" : ""}
+                          key={cat}
+                          onClick={() => {
+                            setTemplateCategoryFilter(cat)
+                            setLibraryPage(0)
+                          }}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="layout-card-grid">
+                      {templates
+                        .filter((t) => {
+                          if (templateCategoryFilter === "Scrapbook & Summer Grass 🌿") {
+                            return (
+                              t.id.includes("piccollage") ||
+                              t.tags?.includes("scrapbook") ||
+                              t.tags?.includes("piccollage") ||
+                              t.name.toLowerCase().includes("scrapbook")
+                            )
+                          }
+                          if (templateCategoryFilter !== "All styles") {
+                            const filterWord = templateCategoryFilter.toLowerCase().split(" ")[0]
+                            return (
+                              t.category.toLowerCase().includes(filterWord) ||
+                              t.tags?.some((tg) => tg.toLowerCase().includes(filterWord))
+                            )
+                          }
+                          return true
+                        })
+                        .map((t) => {
+                          const isActive = c.templateId === t.id && !c.gridLayoutId
+                          return (
+                            <button
+                              type="button"
+                              className={`layout-card-btn text-left p-2 rounded-xl border transition-all ${
+                                isActive
+                                  ? "border-teal-500 bg-teal-50/50 shadow-sm ring-2 ring-teal-400"
+                                  : "border-stone-200 bg-white hover:border-stone-400"
+                              }`}
+                              key={t.id}
+                              onClick={() => applyTemplate(t)}
+                            >
+                              <div
+                                className="layout-mini overflow-hidden rounded-md border border-stone-200/60 bg-stone-100 mb-1.5"
+                                style={{
+                                  aspectRatio: `${t.width}/${t.height}`,
+                                  minHeight: "110px",
+                                }}
+                              >
+                                <TemplateThumbnail template={t} className="w-full h-full object-contain" />
+                              </div>
+                              <strong className="text-xs truncate block text-stone-900 font-medium">
+                                {t.name}
+                              </strong>
+                              <span className="text-[10px] text-stone-500 block">
+                                {t.count} photos · {t.orientation}
+                              </span>
+                            </button>
+                          )
+                        })}
+
+                      <button
+                        type="button"
+                        className={c.mode === "freeform" ? "active" : ""}
+                        onClick={() => commit(enterFreeform(c, template))}
+                      >
+                        <div className="freeform-illustration">
+                          <ImagesIllustration />
+                        </div>
+                        <strong>My own arrangement</strong>
+                        <span>Drag, overlap, make it yours</span>
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="button secondary wide mt-3"
+                      onClick={() => {
+                        const base = enterFreeform(c, template)
+                        commit({
+                          ...base,
+                          photos: base.photos.map((p, i) => ({
+                            ...p,
+                            transform: {
+                              x: 8 + (i % 3) * 28,
+                              y: 8 + Math.floor(i / 3) * 28,
+                              width: 35,
+                              height: 35,
+                              rotation: i % 2 ? 6 : -6,
+                            },
+                          })),
+                        })
+                      }}
+                    >
+                      Try a scattered scrapbook layout
+                    </button>
+                  </>
+                )}
               </>
             )}
             {tool === "Adjust" && (

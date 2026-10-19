@@ -23,6 +23,9 @@ export type PhotoTemplate = {
   note: string
   thumbnail?: string
   tags?: string[]
+  backgroundPattern?: string
+  frameId?: string
+  frameColor?: string
 }
 
 export type FilterName = string
@@ -136,7 +139,8 @@ export type Composition = {
   backgroundPattern?: string
   backgroundOpacity?: number
   layerOrder?: string[]
-  aspectRatio?: "original" | "square" | "story" | "landscape"
+  aspectRatio?: "original" | "square" | "story" | "landscape" | "1:1" | "4:5" | "9:16" | "16:9" | "2:3" | "3:4" | "3:2"
+  gridLayoutId?: string
 }
 
 export type BoothSettings = {

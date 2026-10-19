@@ -329,6 +329,31 @@ function background(
         ctx.stroke()
       }
     }
+    if (p === "Grass lawn" || p === "Summer grass") {
+      ctx.fillStyle = "#3e7927"
+      ctx.fillRect(0, 0, w, h)
+      ctx.strokeStyle = "#4ea335"
+      ctx.lineWidth = Math.max(1.2, w / 700)
+      for (let y = 0; y < h; y += step * 0.7) {
+        for (let x = 0; x < w; x += step * 0.6) {
+          const blade = step * 0.8
+          ctx.beginPath()
+          ctx.moveTo(x, y + blade)
+          ctx.quadraticCurveTo(x + ((x + y) % 2 ? 3 : -3), y, x + ((x * y) % 3 ? 5 : -4), y - blade * 0.3)
+          ctx.stroke()
+        }
+      }
+    }
+    if (p === "Checkerboard") {
+      ctx.fillStyle = "rgba(0,0,0,0.06)"
+      for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
+          if ((Math.floor(x / step) + Math.floor(y / step)) % 2 === 0) {
+            ctx.fillRect(x, y, step, step)
+          }
+        }
+      }
+    }
   }
   ctx.restore()
 }

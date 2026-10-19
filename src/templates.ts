@@ -59,11 +59,48 @@ const collage11 = (): Slot[] => [
   { x: 6, y: 66, width: 27, height: 18, radius: 1.5 },
   { x: 36.5, y: 66, width: 27, height: 18, radius: 1.5 },
   { x: 67, y: 66, width: 27, height: 18, radius: 1.5 },
-  // Bottom signature keepsake slot
   { x: 6, y: 86, width: 88, height: 9, radius: 1.5 },
 ]
 
+const scrapbookPicCollage = (): Slot[] => [
+  { x: 14, y: 18, width: 34, height: 26, radius: 2 },
+  { x: 54, y: 15, width: 32, height: 25, radius: 2 },
+  { x: 48, y: 34, width: 33, height: 26, radius: 2 },
+  { x: 12, y: 50, width: 34, height: 26, radius: 2 },
+  { x: 46, y: 62, width: 31, height: 24, radius: 2 },
+  { x: 62, y: 55, width: 32, height: 25, radius: 2 },
+]
+
 export const templates: PhotoTemplate[] = [
+  {
+    id: "tmpl-piccollage-best",
+    name: "Best Is Yet To Come · Summer Grass Scrapbook",
+    category: "Romantic Kiss Pose Aesthetic ♡",
+    count: 6 as PhotoCount,
+    orientation: "portrait",
+    width: 1800,
+    height: 2400,
+    background: "#3e7927",
+    backgroundPattern: "Summer grass",
+    accent: "#e11d48",
+    note: "PicCollage summer grass scrapbook with torn lined notebook paper, colorful polaroid cuts, and 'Best is yet to come!' stickers.",
+    tags: ["scrapbook", "piccollage", "grass", "best is yet to come", "summer", "polaroid", "romantic", "cute"],
+    slots: scrapbookPicCollage(),
+  },
+  {
+    id: "tmpl-user-053",
+    name: "Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
+    category: "Romantic Kiss Pose Aesthetic ♡",
+    count: 4 as PhotoCount,
+    orientation: "portrait",
+    width: 1000,
+    height: 2400,
+    background: "#fdfbf7",
+    accent: "#d97762",
+    note: "#romantic #love #kisspose #asthetic #kiss #pose #couple #blur #fun",
+    tags: ["romantic","love","kisspose","asthetic","kiss","pose","couple","blur","fun"],
+    slots: strip(4),
+  },
   {
     id: "tmpl-user-047",
     name: "Anime Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
@@ -104,20 +141,6 @@ export const templates: PhotoTemplate[] = [
     accent: "#a855f7",
     note: "#romantic #love #kisspose #asthetic #kiss #pose #couple #blur #dark #fun",
     tags: ["romantic","love","kisspose","asthetic","kiss","pose","couple","blur","dark","fun"],
-    slots: strip(4),
-  },
-  {
-    id: "tmpl-user-053",
-    name: "Kiss Pose Couple ♡ Soft Blur · 4-Cut Classic Strip",
-    category: "Romantic Kiss Pose Aesthetic ♡",
-    count: 4 as PhotoCount,
-    orientation: "portrait",
-    width: 1000,
-    height: 2400,
-    background: "#fdfbf7",
-    accent: "#d97762",
-    note: "#romantic #love #kisspose #asthetic #kiss #pose #couple #blur #fun",
-    tags: ["romantic","love","kisspose","asthetic","kiss","pose","couple","blur","fun"],
     slots: strip(4),
   },
   {
@@ -917,10 +940,38 @@ export const templates: PhotoTemplate[] = [
     note: "#romantic #love #kisspose #asthetic #kiss #pose #couple #blur #birthday",
     tags: ["romantic","love","kisspose","asthetic","kiss","pose","couple","blur","birthday"],
     slots: polaroid(1),
-  }
+  },
+  {
+    id: "four-cut",
+    name: "Classic Photobooth 4-Cut Strip",
+    category: "Romantic Kiss Pose Aesthetic ♡",
+    count: 4 as PhotoCount,
+    orientation: "portrait",
+    width: 1000,
+    height: 2400,
+    background: "#fdfbf7",
+    accent: "#d97762",
+    note: "The timeless 4-cut photobooth strip keepsake.",
+    tags: ["romantic", "photobooth", "classic", "4cut"],
+    slots: strip(4),
+  },
+  {
+    id: "tmpl-grid-9",
+    name: "Gallery Matrix 9-Cut Collage",
+    category: "Propose & Birthday Keepsakes 🎂",
+    count: 9 as PhotoCount,
+    orientation: "portrait",
+    width: 1200,
+    height: 1600,
+    background: "#fffbeb",
+    accent: "#d97706",
+    note: "Nine moments captured in a signature grid keepsake.",
+    tags: ["collage", "matrix", "keepsake", "grid"],
+    slots: grid(9, 3, 3, 6),
+  },
 ]
 
-// Set template thumbnail directly to the real user image from images folder
+// Set template thumbnail directly to the real user image from covers/images folder
 templates.forEach((t) => {
   t.thumbnail = getTemplateLocalImage(t.id)
 })
@@ -936,7 +987,7 @@ export const templatesForCount = (count: PhotoCount) =>
   templates.filter((template) => template.count === count)
 
 export const getTemplate = (id: string) =>
-  templates.find((template) => template.id === id) ?? templates.find((t) => t.id === "tmpl-user-001") ?? templates[0]
+  templates.find((template) => template.id === id) ?? templates.find((t) => t.id === "four-cut") ?? templates[0]
 
 export const allTemplateTags: string[] = Array.from(
   new Set(templates.flatMap((t) => t.tags ?? []).filter(Boolean)),

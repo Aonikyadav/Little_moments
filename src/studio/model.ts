@@ -15,17 +15,32 @@ export type LayerItem = {
   properties: LayerProperties
 }
 
+import { findGridLayout } from "./gridEngine"
+
 export function dimensions(
   c: Composition,
   t: PhotoTemplate,
 ): { width: number; height: number } {
-  if (c.aspectRatio === "story") {
+  const ar = c.aspectRatio
+  if (ar === "story" || ar === "9:16") {
     return { width: 1440, height: 2560 }
   }
-  if (c.aspectRatio === "square") {
+  if (ar === "square" || ar === "1:1") {
     return { width: 1800, height: 1800 }
   }
-  if (c.aspectRatio === "landscape") {
+  if (ar === "4:5") {
+    return { width: 1600, height: 2000 }
+  }
+  if (ar === "2:3") {
+    return { width: 1600, height: 2400 }
+  }
+  if (ar === "3:4") {
+    return { width: 1800, height: 2400 }
+  }
+  if (ar === "3:2") {
+    return { width: 2400, height: 1600 }
+  }
+  if (ar === "landscape" || ar === "16:9") {
     return { width: 2560, height: 1440 }
   }
   return { width: t.width, height: t.height }
@@ -38,6 +53,22 @@ export function photoBounds(
 ): PhotoTransform {
   if (c.mode === "freeform" && c.photos[index]?.transform) {
     return c.photos[index].transform!
+  }
+  if (c.gridLayoutId) {
+    const layout = findGridLayout(c.gridLayoutId)
+    if (layout) {
+      const slots = layout.getSlots(c.spacing ?? 2, c.padding ?? 4)
+      const slot = slots[index]
+      if (slot) {
+        return {
+          x: slot.x,
+          y: slot.y,
+          width: slot.width,
+          height: slot.height,
+          rotation: 0,
+        }
+      }
+    }
   }
   const slot = t.slots[index] ?? {
     x: 10,

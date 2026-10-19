@@ -587,7 +587,7 @@ export const backgroundPatterns = [
   "Canvas weave",
   "Lace",
   "Newspaper",
-  "Sunset gradient",
-  "Sage gradient",
+  "Grass lawn",
+  "Checkerboard",
   "Retro waves",
 ]
