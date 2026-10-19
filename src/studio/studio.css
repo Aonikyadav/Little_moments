@@ -1,0 +1,913 @@
+/* ==========================================================================
+   Little Moments — Studio Component Stylesheet
+   Ivory paper, graphite ink, warm accents, sketchbook aesthetic
+   ========================================================================== */
+
+.creative-studio {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: calc(100vh - 80px);
+  background: #f8f6f0;
+  color: #1f1d1a;
+  position: relative;
+  font-family: "DM Sans", -apple-system, sans-serif;
+}
+
+/* 1. Project Bar */
+.studio-projectbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.5rem;
+  background: #faf8f2;
+  border-bottom: 2px solid #1f1d1a;
+  gap: 1rem;
+  z-index: 20;
+}
+
+.studio-projectbar > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.studio-projectbar > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.project-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1f1d1a;
+  color: #faf8f2;
+  border-radius: 4px;
+}
+
+.studio-projectbar strong {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.save-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: #6e695f;
+  font-family: monospace;
+}
+
+.save-state i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8a9a86;
+}
+
+.save-state.error i {
+  background: #d97762;
+}
+
+/* 2. Studio Body Layout */
+.studio-body {
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 650px;
+}
+
+@media (max-width: 1024px) {
+  .creative-studio {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .studio-projectbar {
+    padding: 0.5rem 0.85rem;
+    flex-shrink: 0;
+  }
+  .studio-projectbar strong {
+    font-size: 0.875rem;
+  }
+  .studio-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .studio-workbench {
+    flex: 1 1 45%;
+    min-height: 0;
+    max-height: 48vh;
+    border-right: none;
+    border-bottom: 2px solid #1f1d1a;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .canvas-topline {
+    padding: 0.35rem 0.75rem;
+    flex-shrink: 0;
+  }
+  .canvas-viewport {
+    padding: 0.5rem;
+    overflow: hidden;
+    flex: 1;
+  }
+  .canvas-paper-shadow {
+    max-height: 90%;
+    max-width: 90%;
+  }
+  .studio-dock {
+    padding: 0.35rem 0.75rem;
+    flex-shrink: 0;
+    background: #faf8f2;
+    border-top: 1px solid #d5cfc2;
+  }
+  .studio-inspector {
+    flex: 1 1 55%;
+    min-height: 0;
+    max-height: 52vh;
+    display: flex;
+    flex-direction: column-reverse; /* Horizontal Android APK Tool Rail at bottom */
+    overflow: hidden;
+    background: #faf8f2;
+  }
+  .studio-rail {
+    width: 100%;
+    height: 54px;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-top: 1.5px solid #d5cfc2;
+    padding: 0 0.25rem;
+    justify-content: flex-start;
+    flex-shrink: 0;
+    background: #f2eee3;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rail-item {
+    flex-direction: column;
+    padding: 0.25rem 0.5rem;
+    min-width: 58px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    font-size: 0.625rem;
+    gap: 0.15rem;
+  }
+  .rail-item.active {
+    border-left: none;
+    border-bottom: 3px solid #853b43;
+    background: #faf8f2;
+  }
+  .studio-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .studio-frame-grid,
+  .studio-filter-grid,
+  .studio-sticker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+    gap: 0.5rem;
+  }
+}
+
+/* 3. Workbench Canvas Area */
+.studio-workbench {
+  display: flex;
+  flex-direction: column;
+  background: #eae6dc;
+  border-right: 2px solid #1f1d1a;
+  position: relative;
+  overflow: hidden;
+  min-height: 500px;
+}
+
+.canvas-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: #f4efe4;
+  border-bottom: 1.5px solid #d5cfc2;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.mode-switch {
+  display: inline-flex;
+  background: #e5dfd2;
+  padding: 2px;
+  border: 1.5px solid #1f1d1a;
+  border-radius: 4px;
+}
+
+.mode-switch button {
+  padding: 0.3rem 0.75rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #555047;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mode-switch button.active {
+  background: #1f1d1a;
+  color: #faf8f2;
+}
+
+.canvas-viewport {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+}
+
+.canvas-paper-shadow {
+  position: relative;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.08s linear;
+  max-height: 85vh;
+}
+
+.touch-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #faf8f2;
+  border: 2px solid #1f1d1a;
+}
+
+.studio-render {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.studio-render canvas {
+  width: 100%;
+  height: 100%;
+  object-contain: contain;
+  display: block;
+}
+
+/* Layer interactive elements on canvas */
+.canvas-hit {
+  position: absolute;
+  cursor: grab;
+  z-index: 5;
+  box-sizing: border-box;
+}
+
+.canvas-hit:active {
+  cursor: grabbing;
+}
+
+.canvas-hit.selected {
+  outline: 2px solid #853b43;
+  outline-offset: 2px;
+}
+
+/* 4. Canvas Dock */
+.studio-dock {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #faf8f2;
+  border-top: 1.5px solid #d5cfc2;
+  overflow-x: auto;
+  z-index: 10;
+}
+
+.dock-photo {
+  width: 50px;
+  height: 50px;
+  border: 1.5px solid #1f1d1a;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: #eae6dc;
+}
+
+.dock-photo.active {
+  border-color: #853b43;
+  box-shadow: 0 0 0 2px #853b43;
+}
+
+.dock-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dock-add {
+  width: 50px;
+  height: 50px;
+  border: 1.5px dashed #8e887d;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  color: #6e695f;
+  flex-shrink: 0;
+}
+
+.dock-add:hover {
+  border-color: #1f1d1a;
+  color: #1f1d1a;
+}
+
+/* 5. Studio Inspector & Tool Rail */
+.studio-inspector {
+  display: flex;
+  background: #faf8f2;
+  position: relative;
+  overflow: hidden;
+  max-height: calc(100vh - 80px);
+}
+
+.studio-rail {
+  width: 72px;
+  background: #f2eee3;
+  border-right: 1.5px solid #d5cfc2;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+  flex-shrink: 0;
+}
+
+.rail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.75rem 0.25rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #6e695f;
+  font-size: 0.6875rem;
+  font-family: monospace;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.rail-item:hover {
+  color: #1f1d1a;
+  background: #ebe5d7;
+}
+
+.rail-item.active {
+  color: #853b43;
+  background: #faf8f2;
+  font-weight: 700;
+  border-left: 3px solid #853b43;
+}
+
+.studio-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 1.25rem;
+  gap: 1rem;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1.5px solid #e6e2d8;
+  padding-bottom: 0.75rem;
+}
+
+.panel-header h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* 6. Controls: Range Sliders, Fields, Swatches */
+.studio-range {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.studio-range > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.studio-range output {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #6e695f;
+}
+
+.studio-range input[type="range"] {
+  accent-color: #853b43;
+  width: 100%;
+  cursor: pointer;
+}
+
+.studio-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.studio-swatches button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #1f1d1a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f1d1a;
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.15);
+}
+
+.studio-swatches button.selected {
+  outline: 2px solid #853b43;
+  outline-offset: 2px;
+}
+
+.studio-swatches label {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px dashed #8e887d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.studio-swatches label input[type="color"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.studio-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.studio-field select,
+.studio-field input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid #1f1d1a;
+  background: #ffffff;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+}
+
+/* 7. Grids: Filters, Frames, Stickers */
+.studio-filter-grid,
+.studio-frame-grid,
+.studio-sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.75rem;
+}
+
+.studio-filter-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  border: 1.5px solid #e6e2d8;
+  background: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.1s ease;
+}
+
+.studio-filter-grid button:hover {
+  border-color: #853b43;
+}
+
+.studio-filter-grid button.active {
+  border-color: #853b43;
+  background: #faf4f4;
+  outline: 2px solid #853b43;
+}
+
+.studio-filter-grid button strong {
+  font-size: 0.75rem;
+  display: block;
+}
+
+.studio-filter-grid button span {
+  font-size: 0.65rem;
+  color: #6e695f;
+}
+
+.frame-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: left;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+.frame-mini {
+  width: 100%;
+  aspect-ratio: 1 / 1.35;
+  border: 1.5px solid #1f1d1a;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+.frame-vector {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.frame-fav {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #ffffff;
+  border: 1px solid #1f1d1a;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.frame-fav.active {
+  color: #d97762;
+  border-color: #d97762;
+}
+
+/* 8. Common Studio Action Buttons */
+.studio-small-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.4rem 0.75rem;
+  border: 1.5px solid #1f1d1a;
+  background: #faf8f2;
+  color: #1f1d1a;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: 2px 2px 0px #1f1d1a;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.studio-small-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #1f1d1a;
+}
+
+.studio-small-button:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #1f1d1a;
+}
+
+.studio-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #1f1d1a;
+  background: #faf8f2;
+  color: #1f1d1a;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #1f1d1a;
+}
+
+.button.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.55rem 1.15rem;
+  border: 2px solid #1f1d1a;
+  background: #853b43;
+  color: #faf8f2;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: 3px 3px 0px #1f1d1a;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.button.primary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #1f1d1a;
+}
+
+.button.primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #1f1d1a;
+}
+
+.button.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid #1f1d1a;
+  background: #faf8f2;
+  color: #1f1d1a;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: 2px 2px 0px #1f1d1a;
+}
+
+.button.secondary.wide {
+  width: 100%;
+}
+
+.text-button {
+  background: none;
+  border: none;
+  color: #6e695f;
+  font-family: monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0;
+}
+
+.text-button:hover {
+  color: #1f1d1a;
+  text-decoration: underline;
+}
+
+.auto-enhance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border: 2px dashed #853b43;
+  background: #faf4f4;
+  color: #853b43;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.auto-enhance div {
+  flex: 1;
+  padding: 0 0.75rem;
+}
+
+.auto-enhance strong {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.auto-enhance span {
+  display: block;
+  font-size: 0.7rem;
+  color: #6e695f;
+}
+
+.photo-scope {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.875rem;
+  background: #f2eee3;
+  border: 1.5px solid #d5cfc2;
+  border-radius: 6px;
+}
+
+.photo-scope div {
+  flex: 1;
+}
+
+.photo-scope strong {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.photo-scope span {
+  display: block;
+  font-size: 0.7rem;
+  color: #6e695f;
+}
+
+.adjust-mode-tabs {
+  display: flex;
+  border-bottom: 1.5px solid #e6e2d8;
+  gap: 0.5rem;
+}
+
+.adjust-mode-tabs button {
+  padding: 0.4rem 0.8rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border: none;
+  background: transparent;
+  color: #6e695f;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-bottom: 2px solid transparent;
+}
+
+.adjust-mode-tabs button.active {
+  color: #853b43;
+  font-weight: 700;
+  border-bottom-color: #853b43;
+}
+
+.geometry-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.geometry-actions button {
+  padding: 0.45rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  border: 1.5px solid #1f1d1a;
+  background: #ffffff;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.choices {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chip {
+  flex: 1;
+  padding: 0.45rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  border: 1.5px solid #1f1d1a;
+  background: #ffffff;
+  cursor: pointer;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.chip.selected {
+  background: #1f1d1a;
+  color: #faf8f2;
+}
+
+.adjust-copy {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.adjust-copy button {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.45rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  border: 1.5px solid #1f1d1a;
+  background: #ffffff;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.library-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.library-chips button {
+  padding: 0.3rem 0.65rem;
+  font-family: monospace;
+  font-size: 0.7rem;
+  border: 1px solid #d5cfc2;
+  background: #ffffff;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.library-chips button.active {
+  background: #853b43;
+  color: #ffffff;
+  border-color: #853b43;
+}
+
+.library-filterbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.library-filterbar select,
+.library-filterbar button {
+  padding: 0.35rem 0.6rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  border: 1.5px solid #1f1d1a;
+  background: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.library-filterbar button.on {
+  background: #853b43;
+  color: #faf8f2;
+}
+
+.library-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #6e695f;
+  font-size: 0.8125rem;
+  font-style: italic;
+}

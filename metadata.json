@@ -1,0 +1,8 @@
+{
+  "name": "Little Moments — Creative Photo Studio",
+  "description": "Capture and customize photos in a playful virtual photo booth with creative layouts, vintage filters, and editing tools.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

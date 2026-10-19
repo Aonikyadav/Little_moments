@@ -56,6 +56,7 @@ import {
 } from "./assets"
 import type { FramePreset } from "./assets"
 import useFontRevision from "./useFontRevision"
+import { TemplateThumbnail } from "../components/TemplateThumbnail"
 import {
   deleteLayer,
   dimensions,
@@ -311,7 +312,9 @@ export default function Studio({
     [snapped, setSnapped] = useState({ x: false, y: false }),
     [caption, setCaption] = useState("a little moment worth keeping"),
     [confirmDelete, setConfirmDelete] = useState(false),
-    [replacing, setReplacing] = useState(false)
+    [replacing, setReplacing] = useState(false),
+    [touchMode, setTouchMode] = useState<"photo" | "canvas">("photo"),
+    [gestureHud, setGestureHud] = useState<{ text: string; sub?: string } | null>(null)
   const stage = useRef<HTMLDivElement>(null),
     importInput = useRef<HTMLInputElement>(null),
     stickerInput = useRef<HTMLInputElement>(null),
@@ -327,7 +330,17 @@ export default function Studio({
       pan: typeof pan
       zoom: number
     } | null>(null),
-    pointers = useRef(new Map<number, GesturePoint>())
+    pointers = useRef(new Map<number, GesturePoint>()),
+    lastTap = useRef<{ time: number; id: string; x: number; y: number } | null>(null),
+    hudTimeout = useRef<number | null>(null)
+
+  const showHud = (text: string, sub?: string) => {
+    setGestureHud({ text, sub })
+    if (hudTimeout.current) window.clearTimeout(hudTimeout.current)
+    hudTimeout.current = window.setTimeout(() => {
+      setGestureHud(null)
+    }, 1200)
+  }
   const template = getTemplate(c.templateId),
     layers = orderedLayers(c),
     layer = layers.find((l) => l.id === selected),
@@ -636,7 +649,17 @@ export default function Studio({
       operation = gesture.current?.operation
     if (index >= 0) {
       const p = base.photos[index]
-      if (base.mode !== "freeform")
+      if (base.mode !== "freeform") {
+        const curZoom = p.adjustments?.zoom || 1
+        const curX = p.adjustments?.offsetX || 0
+        const curY = p.adjustments?.offsetY || 0
+
+        const newZoom = scale !== 1
+          ? Math.max(1, Math.min(4, Number((curZoom * scale).toFixed(2))))
+          : curZoom
+        const newX = Math.max(-100, Math.min(100, Math.round(curX + dx * 1.5)))
+        const newY = Math.max(-100, Math.min(100, Math.round(curY + dy * 1.5)))
+
         return {
           ...base,
           photos: base.photos.map((x) =>
@@ -645,20 +668,15 @@ export default function Studio({
                   ...x,
                   adjustments: {
                     ...x.adjustments,
-                    offsetX: Math.max(
-                      -100,
-                      Math.min(100, x.adjustments.offsetX + dx * 2),
-                    ),
-                    offsetY: Math.max(
-                      -100,
-                      Math.min(100, x.adjustments.offsetY + dy * 2),
-                    ),
-                    zoom: Math.max(1, Math.min(4, x.adjustments.zoom * scale)),
+                    offsetX: newX,
+                    offsetY: newY,
+                    zoom: newZoom,
                   },
                 }
               : x,
           ),
         }
+      }
       const rotated = operation === "rotate"
       return {
         ...base,
@@ -724,8 +742,39 @@ export default function Studio({
       operation =
         (e.target as HTMLElement).closest<HTMLElement>("[data-operation]")
           ?.dataset.operation ?? "move"
-    e.currentTarget.setPointerCapture(e.pointerId)
+
+    // Double-tap recognition for native touch feel
+    const now = Date.now()
+    const last = lastTap.current
+    if (last && now - last.time < 350 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 25) {
+      if (id && c.photos.some((p) => p.id === id)) {
+        // Double-tap on photo: toggle zoom 1.0x -> 1.6x -> 2.4x -> 1.0x
+        const currentP = c.photos.find((p) => p.id === id)
+        const currentZ = currentP?.adjustments?.zoom || 1
+        const nextZ = currentZ < 1.3 ? 1.6 : currentZ < 2.0 ? 2.4 : 1.0
+        setSelected(id)
+        updatePhoto({ zoom: nextZ })
+        showHud(`Photo Zoom: ${nextZ.toFixed(1)}x`, "Double-tap to cycle zoom")
+        lastTap.current = null
+        return
+      } else if (!id) {
+        // Double-tap on canvas background: reset view
+        setZoom(1)
+        setPan({ x: 0, y: 0 })
+        showHud("Canvas Centered", "100% view restored")
+        lastTap.current = null
+        return
+      }
+    }
+    lastTap.current = { time: now, id, x: e.clientX, y: e.clientY }
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {
+      // safe ignore on touch devices
+    }
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
     if (pointers.current.size === 1) {
       if (id) setSelected(id)
       gesture.current = {
@@ -738,8 +787,7 @@ export default function Studio({
         pan,
         zoom,
       }
-    }
-    if (pointers.current.size === 2 && gesture.current) {
+    } else if (pointers.current.size === 2 && gesture.current) {
       const [a, b] = [...pointers.current.values()]
       gesture.current = {
         ...gesture.current,
@@ -762,22 +810,46 @@ export default function Studio({
       scale = 1
     if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()]
-      scale = Math.hypot(a.x - b.x, a.y - b.y) / Math.max(1, g.distance)
-      dx = (((a.x + b.x) / 2 - g.startX) / rect.width) * 100
-      dy = (((a.y + b.y) / 2 - g.startY) / rect.height) * 100
+      const dist = Math.hypot(a.x - b.x, a.y - b.y)
+      scale = dist / Math.max(1, g.distance)
+      const midX = (a.x + b.x) / 2
+      const midY = (a.y + b.y) / 2
+      dx = ((midX - g.startX) / rect.width) * 100
+      dy = ((midY - g.startY) / rect.height) * 100
     }
-    if (!g.id) {
-      if (pointers.current.size === 2)
-        setZoom(Math.max(0.5, Math.min(3, g.zoom * scale)))
-      setPan({
-        x: g.pan.x + (dx * rect.width) / 100,
-        y: g.pan.y + (dy * rect.height) / 100,
-      })
+
+    // 1. Canvas View navigation if no layer touched or touchMode is "canvas":
+    if (!g.id || touchMode === "canvas") {
+      if (pointers.current.size === 2) {
+        const nextZoom = Math.max(0.5, Math.min(3.5, Number((g.zoom * scale).toFixed(2))))
+        setZoom(nextZoom)
+        showHud(`Canvas Zoom: ${Math.round(nextZoom * 100)}%`, "Pinch to zoom strip")
+      }
+      const nextPanX = Math.round(g.pan.x + (dx * rect.width) / 100)
+      const nextPanY = Math.round(g.pan.y + (dy * rect.height) / 100)
+      setPan({ x: nextPanX, y: nextPanY })
+      if (pointers.current.size === 1) {
+        showHud("Canvas Pan", "Moving photobooth strip")
+      }
       return
     }
+
+    // 2. Editing photo, sticker, or text layer:
     const props = orderedLayers(g.before).find((l) => l.id === g.id)?.properties
     if (props?.locked) return
     if (g.operation === "resize") scale = Math.max(0.2, 1 + dx / 40)
+
+    const isTargetPhoto = g.before.photos.some((p) => p.id === g.id)
+    if (isTargetPhoto) {
+      if (pointers.current.size === 2) {
+        const origP = g.before.photos.find((p) => p.id === g.id)
+        const targetZoom = Math.max(1, Math.min(4, Number(((origP?.adjustments?.zoom || 1) * scale).toFixed(2))))
+        showHud(`Photo Zoom: ${targetZoom.toFixed(1)}x`, "Pinch gesture")
+      } else {
+        showHud("Photo Pan", "Drag to reposition inside frame")
+      }
+    }
+
     const bounds = layerBounds(g.id, g.before),
       centerX = bounds.x + bounds.width / 2 + dx,
       centerY = bounds.y + bounds.height / 2 + dy,
@@ -808,17 +880,18 @@ export default function Studio({
     onTransient(next)
   }
   const pointerEnd = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!gesture.current) return
     pointers.current.delete(e.pointerId)
-    {
+    if (pointers.current.size === 0 && gesture.current) {
       const g = gesture.current
-      pointers.current.clear()
       if (e.type === "pointercancel") onTransient(g.before)
       else if (g.id && c !== g.before) commit(c, g.before)
       gesture.current = null
       setSnapped({ x: false, y: false })
+      if (hudTimeout.current) window.clearTimeout(hudTimeout.current)
+      hudTimeout.current = window.setTimeout(() => setGestureHud(null), 800)
     }
   }
+
   const addSticker = (id: string) => {
     const asset = stickers.find((s) => s.id === id)!
     const newId = crypto.randomUUID()
@@ -966,14 +1039,32 @@ export default function Studio({
               <Maximize size={17} />
             </button>
           </div>
-          <div className="canvas-viewport">
+          <div
+            className="canvas-viewport relative"
+            onPointerDown={pointerDown}
+            onPointerMove={pointerMove}
+            onPointerUp={pointerEnd}
+            onPointerCancel={pointerEnd}
+          >
+            {/* Native APK Live Gesture HUD */}
+            {gestureHud && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-stone-900/95 text-white px-4 py-1.5 rounded-full shadow-2xl text-xs font-mono font-bold tracking-wide z-30 pointer-events-none flex items-center gap-2 border border-white/20 backdrop-blur-md transition-all">
+                <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+                <span>{gestureHud.text}</span>
+                {gestureHud.sub && (
+                  <span className="text-stone-300 font-normal text-[10.5px]">· {gestureHud.sub}</span>
+                )}
+              </div>
+            )}
+
             <div
               className="canvas-paper-shadow"
               style={
                 {
-                  width: `${Math.min(100, ((340 / size.height) * size.width) / 5)}%`,
-                  minWidth: "25%",
-                  "--canvas-aspect": size.width / size.height,
+                  height: "90%",
+                  maxHeight: "90%",
+                  maxWidth: "92%",
+                  aspectRatio: `${size.width}/${size.height}`,
                   transform: `translate(${pan.x}px,${pan.y}px) scale(${zoom})`,
                 } as CSSProperties
               }
@@ -982,10 +1073,6 @@ export default function Studio({
                 ref={stage}
                 className="touch-canvas"
                 style={{ aspectRatio: `${size.width}/${size.height}` }}
-                onPointerDown={pointerDown}
-                onPointerMove={pointerMove}
-                onPointerUp={pointerEnd}
-                onPointerCancel={pointerEnd}
               >
                 <StudioPreview composition={visible} />
                 {layers
@@ -1048,33 +1135,131 @@ export default function Studio({
               </div>
             </div>
           </div>
-          <div className="canvas-bottomline">
-            <span>
-              <MousePointer2 size={12} />
-              {c.mode === "freeform"
-                ? "Drag to arrange · pinch to resize"
-                : "Drag a photo to recrop · pinch to zoom"}
-            </span>
-            <div>
-              <button
-                className="studio-icon"
-                aria-label="Zoom out"
-                onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
-              >
-                <Minus size={14} />
-              </button>
-              <button className="zoom-value" onClick={resetView}>
-                {Math.round(zoom * 100)}%
-              </button>
-              <button
-                className="studio-icon"
-                aria-label="Zoom in"
-                onClick={() => setZoom(Math.min(3, zoom + 0.25))}
-              >
-                <Plus size={14} />
-              </button>
+          <div className="canvas-bottomline flex flex-wrap items-center justify-between gap-1.5 px-3 py-2 bg-stone-100 border-t border-stone-300">
+            {/* Mode switch & gesture info */}
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center bg-stone-200 p-0.5 rounded border border-stone-300">
+                <button
+                  type="button"
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all flex items-center gap-1 ${
+                    touchMode === "photo"
+                      ? "bg-rose-900 text-white shadow-xs"
+                      : "text-stone-700 hover:bg-stone-100"
+                  }`}
+                  onClick={() => {
+                    setTouchMode("photo")
+                    showHud("Photo Pan/Zoom Active", "Drag photo to recrop · Pinch to zoom")
+                  }}
+                  title="Drag photo to recrop · Pinch to zoom"
+                >
+                  <Crop size={10} />
+                  <span>Photo Gesture</span>
+                </button>
+                <button
+                  type="button"
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all flex items-center gap-1 ${
+                    touchMode === "canvas"
+                      ? "bg-stone-900 text-white shadow-xs"
+                      : "text-stone-700 hover:bg-stone-100"
+                  }`}
+                  onClick={() => {
+                    setTouchMode("canvas")
+                    showHud("Canvas Pan/Zoom Active", "Drag to pan strip · Pinch to zoom canvas")
+                  }}
+                  title="Drag to pan strip · Pinch to zoom canvas"
+                >
+                  <Maximize size={10} />
+                  <span>Canvas View</span>
+                </button>
+              </div>
+
+              <span className="text-[10px] text-stone-500 font-mono hidden sm:inline">
+                {touchMode === "photo" ? "Pinch photo · drag to center" : "Pinch canvas · drag to pan"}
+              </span>
+            </div>
+
+            {/* Quick zoom controls */}
+            <div className="flex items-center gap-1">
+              {photo && touchMode === "photo" ? (
+                <div className="flex items-center gap-1 bg-white px-1.5 py-0.5 rounded border border-stone-300 shadow-xs">
+                  <span className="text-[9.5px] font-mono text-stone-500 font-bold mr-0.5">PHOTO</span>
+                  <button
+                    className="w-5 h-5 flex items-center justify-center rounded hover:bg-stone-100 text-stone-700 active:scale-95"
+                    aria-label="Zoom photo out"
+                    onClick={() => {
+                      const z = Math.max(1, Number(((photo.adjustments?.zoom || 1) - 0.2).toFixed(1)))
+                      updatePhoto({ zoom: z })
+                      showHud(`Photo Zoom: ${z.toFixed(1)}x`)
+                    }}
+                  >
+                    <Minus size={11} />
+                  </button>
+                  <span className="text-[10.5px] font-mono font-black min-w-[28px] text-center text-rose-900">
+                    {(photo.adjustments?.zoom || 1).toFixed(1)}x
+                  </span>
+                  <button
+                    className="w-5 h-5 flex items-center justify-center rounded hover:bg-stone-100 text-stone-700 active:scale-95"
+                    aria-label="Zoom photo in"
+                    onClick={() => {
+                      const z = Math.min(4, Number(((photo.adjustments?.zoom || 1) + 0.2).toFixed(1)))
+                      updatePhoto({ zoom: z })
+                      showHud(`Photo Zoom: ${z.toFixed(1)}x`)
+                    }}
+                  >
+                    <Plus size={11} />
+                  </button>
+                  <button
+                    className="px-1.5 py-0.5 text-[9px] font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 rounded ml-1"
+                    onClick={() => {
+                      updatePhoto({ offsetX: 0, offsetY: 0, zoom: 1 })
+                      showHud("Photo Reset", "Centered in frame")
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 bg-white px-1.5 py-0.5 rounded border border-stone-300 shadow-xs">
+                  <span className="text-[9.5px] font-mono text-stone-500 font-bold mr-0.5">STRIP</span>
+                  <button
+                    className="w-5 h-5 flex items-center justify-center rounded hover:bg-stone-100 text-stone-700 active:scale-95"
+                    aria-label="Zoom out"
+                    onClick={() => {
+                      const z = Math.max(0.5, Number((zoom - 0.25).toFixed(2)))
+                      setZoom(z)
+                      showHud(`Canvas Zoom: ${Math.round(z * 100)}%`)
+                    }}
+                  >
+                    <Minus size={11} />
+                  </button>
+                  <button
+                    className="text-[10.5px] font-mono font-bold px-1 min-w-[34px] text-center hover:underline"
+                    onClick={resetView}
+                  >
+                    {Math.round(zoom * 100)}%
+                  </button>
+                  <button
+                    className="w-5 h-5 flex items-center justify-center rounded hover:bg-stone-100 text-stone-700 active:scale-95"
+                    aria-label="Zoom in"
+                    onClick={() => {
+                      const z = Math.min(3, Number((zoom + 0.25).toFixed(2)))
+                      setZoom(z)
+                      showHud(`Canvas Zoom: ${Math.round(z * 100)}%`)
+                    }}
+                  >
+                    <Plus size={11} />
+                  </button>
+                  <button
+                    className="px-1.5 py-0.5 text-[9px] font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 rounded ml-1"
+                    onClick={resetView}
+                  >
+                    Fit
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+
           <div className="studio-photo-dock">
             <div className="photo-dock-title">
               <span>
@@ -1175,10 +1360,10 @@ export default function Studio({
           </p>
         </div>
         <aside className="studio-inspector">
-          <nav className="studio-tools" aria-label="Editing tools">
+          <nav className="studio-rail studio-tools" aria-label="Editing tools">
             {tools.map(({ name, icon: Icon }) => (
               <button
-                className={tool === name ? "active" : ""}
+                className={`rail-item ${tool === name ? "active" : ""}`}
                 key={name}
                 onClick={() => {
                   setPanel(name)
@@ -1190,7 +1375,8 @@ export default function Studio({
               </button>
             ))}
           </nav>
-          <div className="inspector-heading">
+          <div className="studio-panel">
+            <div className="inspector-heading">
             <div>
               <span className="eyebrow">YOUR CREATIVE TOOLKIT</span>
               <h2>
@@ -1455,27 +1641,15 @@ export default function Studio({
                       onClick={() => switchLayout(t)}
                     >
                       <div
-                        className="layout-mini"
+                        className="layout-mini overflow-hidden rounded-[2px]"
                         style={{
                           aspectRatio: `${t.width}/${t.height}`,
-                          background: c.background,
+                          minHeight: "100px",
                         }}
                       >
-                        {t.slots.map((s, i) => (
-                          <span
-                            key={i}
-                            style={{
-                              left: `${s.x}%`,
-                              top: `${s.y}%`,
-                              width: `${s.width}%`,
-                              height: `${s.height}%`,
-                            }}
-                          >
-                            {i + 1}
-                          </span>
-                        ))}
+                        <TemplateThumbnail template={t} className="w-full h-full object-contain" />
                       </div>
-                      <strong>{t.name}</strong>
+                      <strong className="text-xs truncate">{t.name}</strong>
                     </button>
                   ))}
                   <button
@@ -2580,6 +2754,7 @@ export default function Studio({
               )}
             </div>
           )}
+          </div>
         </aside>
       </div>
       {confirmDelete && (

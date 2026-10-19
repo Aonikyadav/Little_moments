@@ -12,6 +12,7 @@ import {
   Settings,
   X,
   Check,
+  Copy,
   Download,
   Upload,
   RotateCcw,
@@ -56,6 +57,7 @@ import "./studio/studio.css"
 import { dimensions, historyStep } from "./studio/model"
 import { saveProject, loadProjects, removeProject } from "./studio/storage"
 import useFontRevision from "./studio/useFontRevision"
+import { TemplateThumbnail } from "./components/TemplateThumbnail"
 
 const Studio = lazy(() => import("./studio/Studio"))
 const samples = [
@@ -164,6 +166,8 @@ function Preview({ composition }: { composition: Composition }) {
   )
 }
 
+
+
 export default function App() {
   const [page, setPage] = useState<Page>("home")
   const [settings, setSettings] = useState<BoothSettings>(() =>
@@ -186,10 +190,11 @@ export default function App() {
     if (stored.length > 0) return stored.slice(0, 5)
     const creations = readLocal<Saved[]>("little-creations", [])
     const seeded = creations.map((c) => c.composition?.templateId).filter(Boolean)
-    return Array.from(new Set([...seeded, "four-cut", "tmpl-001", "tmpl-014"])).slice(0, 5)
+    return Array.from(new Set([...seeded, "tmpl-user-047", "tmpl-user-050", "tmpl-user-052"])).slice(0, 5)
   })
   const [toast, setToast] = useState("")
   const [category, setCategory] = useState("All styles")
+  const [selectedTag, setSelectedTag] = useState<string>("all")
   const [countFilter, setCountFilter] = useState<string>("all")
   const [sortBy, setSortBy] = useState<SortOption>("recommended")
   const [query, setQuery] = useState("")
@@ -866,8 +871,8 @@ export default function App() {
     if (t.category.includes("Romantic") || t.category.includes("Retro") || t.category.includes("Coquette")) {
       score += 15
     }
-    if (t.id === "four-cut" || t.id === "tmpl-001" || t.id === "tmpl-014" || t.id === "tmpl-011") {
-      score += 30
+    if (t.id === "tmpl-user-047" || t.id === "tmpl-user-050" || t.id === "tmpl-user-052" || t.id === "tmpl-user-053" || t.id === "tmpl-user-054") {
+      score += 35
     }
 
     return score
@@ -967,7 +972,7 @@ export default function App() {
     }
 
     // 6. Classic photobooth staple
-    if (t.id === "four-cut" || (t.count === 4 && t.category.includes("Retro"))) {
+    if (t.id === "tmpl-user-047" || t.id === "tmpl-user-053" || t.count === 4) {
       return {
         label: "Booth Classic",
         reason: "Iconic photobooth staple",
@@ -991,13 +996,10 @@ export default function App() {
         (isRecentCategory && top5RecentIds.includes(t.id)) ||
         (category.startsWith("My Favorites") && favorites.includes(t.id)) ||
         t.category === category ||
-        (category === "Romantic Couples ♡" && t.category.includes("Romantic")) ||
-        (category === "Coquette & Bows 🎀" && t.category.includes("Coquette")) ||
-        (category === "Retro Film Strips" && t.category.includes("Retro")) ||
-        (category === "Music Player Frames 🎵" && t.category.includes("Music")) ||
-        (category === "Playful & Y2K" && t.category.includes("Playful")) ||
-        (category === "Aesthetic Scrapbook" && t.category.includes("Scrapbook")) ||
-        (category === "Minimalist Studio" && t.category.includes("Minimalist"))
+        (category.includes("Romantic") && (t.category.includes("Romantic") || t.category.includes("Kiss") || t.category.includes("Couple"))) ||
+        (category.includes("Spider") && (t.category.includes("Spider") || t.category.includes("Cool") || t.category.includes("Animated"))) ||
+        (category.includes("Birthday") && (t.category.includes("Birthday") || t.category.includes("Propose") || t.category.includes("Greeting"))) ||
+        (category.includes("Retro") && t.category.includes("Retro"))
 
       const matchesCount =
         countFilter === "all" ||
@@ -1005,16 +1007,27 @@ export default function App() {
         (countFilter === "2" && t.count === 2) ||
         (countFilter === "3" && t.count === 3) ||
         (countFilter === "4" && t.count === 4) ||
+        (countFilter === "5" && t.count === 5) ||
+        (countFilter === "6" && t.count === 6) ||
+        (countFilter === "8" && t.count === 8) ||
+        (countFilter === "11" && ((t.count as number) === 11 || (t.count as number) >= 10)) ||
         (countFilter === "5-6" && (t.count === 5 || t.count === 6)) ||
-        (countFilter === "8-9" && (t.count === 8 || t.count === 9))
+        (countFilter === "8-9" && (t.count === 8 || t.count === 9 || (t.count as number) >= 8))
+
+      const matchesTag =
+        selectedTag === "all" ||
+        (t.tags && t.tags.some((tag) => tag.toLowerCase() === selectedTag.toLowerCase())) ||
+        t.name.toLowerCase().includes(selectedTag.toLowerCase()) ||
+        t.note.toLowerCase().includes(selectedTag.toLowerCase())
 
       const matchesQuery =
         !query.trim() ||
         t.name.toLowerCase().includes(query.toLowerCase()) ||
         t.category.toLowerCase().includes(query.toLowerCase()) ||
-        t.note.toLowerCase().includes(query.toLowerCase())
+        t.note.toLowerCase().includes(query.toLowerCase()) ||
+        (t.tags && t.tags.some((tag) => tag.toLowerCase().includes(query.toLowerCase())))
 
-      return matchesCategory && matchesCount && matchesQuery
+      return matchesCategory && matchesCount && matchesTag && matchesQuery
     }).sort((a, b) => {
       if (isRecentCategory) {
         const indexA = top5RecentIds.indexOf(a.id)
@@ -1034,7 +1047,7 @@ export default function App() {
           let score = 50
           if (t.count === 4) score += 35
           if (t.category.includes("Romantic") || t.category.includes("Coquette")) score += 20
-          if (t.id === "four-cut" || t.id === "tmpl-001" || t.id === "tmpl-014" || t.id === "tmpl-011") score += 40
+          if (t.id === "tmpl-user-047" || t.id === "tmpl-user-050" || t.id === "tmpl-user-052" || t.id === "tmpl-user-053" || t.id === "tmpl-user-054") score += 50
           return score
         }
         return getPopScore(b) - getPopScore(a)
@@ -1058,7 +1071,7 @@ export default function App() {
       }
       return 0
     })
-  }, [category, countFilter, query, sortBy, favorites, recentTemplates, preferenceProfiles])
+  }, [category, selectedTag, countFilter, query, sortBy, favorites, recentTemplates, preferenceProfiles])
 
   const currentTemplate = getTemplate(composition.templateId)
 
@@ -1080,25 +1093,48 @@ export default function App() {
       {/* Flash Effect Overlay */}
       {flashActive && <div className="flash-overlay" aria-hidden="true" />}
 
-      {/* Site Header */}
+      {/* Site Header - Android APK Top App Bar */}
       <header className="site-header">
-        <a
-          href="#"
-          className="brand"
-          onClick={(e) => {
-            e.preventDefault()
-            setPage("home")
-          }}
-        >
-          <span className="brand-mark">LM✦</span>
-          <span>
-            <strong>Little Moments</strong>
-            <small>photobooth · analog print studio</small>
-          </span>
-        </a>
+        <div className="flex items-center gap-2">
+          {page !== "home" && (
+            <button
+              type="button"
+              className="w-8 h-8 rounded-full border border-stone-800 bg-stone-100 flex items-center justify-center text-stone-900 active:scale-90 transition-transform mr-1"
+              onClick={() => {
+                if (page === "editor") setPage("templates")
+                else if (page === "camera" || page === "setup") setPage("templates")
+                else setPage("home")
+              }}
+              title="Navigate back"
+              aria-label="Back"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
 
-        {/* Desktop / Tablet Navigation */}
-        <nav className="site-navigation hidden md:flex">
+          <a
+            href="#"
+            className="brand"
+            onClick={(e) => {
+              e.preventDefault()
+              setPage("home")
+            }}
+          >
+            <span className="brand-mark">LM✦</span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <strong>Little Moments</strong>
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-stone-900 text-amber-300 hidden sm:inline-block">
+                  APK v2.5
+                </span>
+              </div>
+              <small className="hidden xs:inline">photobooth · analog studio</small>
+            </div>
+          </a>
+        </div>
+
+        {/* Desktop Navigation (>= 1024px) */}
+        <nav className="site-navigation hidden lg:flex">
           <button
             type="button"
             className={page === "home" ? "is-active" : ""}
@@ -1128,7 +1164,6 @@ export default function App() {
             className={page === "editor" ? "is-active" : ""}
             onClick={() => {
               if (!composition.photos.length) {
-                // seed with sample photos if empty
                 setComposition((c) => ({
                   ...c,
                   photos: Array.from({ length: currentTemplate.count }, (_, i) => ({
@@ -1160,11 +1195,11 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Mobile quick actions & hamburger menu button */}
-        <div className="flex items-center gap-2 md:hidden">
+        {/* Mobile & Tablet quick actions */}
+        <div className="flex items-center gap-2 lg:hidden">
           <button
             type="button"
-            className="sketch-button sketch-button--sm text-xs py-1.5 px-3 flex items-center gap-1.5 bg-rose-600 text-white border-stone-900 shadow-[2px_2px_0_#171717] active:scale-95"
+            className="sketch-button sketch-button--sm text-xs py-1.5 px-2.5 flex items-center gap-1.5 bg-rose-600 text-white border-stone-900 shadow-[2px_2px_0_#171717] active:scale-95"
             onClick={() => {
               setPage("camera")
               openCamera()
@@ -1177,11 +1212,11 @@ export default function App() {
 
           <button
             type="button"
-            className="w-10 h-10 border-2 border-stone-900 bg-[#faf8f0] shadow-[2px_2px_0_#171717] flex items-center justify-center text-stone-900 active:scale-95 transition-transform"
+            className="w-9 h-9 border-2 border-stone-900 bg-[#faf8f0] shadow-[2px_2px_0_#171717] flex items-center justify-center text-stone-900 active:scale-95 transition-transform"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </header>
@@ -1250,8 +1285,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Container */}
-      <main className="w-[min(calc(100%-24px),1240px)] sm:w-[min(calc(100%-40px),1240px)] mx-auto pb-28 md:pb-24 overflow-x-hidden">
+      {/* Main Container - Full width in editor mode, responsive max-7xl in other modes */}
+      <main className={page === "editor" ? "w-full max-w-full p-0 m-0 pb-0 overflow-x-hidden" : "w-full max-w-7xl mx-auto px-3 sm:px-6 md:px-8 pb-28 md:pb-24 overflow-x-hidden"}>
         {/* ======================================================== */}
         {/* SCREEN 1: HOME PAGE (CodePen Hero & Featured)            */}
         {/* ======================================================== */}
@@ -1342,12 +1377,8 @@ export default function App() {
                 <div className="construction-circle construction-circle--two" />
 
                 <div className="hero-package">
-                  <div className="w-full flex justify-center mb-2">
-                    <img
-                      src="/templates/clean/tmpl-001.jpg"
-                      alt="Sample strip"
-                      className="max-h-[220px] object-contain shadow-sm border border-stone-900"
-                    />
+                  <div className="w-32 sm:w-36 mx-auto mb-2 aspect-[1/2.35] shadow-md border-2 border-stone-900 overflow-hidden bg-[#09090b] p-1">
+                    <TemplateThumbnail template={templates[0]} className="w-full h-full object-contain" />
                   </div>
                   <span className="package-label">
                     ABSOLUTELY
@@ -1365,33 +1396,27 @@ export default function App() {
             <section className="shop-section">
               <header className="section-heading">
                 <div>
-                  <p className="eyebrow">Curated From 86 Reference Strips</p>
-                  <h2>Featured Layouts</h2>
+                  <p className="eyebrow">Curated From {templates.length} Authentic Keepsake Strips</p>
+                  <h2>Featured 4-Cut Layouts</h2>
                 </div>
                 <p>
-                  All templates are built around actual reference photo strips,
-                  with distinct slot geometries, aspect ratios, and decorative frames.
+                  Built directly from real photobooth strips with authentic poses, Korean aesthetics, and real character accents.
                 </p>
               </header>
 
               <div className="template-grid mt-10">
-                {templates.slice(0, 6).map((t, idx) => (
+                {templates.slice(0, 5).map((t, idx) => (
                   <article
                     key={t.id}
                     className="template-card"
-                    style={{ "--rotation": `${(idx % 3 === 0 ? -1 : idx % 3 === 1 ? 1 : -0.5)}deg` } as React.CSSProperties}
                   >
                     <button
                       type="button"
                       className="product-image-button"
                       onClick={() => setPreviewTemplate(t)}
                     >
-                      <div className="product-image-frame">
-                        <img
-                          src={t.thumbnail}
-                          alt={t.name}
-                          loading="lazy"
-                        />
+                      <div className="product-image-frame relative">
+                        <TemplateThumbnail template={t} className="w-full h-full object-contain" />
                         <span className="image-number">STRIP #{String(idx + 1).padStart(2, "0")}</span>
                         <span className="image-note">{t.count} CUTS</span>
                       </div>
@@ -1400,7 +1425,7 @@ export default function App() {
                     <div className="product-content">
                       <p className="product-category">{t.category}</p>
                       <h3 className="product-title">{t.name}</h3>
-                      <p className="product-description">{t.note}</p>
+                      <p className="product-description" title={t.note}>{t.note}</p>
 
                       <div className="product-footer">
                         <span className="product-price">{t.count} photos</span>
@@ -1423,7 +1448,7 @@ export default function App() {
                   className="sketch-button sketch-button--dark"
                   onClick={() => setPage("templates")}
                 >
-                  View all 86 templates →
+                  View all {templates.length} templates →
                 </button>
               </div>
             </section>
@@ -1492,15 +1517,11 @@ export default function App() {
               <div className="filter-list">
                 {[
                   "All styles",
+                  "Cool & Spider Animated 🕸️",
+                  "Propose & Birthday Keepsakes 🎂",
+                  "Romantic Kiss Pose Aesthetic ♡",
                   "Recent",
                   ...(favorites.length > 0 ? [`My Favorites ♥ (${favorites.length})`] : []),
-                  "Romantic Couples ♡",
-                  "Coquette & Bows 🎀",
-                  "Retro Film Strips",
-                  "Aesthetic Scrapbook",
-                  "Minimalist Studio",
-                  "Music Player Frames 🎵",
-                  "Playful & Y2K",
                 ].map((cat) => {
                   const isRecent = cat === "Recent"
                   const isFav = cat.startsWith("My Favorites")
@@ -1538,8 +1559,10 @@ export default function App() {
                     ["2", "2 Cuts (Duo)"],
                     ["3", "3 Cuts (Trio)"],
                     ["4", "4 Cuts (Classic)"],
-                    ["5-6", "5–6 Cuts"],
-                    ["8-9", "8–9 Cuts"],
+                    ["5", "5 Cuts"],
+                    ["6", "6 Cuts"],
+                    ["8", "8 Cuts"],
+                    ["11", "11 Cuts"],
                   ].map(([val, label]) => (
                     <button
                       key={val}
@@ -1687,11 +1710,7 @@ export default function App() {
                             </span>
                           )
                         })()}
-                        <img
-                          src={t.thumbnail}
-                          alt={t.name}
-                          loading="lazy"
-                        />
+                        <TemplateThumbnail template={t} className="w-full h-full object-contain" />
                         <span className="image-number">LAYOUT #{t.id.replace("tmpl-", "")}</span>
                         <span className="image-note">
                           {t.count <= 2 ? "SIMPLE · " : t.count >= 6 ? "COMPLEX · " : ""}{t.count} CUTS
@@ -2555,11 +2574,10 @@ export default function App() {
             </button>
 
             {/* Left Frame with Crosshairs */}
-            <div className="modal-image-frame">
-              <img
-                src={previewTemplate.thumbnail}
-                alt={previewTemplate.name}
-              />
+            <div className="modal-image-frame flex items-center justify-center p-3 bg-stone-900">
+              <div className="w-full max-w-[210px] aspect-[1/2.35] shadow-xl border border-stone-700 overflow-hidden bg-[#09090b] p-1">
+                <TemplateThumbnail template={previewTemplate} className="w-full h-full object-contain" />
+              </div>
               <span>approved layout no. {previewTemplate.id.replace("tmpl-", "")}</span>
             </div>
 
@@ -2635,108 +2653,122 @@ export default function App() {
         {toast}
       </div>
 
-      {/* Dedicated Mobile Bottom Navigation Bar (Touch-optimized for phones) */}
-      <nav
-        aria-label="Mobile Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 bg-[#f5f2e9]/95 backdrop-blur-md border-t-2 border-stone-900 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] md:hidden px-3 pt-2 pb-2 safe-bottom flex items-center justify-around"
-      >
-        <button
-          type="button"
-          className={`flex flex-col items-center justify-center py-1 px-2 rounded text-[10px] font-mono tracking-tight transition-colors ${
-            page === "home" ? "text-stone-950 font-bold" : "text-stone-500 hover:text-stone-900"
-          }`}
-          onClick={() => {
-            setPage("home")
-            window.scrollTo({ top: 0, behavior: "smooth" })
-          }}
+      {/* Android APK Bottom Navigation Bar (Optimized for Phones & Tablets, hidden in Studio mode to avoid tool overlap) */}
+      {page !== "editor" && (
+        <nav
+          aria-label="Android Bottom Navigation"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-[#faf8f2]/95 backdrop-blur-md border-t-2 border-stone-900 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] lg:hidden px-2 sm:px-6 pt-1.5 pb-2 safe-bottom flex items-center justify-around"
         >
-          <Home size={19} className={page === "home" ? "stroke-[2.4]" : "stroke-[1.8]"} />
-          <span className="mt-1">Home</span>
-        </button>
+          <button
+            type="button"
+            className={`flex flex-col items-center justify-center py-1 px-3 sm:px-5 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
+              page === "home"
+                ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
+                : "text-stone-600 hover:text-stone-900"
+            }`}
+            onClick={() => {
+              setPage("home")
+              window.scrollTo({ top: 0, behavior: "smooth" })
+            }}
+          >
+            <Home size={19} className={page === "home" ? "stroke-[2.5]" : "stroke-[1.8]"} />
+            <span className="mt-0.5">Home</span>
+          </button>
 
-        <button
-          type="button"
-          className={`flex flex-col items-center justify-center py-1 px-2 rounded text-[10px] font-mono tracking-tight transition-colors ${
-            page === "templates" ? "text-stone-950 font-bold" : "text-stone-500 hover:text-stone-900"
-          }`}
-          onClick={() => {
-            setPage("templates")
-            window.scrollTo({ top: 0, behavior: "smooth" })
-          }}
-        >
-          <Grid2X2 size={19} className={page === "templates" ? "stroke-[2.4]" : "stroke-[1.8]"} />
-          <span className="mt-1">Templates</span>
-        </button>
-
-        {/* Elevated Center Photobooth Button */}
-        <button
-          type="button"
-          className="relative -top-3 flex flex-col items-center justify-center group active:scale-95 transition-transform"
-          onClick={() => {
-            setPage("camera")
-            openCamera()
-            window.scrollTo({ top: 0, behavior: "smooth" })
-          }}
-          title="Start Photobooth"
-        >
-          <div className="w-12 h-12 rounded-full bg-rose-600 border-2 border-stone-900 text-white flex items-center justify-center shadow-[2px_3px_0_#171717]">
-            <Camera size={22} className="stroke-[2.2]" />
-          </div>
-          <span className="text-[10px] font-mono font-bold text-stone-900 mt-0.5">Booth</span>
-        </button>
-
-        <button
-          type="button"
-          className={`flex flex-col items-center justify-center py-1 px-2 rounded text-[10px] font-mono tracking-tight transition-colors ${
-            page === "editor" ? "text-stone-950 font-bold" : "text-stone-500 hover:text-stone-900"
-          }`}
-          onClick={() => {
-            if (!composition.photos.length) {
-              setComposition((c) => ({
-                ...c,
-                photos: Array.from({ length: currentTemplate.count }, (_, i) => ({
-                  id: crypto.randomUUID(),
-                  src: samples[i % samples.length],
-                  name: `Sample Photo ${i + 1}`,
-                  adjustments: defaultAdjustments(),
-                })),
-              }))
-            }
-            setPage("editor")
-            window.scrollTo({ top: 0, behavior: "smooth" })
-          }}
-        >
-          <Paintbrush size={19} className={page === "editor" ? "stroke-[2.4]" : "stroke-[1.8]"} />
-          <span className="mt-1">Studio</span>
-        </button>
-
-        <button
-          type="button"
-          className={`relative flex flex-col items-center justify-center py-1 px-2 rounded text-[10px] font-mono tracking-tight transition-colors ${
-            page === "creations" ? "text-stone-950 font-bold" : "text-stone-500 hover:text-stone-900"
-          }`}
-          onClick={() => {
-            setPage("creations")
-            window.scrollTo({ top: 0, behavior: "smooth" })
-          }}
-        >
-          <div className="relative">
-            <Bookmark size={19} className={page === "creations" ? "stroke-[2.4]" : "stroke-[1.8]"} />
-            {saved.length > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[15px] h-[15px] rounded-full bg-rose-600 text-[9px] text-white font-mono flex items-center justify-center font-bold px-0.5">
-                {saved.length}
+          <button
+            type="button"
+            className={`flex flex-col items-center justify-center py-1 px-3 sm:px-5 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
+              page === "templates"
+                ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
+                : "text-stone-600 hover:text-stone-900"
+            }`}
+            onClick={() => {
+              setPage("templates")
+              window.scrollTo({ top: 0, behavior: "smooth" })
+            }}
+          >
+            <div className="relative">
+              <Grid2X2 size={19} className={page === "templates" ? "stroke-[2.5]" : "stroke-[1.8]"} />
+              <span className="absolute -top-1 -right-2 text-[8px] font-mono font-bold bg-amber-500 text-stone-950 px-1 rounded-full leading-tight">
+                {templates.length}
               </span>
-            )}
-          </div>
-          <span className="mt-1">Prints</span>
-        </button>
-      </nav>
+            </div>
+            <span className="mt-0.5">Templates</span>
+          </button>
 
-      {/* CodePen Site Footer */}
-      <footer className="site-footer">
-        <span>© Little Moments Creative Print Studio</span>
-        <span>Crafted with vintage ink & real paper textures.</span>
-      </footer>
+          {/* Elevated Center Android Camera Shutter Action Button */}
+          <button
+            type="button"
+            className="relative -top-3.5 flex flex-col items-center justify-center group active:scale-90 transition-transform"
+            onClick={() => {
+              setPage("camera")
+              openCamera()
+              window.scrollTo({ top: 0, behavior: "smooth" })
+            }}
+            title="Launch Photobooth Camera"
+            aria-label="Start Photobooth Camera"
+          >
+            <div className="w-13 h-13 rounded-full bg-rose-600 border-[3px] border-stone-900 text-white flex items-center justify-center shadow-[0_4px_12px_rgba(225,29,72,0.4)] group-hover:bg-rose-500">
+              <Camera size={24} className="stroke-[2.4]" />
+            </div>
+            <span className="text-[10px] font-mono font-bold text-stone-900 mt-0.5">Booth</span>
+          </button>
+
+          <button
+            type="button"
+            className="flex flex-col items-center justify-center py-1 px-3 sm:px-5 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 text-stone-600 hover:text-stone-900"
+            onClick={() => {
+              if (!composition.photos.length) {
+                setComposition((c) => ({
+                  ...c,
+                  photos: Array.from({ length: currentTemplate.count }, (_, i) => ({
+                    id: crypto.randomUUID(),
+                    src: samples[i % samples.length],
+                    name: `Sample Photo ${i + 1}`,
+                    adjustments: defaultAdjustments(),
+                  })),
+                }))
+              }
+              setPage("editor")
+              window.scrollTo({ top: 0, behavior: "smooth" })
+            }}
+          >
+            <Paintbrush size={19} className="stroke-[1.8]" />
+            <span className="mt-0.5">Studio</span>
+          </button>
+
+          <button
+            type="button"
+            className={`relative flex flex-col items-center justify-center py-1 px-3 sm:px-5 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
+              page === "creations"
+                ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
+                : "text-stone-600 hover:text-stone-900"
+            }`}
+            onClick={() => {
+              setPage("creations")
+              window.scrollTo({ top: 0, behavior: "smooth" })
+            }}
+          >
+            <div className="relative">
+              <Bookmark size={19} className={page === "creations" ? "stroke-[2.5]" : "stroke-[1.8]"} />
+              {saved.length > 0 && (
+                <span className="absolute -top-1 -right-2.5 min-w-[15px] h-[15px] rounded-full bg-rose-600 text-[9px] text-white font-mono flex items-center justify-center font-bold px-0.5">
+                  {saved.length}
+                </span>
+              )}
+            </div>
+            <span className="mt-0.5">Prints</span>
+          </button>
+        </nav>
+      )}
+
+      {/* CodePen Site Footer - only on informational pages */}
+      {(page === "home" || page === "templates") && (
+        <footer className="site-footer">
+          <span>© Little Moments Creative Print Studio</span>
+          <span>Crafted with vintage ink & real paper textures.</span>
+        </footer>
+      )}
     </div>
   )
 }

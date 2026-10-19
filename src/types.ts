@@ -1,4 +1,4 @@
-export type PhotoCount = 1 | 2 | 3 | 4 | 5 | 6 | 8 | 9
+export type PhotoCount = 1 | 2 | 3 | 4 | 5 | 6 | 8 | 9 | 11
 export type Stage = "home" | "setup" | "templates" | "camera" | "review" | "editor" | "export"
 
 export type Slot = {
@@ -22,6 +22,7 @@ export type PhotoTemplate = {
   orientation: "portrait" | "landscape" | "square"
   note: string
   thumbnail?: string
+  tags?: string[]
 }
 
 export type FilterName = string
