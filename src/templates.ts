@@ -1265,9 +1265,238 @@ export const kBoothTemplates: PhotoTemplate[] = [
       { x: 53, y: 65, width: 36, height: 19.5, radius: 1 },
     ],
   },
+  {
+    id: "tmpl-kbooth-13",
+    name: "Cream & Maroon Modern Cinema Photostrip",
+    subtitle: "Deep Maroon & Warm Cream · Cinema Ticket Stub Strip",
+    category: "K-Booth (인생네컷)",
+    count: 4 as PhotoCount,
+    orientation: "portrait",
+    width: 600,
+    height: 1800,
+    background: "#42131b",
+    accent: "#f59e0b",
+    backgroundPattern: "K-Booth Cream & Maroon Bookmark",
+    thumbnail: "/kbooth/kbooth-13.png",
+    canvaUrl: "https://www.canva.com/templates/EAHYJW8QwtY-cream-and-maroon-modern-photo-strip/",
+    note: "Modern vertical cinema bookmark strip in rich maroon with cursive Photograph header, 5 gold stars, 4 film cuts, and admission row/seat ticket.",
+    tags: ["kbooth", "cinema", "ticket", "maroon", "cream", "bookmark", "4cut", "photostrip", "stars", "canva"],
+    slots: [
+      { x: 15.5, y: 18.8, width: 69, height: 14.8, radius: 1 },
+      { x: 15.5, y: 35.0, width: 69, height: 14.8, radius: 1 },
+      { x: 15.5, y: 51.2, width: 69, height: 14.8, radius: 1 },
+      { x: 15.5, y: 67.4, width: 69, height: 14.8, radius: 1 },
+    ],
+  },
+  {
+    id: "tmpl-kbooth-14",
+    name: "Blue Denim & Lace Cool Friendship Twin Strip",
+    subtitle: "Y2K Browser Windows & Postage Stamps · Denim & Lace",
+    category: "K-Booth (인생네컷)",
+    count: 7 as PhotoCount,
+    orientation: "portrait",
+    width: 1200,
+    height: 1800,
+    background: "#456382",
+    accent: "#facc15",
+    backgroundPattern: "K-Booth Denim & Lace Y2K",
+    thumbnail: "/kbooth/kbooth-14.png",
+    canvaUrl: "https://www.canva.com/templates/EAHPCTiiJLo-blue-and-white-cool-friendship-photo-collage/",
+    note: "Twin strip featuring authentic Y2K desktop browser windows with cherries on the left, and giant scalloped postage stamps with denim stitched stars on the right.",
+    tags: ["kbooth", "denim", "lace", "twin-strip", "y2k", "browser", "stamp", "7cut", "blue", "friendship", "canva"],
+    slots: [
+      { x: 10.5, y: 7.2, width: 35, height: 16.5, radius: 1 },
+      { x: 10.5, y: 30.6, width: 35, height: 16.5, radius: 1 },
+      { x: 10.5, y: 54.0, width: 35, height: 16.5, radius: 1 },
+      { x: 10.5, y: 77.4, width: 35, height: 16.5, radius: 1 },
+      { x: 61.5, y: 8.0, width: 29.5, height: 21.5, radius: 1.5 },
+      { x: 61.5, y: 36.5, width: 29.5, height: 21.5, radius: 1.5 },
+      { x: 61.5, y: 65.0, width: 29.5, height: 21.5, radius: 1.5 },
+    ],
+  },
+  {
+    id: "tmpl-kbooth-15",
+    name: "Brown & Green Retro 70s Friends Twin Photostrip",
+    subtitle: "Groovy Days & Baby · 70s Daisies, Sunglasses & Balloon Pets",
+    category: "K-Booth (인생네컷)",
+    count: 6 as PhotoCount,
+    orientation: "portrait",
+    width: 1200,
+    height: 1800,
+    background: "#3e2417",
+    accent: "#f59e0b",
+    backgroundPattern: "K-Booth Retro 70s Groovy",
+    thumbnail: "/kbooth/kbooth-15.png",
+    canvaUrl: "https://www.canva.com/templates/EAHKS_5hsV8-brown-and-green-retro-friends-photostrip-photo-collage/",
+    note: "Psychedelic 70s twin photostrips with 'Groovy Days' olive strip and 'Groovy Baby' mocha brown strip, retro daisies, sunglasses, and balloon animals.",
+    tags: ["kbooth", "retro", "70s", "groovy", "twin-strip", "olive", "brown", "daisies", "6cut", "friendship", "canva"],
+    slots: [
+      { x: 6.5, y: 13.5, width: 38.5, height: 22.5, radius: 1 },
+      { x: 6.5, y: 39.5, width: 38.5, height: 22.5, radius: 1 },
+      { x: 6.5, y: 65.5, width: 38.5, height: 22.5, radius: 1 },
+      { x: 55.0, y: 13.5, width: 38.5, height: 22.5, radius: 1 },
+      { x: 55.0, y: 39.5, width: 38.5, height: 22.5, radius: 1 },
+      { x: 55.0, y: 65.5, width: 38.5, height: 22.5, radius: 1 },
+    ],
+  },
 ]
 
-// Append all 12 K-Booth templates to the global template collection
+// Purikura 90s (プリクラ) Authentic Arcade Templates
+const purikuraThumb1 = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="960" viewBox="0 0 400 960">
+    <defs>
+      <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fdf2f8"/>
+        <stop offset="50%" stop-color="#fce7f3"/>
+        <stop offset="100%" stop-color="#f3e8ff"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="960" fill="url(#bg1)"/>
+    <rect x="40" y="60" width="320" height="175" rx="16" fill="#ffffff" stroke="#f43f5e" stroke-width="3" opacity="0.95"/>
+    <rect x="40" y="260" width="320" height="175" rx="16" fill="#ffffff" stroke="#f43f5e" stroke-width="3" opacity="0.95"/>
+    <rect x="40" y="460" width="320" height="175" rx="16" fill="#ffffff" stroke="#f43f5e" stroke-width="3" opacity="0.95"/>
+    <rect x="40" y="660" width="320" height="175" rx="16" fill="#ffffff" stroke="#f43f5e" stroke-width="3" opacity="0.95"/>
+    <text x="200" y="155" text-anchor="middle" font-family="'Rounded Mplus 1c', sans-serif" font-weight="900" font-size="28" fill="#fda4af">♡ PHOTO 1 ♡</text>
+    <text x="200" y="355" text-anchor="middle" font-family="'Rounded Mplus 1c', sans-serif" font-weight="900" font-size="28" fill="#fda4af">✦ PHOTO 2 ✦</text>
+    <text x="200" y="555" text-anchor="middle" font-family="'Rounded Mplus 1c', sans-serif" font-weight="900" font-size="28" fill="#fda4af">♡ PHOTO 3 ♡</text>
+    <text x="200" y="755" text-anchor="middle" font-family="'Rounded Mplus 1c', sans-serif" font-weight="900" font-size="28" fill="#fda4af">✦ PHOTO 4 ✦</text>
+    <text x="200" y="890" text-anchor="middle" font-family="'Rounded Mplus 1c', sans-serif" font-weight="900" font-size="30" fill="#f43f5e">プリクラ · SHIBUYA 90s</text>
+    <text x="70" y="865" font-size="22" fill="#a855f7">★ スキ ★</text>
+    <text x="280" y="865" font-size="22" fill="#ec4899">ズッ友 ♡</text>
+  </svg>`,
+)}`
+
+const purikuraThumb2 = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
+    <defs>
+      <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f3e8ff"/>
+        <stop offset="40%" stop-color="#e0e7ff"/>
+        <stop offset="70%" stop-color="#fce7f3"/>
+        <stop offset="100%" stop-color="#fef9c3"/>
+      </linearGradient>
+    </defs>
+    <rect width="600" height="900" fill="url(#bg2)"/>
+    <rect x="70" y="80" width="460" height="320" rx="20" fill="#ffffff" stroke="#a855f7" stroke-width="4" opacity="0.95"/>
+    <rect x="70" y="440" width="460" height="320" rx="20" fill="#ffffff" stroke="#a855f7" stroke-width="4" opacity="0.95"/>
+    <text x="300" y="245" text-anchor="middle" font-family="'Rounded Mplus 1c', sans-serif" font-weight="900" font-size="36" fill="#c084fc">✦ HARAJUKU CUT 1 ✦</text>
+    <text x="300" y="605" text-anchor="middle" font-family="'Rounded Mplus 1c', sans-serif" font-weight="900" font-size="36" fill="#c084fc">♡ HARAJUKU CUT 2 ♡</text>
+    <text x="300" y="830" text-anchor="middle" font-family="'Rounded Mplus 1c', sans-serif" font-weight="900" font-size="34" fill="#9333ea">プリクラ · HARAJUKU DUO</text>
+    <text x="100" y="800" font-size="26" fill="#f43f5e">ʚ angel ɞ</text>
+    <text x="440" y="800" font-size="26" fill="#06b6d4">盛 · SLAY ✦</text>
+  </svg>`,
+)}`
+
+const purikuraThumb3 = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+    <rect width="600" height="800" fill="#18181b"/>
+    <rect x="40" y="40" width="240" height="280" rx="12" fill="#27272a" stroke="#34d399" stroke-width="3"/>
+    <rect x="320" y="40" width="240" height="280" rx="12" fill="#27272a" stroke="#f43f5e" stroke-width="3"/>
+    <rect x="40" y="360" width="240" height="280" rx="12" fill="#27272a" stroke="#38bdf8" stroke-width="3"/>
+    <rect x="320" y="360" width="240" height="280" rx="12" fill="#27272a" stroke="#fbbf24" stroke-width="3"/>
+    <text x="160" y="185" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="22" fill="#34d399">CUT 01</text>
+    <text x="440" y="185" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="22" fill="#f43f5e">CUT 02</text>
+    <text x="160" y="505" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="22" fill="#38bdf8">CUT 03</text>
+    <text x="440" y="505" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="22" fill="#fbbf24">CUT 04</text>
+    <text x="300" y="730" text-anchor="middle" font-family="'Rounded Mplus 1c', sans-serif" font-weight="900" font-size="32" fill="#10b981">TOKYO NEON ARCADE · プリクラ</text>
+  </svg>`,
+)}`
+
+export const purikuraTemplates: PhotoTemplate[] = [
+  {
+    id: "tmpl-purikura-01",
+    name: "Shibuya Arcade Twin Strip · プリクラ 90s",
+    category: "Purikura 90s (プリクラ)",
+    count: 4 as PhotoCount,
+    orientation: "portrait",
+    width: 1000,
+    height: 2400,
+    background: "#fdf2f8",
+    backgroundPattern: "Purikura Shibuya Sparkle",
+    accent: "#f43f5e",
+    note: "Authentic 90s Shibuya arcade Purikura vertical strip with pastel cotton candy sparkles and wide sticker margins.",
+    tags: [
+      "purikura",
+      "90s",
+      "japanese",
+      "shibuya",
+      "arcade",
+      "sticker",
+      "sparkle",
+      "4-cut",
+    ],
+    thumbnail: purikuraThumb1,
+    slots: [
+      { x: 10, y: 7, width: 80, height: 18.5, radius: 2 },
+      { x: 10, y: 28.5, width: 80, height: 18.5, radius: 2 },
+      { x: 10, y: 50, width: 80, height: 18.5, radius: 2 },
+      { x: 10, y: 71.5, width: 80, height: 18.5, radius: 2 },
+    ],
+  },
+  {
+    id: "tmpl-purikura-02",
+    name: "Harajuku Holographic 2-Cut · プリクラ 90s",
+    category: "Purikura 90s (プリクラ)",
+    count: 2 as PhotoCount,
+    orientation: "portrait",
+    width: 1200,
+    height: 1800,
+    background: "#f3e8ff",
+    backgroundPattern: "Purikura Harajuku Hologram",
+    accent: "#a855f7",
+    note: "Harajuku holographic 2-cut photobooth keepsake with pastel lavender shimmer and signature deco room.",
+    tags: [
+      "purikura",
+      "90s",
+      "japanese",
+      "harajuku",
+      "holographic",
+      "pastel",
+      "2-cut",
+      "duo",
+    ],
+    thumbnail: purikuraThumb2,
+    slots: [
+      { x: 12, y: 10, width: 76, height: 38, radius: 2.5 },
+      { x: 12, y: 52, width: 76, height: 38, radius: 2.5 },
+    ],
+  },
+  {
+    id: "tmpl-purikura-03",
+    name: "Retro Tokyo Neon 4-Cut · プリクラ 90s",
+    category: "Purikura 90s (プリクラ)",
+    count: 4 as PhotoCount,
+    orientation: "portrait",
+    width: 1800,
+    height: 2400,
+    background: "#18181b",
+    backgroundPattern: "Purikura Neon Arcade",
+    accent: "#10b981",
+    note: "Tokyo game center retro 4-cut photobooth with electric neon gel pen accents and glowing arcade grid.",
+    tags: [
+      "purikura",
+      "90s",
+      "japanese",
+      "tokyo",
+      "neon",
+      "arcade",
+      "4-cut",
+      "gel-pen",
+    ],
+    thumbnail: purikuraThumb3,
+    slots: [
+      { x: 8, y: 8, width: 40, height: 40, radius: 2 },
+      { x: 52, y: 8, width: 40, height: 40, radius: 2 },
+      { x: 8, y: 52, width: 40, height: 40, radius: 2 },
+      { x: 52, y: 52, width: 40, height: 40, radius: 2 },
+    ],
+  },
+]
+
+// Append all Purikura templates to the global template collection
+templates.push(...purikuraTemplates)
+
+// Append all K-Booth templates to the global template collection
 templates.push(...kBoothTemplates)
 
 // Set template thumbnail directly to the real user image from covers/images folder if not already specified
@@ -1279,6 +1508,7 @@ templates.forEach((t) => {
 
 export const templateCategories = [
   "All styles",
+  "Purikura 90s (プリクラ)",
   "K-Booth (인생네컷)",
   "Cool & Spider Animated 🕸️",
   "Propose & Birthday Keepsakes 🎂",

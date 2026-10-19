@@ -42,6 +42,8 @@ import {
   Paintbrush,
   Grid2X2,
   ExternalLink,
+  QrCode,
+  Smartphone,
 } from "lucide-react"
 import type {
   Composition,
@@ -52,12 +54,19 @@ import type {
   FilterName,
 } from "./types"
 import { defaultAdjustments } from "./types"
-import { templates, getTemplate, templatesForCount, kBoothTemplates } from "./templates"
+import {
+  templates,
+  getTemplate,
+  templatesForCount,
+  kBoothTemplates,
+  purikuraTemplates,
+} from "./templates"
 import { cssFilter, renderComposition } from "./rendering"
 import "./studio/studio.css"
 import { dimensions, historyStep } from "./studio/model"
 import { saveProject, loadProjects, removeProject } from "./studio/storage"
 import useFontRevision from "./studio/useFontRevision"
+import { generateQrCodeDataUrl } from "./utils/qrCode"
 import { TemplateThumbnail } from "./components/TemplateThumbnail"
 import { findGridLayout } from "./studio/gridEngine"
 
@@ -216,7 +225,10 @@ export default function App() {
       )
     if (kBoothCategory === "Tickets & Barcodes")
       return kBoothTemplates.filter(
-        (t) => t.tags?.includes("ticket") || t.tags?.includes("barcode"),
+        (t) =>
+          t.tags?.includes("ticket") ||
+          t.tags?.includes("barcode") ||
+          t.tags?.includes("bookmark"),
       )
     if (kBoothCategory === "Minimalist & Slats")
       return kBoothTemplates.filter(
@@ -225,13 +237,23 @@ export default function App() {
           t.tags?.includes("slat") ||
           t.tags?.includes("shadow"),
       )
-    if (kBoothCategory === "Postage Stamp & Croc")
+    if (kBoothCategory === "Postage Stamp & Denim")
       return kBoothTemplates.filter(
-        (t) => t.tags?.includes("stamp") || t.tags?.includes("croc"),
+        (t) =>
+          t.tags?.includes("stamp") ||
+          t.tags?.includes("croc") ||
+          t.tags?.includes("denim"),
       )
     if (kBoothCategory === "Moodboard & Scrapbook")
       return kBoothTemplates.filter(
         (t) => t.tags?.includes("moodboard") || t.tags?.includes("scrapbook"),
+      )
+    if (kBoothCategory === "70s Retro Groovy")
+      return kBoothTemplates.filter(
+        (t) =>
+          t.tags?.includes("retro") ||
+          t.tags?.includes("70s") ||
+          t.tags?.includes("groovy"),
       )
     return kBoothTemplates
   }, [kBoothCategory])
@@ -251,6 +273,13 @@ export default function App() {
   const [flashActive, setFlashActive] = useState(false)
   const [previewTemplate, setPreviewTemplate] = useState<PhotoTemplate | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [qrDataUrl, setQrDataUrl] = useState<string>("")
+  const [qrExportUrl, setQrExportUrl] = useState<string>("")
+  const [qrLanHost, setQrLanHost] = useState<string>(() =>
+    typeof window !== "undefined" ? window.location.host : "localhost:3000",
+  )
+  const [qrCopied, setQrCopied] = useState(false)
 
   const draftReady = useRef(false)
   const documentRevision = useRef(0)
@@ -827,6 +856,56 @@ export default function App() {
     }
   }
 
+  const openQrTransferModal = async () => {
+    setBusy(true)
+    try {
+      await document.fonts.ready
+      const canvas = document.createElement("canvas")
+      const t = getTemplate(composition.templateId)
+      await renderComposition(canvas, composition, t, 1)
+      const dataUrl = canvas.toDataURL("image/png", 0.95)
+
+      const exportId = `export_${Date.now()}`
+      try {
+        sessionStorage.setItem(`lm_export_${exportId}`, dataUrl)
+      } catch (e) {
+        console.warn("sessionStorage export cache warning:", e)
+      }
+
+      const protocol = window.location.protocol
+      const host = qrLanHost || window.location.host
+      const targetUrl = `${protocol}//${host}/?view=mobile&id=${exportId}`
+      setQrExportUrl(targetUrl)
+
+      const qrSvg = generateQrCodeDataUrl(targetUrl, {
+        size: 260,
+        margin: 3,
+        darkColor: "#18181b",
+        lightColor: "#ffffff",
+      })
+      setQrDataUrl(qrSvg)
+      setQrModalOpen(true)
+    } catch {
+      notify("Failed to generate QR transfer code.")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const updateQrHost = (newHost: string) => {
+    setQrLanHost(newHost)
+    const protocol = window.location.protocol
+    const targetUrl = `${protocol}//${newHost}/?view=mobile&id=${Date.now()}`
+    setQrExportUrl(targetUrl)
+    const qrSvg = generateQrCodeDataUrl(targetUrl, {
+      size: 260,
+      margin: 3,
+      darkColor: "#18181b",
+      lightColor: "#ffffff",
+    })
+    setQrDataUrl(qrSvg)
+  }
+
   // Dynamic Recommendation Engine based on user's favorited templates and layout usage history
   const preferenceProfiles = useMemo(() => {
     const favoriteTemplates = favorites
@@ -1050,7 +1129,9 @@ export default function App() {
         (category.includes("Romantic") && (t.category.includes("Romantic") || t.category.includes("Kiss") || t.category.includes("Couple"))) ||
         (category.includes("Spider") && (t.category.includes("Spider") || t.category.includes("Cool") || t.category.includes("Animated"))) ||
         (category.includes("Birthday") && (t.category.includes("Birthday") || t.category.includes("Propose") || t.category.includes("Greeting"))) ||
-        (category.includes("Retro") && t.category.includes("Retro"))
+        (category.includes("Retro") && t.category.includes("Retro")) ||
+        (category.includes("Purikura") &&
+          (t.category.includes("Purikura") || t.tags?.includes("purikura")))
 
       const matchesCount =
         countFilter === "all" ||
@@ -1125,6 +1206,73 @@ export default function App() {
   }, [category, selectedTag, countFilter, query, sortBy, favorites, recentTemplates, preferenceProfiles])
 
   const currentTemplate = getTemplate(composition.templateId)
+
+  // Standalone Mobile Photo Viewer Mode when scanned via QR code
+  const searchParams =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null
+  const isMobileView = searchParams?.get("view") === "mobile"
+  const mobileExportId = searchParams?.get("id")
+
+  if (isMobileView) {
+    const cachedImage =
+      (mobileExportId && typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem(`lm_export_${mobileExportId}`)
+        : null) || (saved.length > 0 ? saved[0].image : null)
+
+    return (
+      <div className="min-h-screen bg-[#faf8f2] flex flex-col items-center justify-center p-4 text-stone-900 font-sans">
+        <header className="mb-4 text-center">
+          <h1 className="font-gochi text-3xl text-stone-900 mb-1 flex items-center justify-center gap-2">
+            <Sparkles className="text-rose-500" size={24} /> Little Moments
+          </h1>
+          <p className="text-xs font-mono text-stone-500 tracking-wider uppercase">
+            Your Photobooth Keepsake
+          </p>
+        </header>
+
+        <main className="max-w-sm w-full bg-white p-4 rounded-2xl shadow-xl border-2 border-stone-900 flex flex-col items-center">
+          {cachedImage ? (
+            <img
+              src={cachedImage}
+              alt="Your Photobooth Print"
+              className="max-h-[65vh] w-auto rounded-xl object-contain shadow-md mb-4 border border-stone-200"
+            />
+          ) : (
+            <div className="h-64 flex flex-col items-center justify-center text-stone-400 p-6 text-center">
+              <Camera size={40} className="mb-2 text-stone-300" />
+              <p className="text-sm font-mono text-stone-600">Photo print ready</p>
+              <p className="text-xs text-stone-400 mt-1">
+                If scanned on another phone, download directly or create a new memory below.
+              </p>
+            </div>
+          )}
+
+          <div className="w-full space-y-2 mt-2">
+            {cachedImage && (
+              <a
+                href={cachedImage}
+                download={`little-moments-${Date.now()}.png`}
+                className="sketch-button sketch-button--dark w-full text-center flex items-center justify-center gap-2 py-3 text-sm font-semibold"
+              >
+                <Download size={16} /> Save to Camera Roll
+              </a>
+            )}
+            <a
+              href="/"
+              className="sketch-button w-full text-center flex items-center justify-center gap-2 py-2 text-xs text-stone-600"
+            >
+              Open Photo Studio & Create New ✦
+            </a>
+          </div>
+          <p className="text-[11px] text-stone-400 text-center mt-3 font-mono">
+            Tip: Press and hold the photo to save directly to Photos
+          </p>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f2e9] text-[#171717] font-mono selection:bg-[#171717] selection:text-[#f5f2e9]">
@@ -1201,7 +1349,7 @@ export default function App() {
           >
             <span>k-booth</span>
             <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-400 text-stone-950 uppercase tracking-wider animate-pulse">
-              12 NEW
+              {kBoothTemplates.length} NEW
             </span>
           </button>
           <button
@@ -1280,7 +1428,7 @@ export default function App() {
 
           {[
             { id: "home", label: "Home Showcase", icon: Home, count: null },
-            { id: "kbooth", label: "K-Booth 인생네컷", icon: Sparkles, count: 12 },
+            { id: "kbooth", label: "K-Booth 인생네컷", icon: Sparkles, count: kBoothTemplates.length },
             { id: "templates", label: "Browse Templates", icon: Grid2X2, count: templates.length },
             { id: "camera", label: "Photobooth Camera", icon: Camera, count: null, action: () => openCamera() },
             { id: "editor", label: "Studio Editor", icon: Paintbrush, count: null },
@@ -1512,7 +1660,7 @@ export default function App() {
                     <span className="px-2 py-0.5 bg-stone-900 text-amber-300 font-mono text-[11px] font-bold uppercase rounded-sm">
                       NEW COLLECTION
                     </span>
-                    <span className="text-xs font-mono text-stone-600">인생네컷 · 12 Authentic Canva Frames</span>
+                    <span className="text-xs font-mono text-stone-600">인생네컷 · {kBoothTemplates.length} Authentic Canva Frames</span>
                   </div>
                   <h2 className="font-caveat text-3xl sm:text-4xl text-stone-900 font-bold">
                     K-Booth Photostrips & Memory Stubs
@@ -1523,7 +1671,7 @@ export default function App() {
                   className="sketch-button sketch-button--dark sketch-button--sm flex items-center gap-1.5 self-start md:self-auto"
                   onClick={() => setPage("kbooth")}
                 >
-                  <span>Explore All 12 K-Frames</span>
+                  <span>Explore All {kBoothTemplates.length} K-Frames</span>
                   <ArrowRight size={14} />
                 </button>
               </div>
@@ -1670,12 +1818,37 @@ export default function App() {
             {/* Filter Navigation Tabs */}
             <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 no-scrollbar">
               {[
-                { label: "All 12 K-Frames", key: "All", count: 12 },
-                { label: "Twin Strips (8 & 6 Cuts)", key: "Twin Strips", count: 6 },
-                { label: "Tickets & Barcodes", key: "Tickets & Barcodes", count: 3 },
-                { label: "Minimalist & Slats", key: "Minimalist & Slats", count: 2 },
-                { label: "Postage Stamp & Croc", key: "Postage Stamp & Croc", count: 2 },
-                { label: "Moodboard & Scrapbook", key: "Moodboard & Scrapbook", count: 2 },
+                { label: `All ${kBoothTemplates.length} K-Frames`, key: "All", count: kBoothTemplates.length },
+                {
+                  label: "Twin Strips (8, 7 & 6 Cuts)",
+                  key: "Twin Strips",
+                  count: kBoothTemplates.filter((t) => t.tags?.includes("twin-strip") || t.tags?.includes("v-strip")).length,
+                },
+                {
+                  label: "Tickets & Bookmarks",
+                  key: "Tickets & Barcodes",
+                  count: kBoothTemplates.filter((t) => t.tags?.includes("ticket") || t.tags?.includes("barcode") || t.tags?.includes("bookmark")).length,
+                },
+                {
+                  label: "Postage Stamp & Denim",
+                  key: "Postage Stamp & Denim",
+                  count: kBoothTemplates.filter((t) => t.tags?.includes("stamp") || t.tags?.includes("croc") || t.tags?.includes("denim")).length,
+                },
+                {
+                  label: "70s Retro Groovy",
+                  key: "70s Retro Groovy",
+                  count: kBoothTemplates.filter((t) => t.tags?.includes("retro") || t.tags?.includes("70s") || t.tags?.includes("groovy")).length,
+                },
+                {
+                  label: "Minimalist & Slats",
+                  key: "Minimalist & Slats",
+                  count: kBoothTemplates.filter((t) => t.tags?.includes("minimal") || t.tags?.includes("slat") || t.tags?.includes("shadow")).length,
+                },
+                {
+                  label: "Moodboard & Scrapbook",
+                  key: "Moodboard & Scrapbook",
+                  count: kBoothTemplates.filter((t) => t.tags?.includes("moodboard") || t.tags?.includes("scrapbook")).length,
+                },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -1840,6 +2013,7 @@ export default function App() {
               <div className="filter-list">
                 {[
                   "All styles",
+                  "Purikura 90s (プリクラ)",
                   "Cool & Spider Animated 🕸️",
                   "Propose & Birthday Keepsakes 🎂",
                   "Romantic Kiss Pose Aesthetic ♡",
@@ -2747,6 +2921,15 @@ export default function App() {
 
                   <button
                     type="button"
+                    disabled={busy}
+                    className="sketch-button w-full text-xs bg-rose-50 hover:bg-rose-100 border-rose-300 text-rose-950 flex items-center justify-center gap-2 font-medium"
+                    onClick={() => openQrTransferModal()}
+                  >
+                    <QrCode size={15} className="text-rose-600" /> Scan to Mobile (QR Code)
+                  </button>
+
+                  <button
+                    type="button"
                     className="sketch-button w-full text-xs"
                     onClick={() => {
                       saveCurrentCreation()
@@ -3015,6 +3198,108 @@ export default function App() {
         </div>
       )}
 
+      {/* QR Code Instant Mobile Transfer Modal */}
+      {qrModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#faf8f2] border-2 border-stone-900 rounded-2xl shadow-[6px_6px_0_#1c1917] p-6 max-w-md w-full relative">
+            <button
+              type="button"
+              className="absolute top-4 right-4 text-stone-500 hover:text-stone-900 p-1 rounded-full hover:bg-stone-200 transition-colors"
+              onClick={() => setQrModalOpen(false)}
+              aria-label="Close QR Modal"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-2 mb-3">
+              <span className="p-2 rounded-lg bg-rose-100 text-rose-600 border border-rose-300">
+                <QrCode size={20} />
+              </span>
+              <div>
+                <h3 className="font-gochi text-2xl text-stone-900 leading-tight">
+                  Scan to Mobile
+                </h3>
+                <p className="text-[11px] font-mono text-stone-500 uppercase tracking-wider">
+                  Instant Wireless Photo Transfer
+                </p>
+              </div>
+            </div>
+
+            {/* QR Code Container */}
+            <div className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-stone-300 shadow-inner my-4">
+              {qrDataUrl ? (
+                <img
+                  src={qrDataUrl}
+                  alt="Scan with mobile camera"
+                  className="w-56 h-56 rounded-lg object-contain shadow-sm"
+                />
+              ) : (
+                <div className="w-56 h-56 flex items-center justify-center text-stone-400">
+                  <Loader2 size={32} className="animate-spin" />
+                </div>
+              )}
+              <span className="mt-2 text-[11px] font-mono text-stone-500">
+                Point phone camera at QR code to open
+              </span>
+            </div>
+
+            {/* Step-by-Step Instructions */}
+            <div className="bg-stone-100/80 rounded-xl p-3 border border-stone-200 text-xs text-stone-700 space-y-1.5 mb-4 font-mono">
+              <div className="flex items-center gap-2 font-bold text-stone-900">
+                <Smartphone size={14} className="text-rose-600" />
+                <span>How to transfer:</span>
+              </div>
+              <p>1. Open Camera app on iPhone or Android</p>
+              <p>2. Scan code above & tap the yellow banner</p>
+              <p>3. Long-press photo or tap Save to Camera Roll</p>
+            </div>
+
+            {/* Quick Preview & Link Tools */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs">
+                <input
+                  type="text"
+                  value={qrExportUrl}
+                  readOnly
+                  className="flex-1 px-3 py-1.5 bg-white border border-stone-300 rounded text-stone-600 text-[11px] font-mono truncate"
+                />
+                <button
+                  type="button"
+                  className="sketch-button sketch-button--sm text-xs py-1.5 px-3 flex items-center gap-1 flex-shrink-0"
+                  onClick={() => {
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(qrExportUrl)
+                      setQrCopied(true)
+                      setTimeout(() => setQrCopied(false), 2000)
+                      notify("Link copied to clipboard!")
+                    }
+                  }}
+                >
+                  {qrCopied ? (
+                    <Check size={12} className="text-green-600" />
+                  ) : (
+                    <Copy size={12} />
+                  )}
+                  {qrCopied ? "Copied" : "Copy"}
+                </button>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between text-[11px] text-stone-500 border-t border-stone-200">
+                <span>Local Wi-Fi Host:</span>
+                <input
+                  type="text"
+                  value={qrLanHost}
+                  onChange={(e) => updateQrHost(e.target.value)}
+                  placeholder="e.g. 192.168.1.5:3000"
+                  className="px-2 py-0.5 bg-white border border-stone-300 rounded text-[11px] font-mono text-right w-44"
+                  title="Change if connecting from phone on local Wi-Fi"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* CodePen Toast Notification */}
       <div className={`toast ${toast ? "is-visible" : ""}`} role="status">
         {toast}
@@ -3057,7 +3342,7 @@ export default function App() {
             <div className="relative">
               <Sparkles size={19} className={page === "kbooth" ? "stroke-[2.5]" : "stroke-[1.8]"} />
               <span className="absolute -top-1 -right-2 text-[8px] font-mono font-bold bg-amber-400 text-stone-950 px-1 rounded-full leading-tight">
-                12
+                {kBoothTemplates.length}
               </span>
             </div>
             <span className="mt-0.5">K-Booth</span>

@@ -800,6 +800,544 @@ function drawKBoothPattern(
     }
     drawCinemaStrip(w * 0.07, h * 0.08, w * 0.42, h * 0.84)
     drawCinemaStrip(w * 0.51, h * 0.08, w * 0.42, h * 0.84)
+  } else if (p === "K-Booth Cream & Maroon Bookmark") {
+    // Rich deep maroon background
+    ctx.fillStyle = "#42131b"
+    ctx.fillRect(0, 0, w, h)
+
+    // Inner Bookmark Card: Warm Ivory/Cream with rounded corners
+    const bx = w * 0.08, by = h * 0.035, bw = w * 0.84, bh = h * 0.93, br = w * 0.04
+    ctx.save()
+    ctx.shadowColor = "rgba(0,0,0,0.4)"
+    ctx.shadowBlur = w * 0.03
+    ctx.shadowOffsetY = h * 0.01
+    ctx.fillStyle = "#faf7f0"
+    ctx.beginPath()
+    ctx.roundRect(bx, by, bw, bh, br)
+    ctx.fill()
+
+    // Fine inner maroon double border with matching corner notches
+    ctx.strokeStyle = "#42131b"
+    ctx.lineWidth = Math.max(1, w * 0.003)
+    const inset = w * 0.025
+    ctx.beginPath()
+    ctx.roundRect(bx + inset, by + inset, bw - inset * 2, bh - inset * 2, br * 0.6)
+    ctx.stroke()
+    ctx.restore()
+
+    // Calligraphy Header: "Photograph" in rich maroon
+    ctx.save()
+    ctx.fillStyle = "#42131b"
+    ctx.font = `italic 700 ${w * 0.085}px 'Playfair Display', Georgia, serif`
+    ctx.textAlign = "center"
+    ctx.fillText("Photograph", w * 0.5, h * 0.115)
+
+    // 5 Gold Stars ★★★★★
+    ctx.fillStyle = "#f59e0b"
+    ctx.font = `bold ${w * 0.042}px 'DM Sans', sans-serif`
+    ctx.fillText("★ ★ ★ ★ ★", w * 0.5, h * 0.155)
+
+    // Photo Cut Framing Borders (fine maroon stroke around each of the 4 slots)
+    ctx.strokeStyle = "#42131b"
+    ctx.lineWidth = Math.max(1, w * 0.003)
+    const slotYs = [h * 0.188, h * 0.350, h * 0.512, h * 0.674]
+    const slotW = w * 0.69, slotH = h * 0.148, slotX = w * 0.155
+    for (const sy of slotYs) {
+      ctx.strokeRect(slotX - 1, sy - 1, slotW + 2, slotH + 2)
+    }
+
+    // Admission Ticket Table at bottom
+    const ty = h * 0.845, th = h * 0.055, tx = w * 0.12, tw = w * 0.76
+    ctx.strokeStyle = "#42131b"
+    ctx.lineWidth = Math.max(1, w * 0.002)
+    ctx.strokeRect(tx, ty, tw, th)
+
+    // Inner dividing lines
+    const col1W = tw * 0.44, col2W = tw * 0.28
+    ctx.beginPath()
+    ctx.moveTo(tx + col1W, ty)
+    ctx.lineTo(tx + col1W, ty + th)
+    ctx.moveTo(tx + col1W + col2W, ty)
+    ctx.lineTo(tx + col1W + col2W, ty + th)
+    // Horizontal row divider inside column 1, 2, 3
+    ctx.moveTo(tx, ty + th * 0.45)
+    ctx.lineTo(tx + tw, ty + th * 0.45)
+    ctx.stroke()
+
+    // Table labels & values
+    ctx.fillStyle = "#42131b"
+    ctx.font = `500 ${w * 0.024}px 'DM Sans', sans-serif`
+    ctx.textAlign = "center"
+    // Col 1: Date & Time
+    ctx.fillText("Sunday, 3 May 2047", tx + col1W / 2, ty + th * 0.32)
+    ctx.font = `bold ${w * 0.034}px 'DM Sans', sans-serif`
+    ctx.fillText("20.00", tx + col1W / 2, ty + th * 0.84)
+
+    // Col 2: Row A
+    ctx.font = `500 ${w * 0.024}px 'DM Sans', sans-serif`
+    ctx.fillText("Row", tx + col1W + col2W / 2, ty + th * 0.32)
+    ctx.font = `bold ${w * 0.034}px 'DM Sans', sans-serif`
+    ctx.fillText("A", tx + col1W + col2W / 2, ty + th * 0.84)
+
+    // Col 3: Seat 15
+    const col3W = tw - col1W - col2W
+    ctx.font = `500 ${w * 0.024}px 'DM Sans', sans-serif`
+    ctx.fillText("Seat", tx + col1W + col2W + col3W / 2, ty + th * 0.32)
+    ctx.font = `bold ${w * 0.034}px 'DM Sans', sans-serif`
+    ctx.fillText("15", tx + col1W + col2W + col3W / 2, ty + th * 0.84)
+
+    // Elegant bottom caption
+    ctx.font = `italic ${w * 0.038}px Georgia, serif`
+    ctx.fillText("Enjoy the moment", w * 0.5, h * 0.932)
+    ctx.restore()
+  } else if (p === "K-Booth Denim & Lace Y2K") {
+    // Rich textured denim blue background
+    ctx.fillStyle = "#3e5c7d"
+    ctx.fillRect(0, 0, w, h)
+
+    // Denim fabric diagonal weave pattern
+    ctx.save()
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.07)"
+    ctx.lineWidth = 1
+    for (let x = -h; x < w + h; x += w * 0.012) {
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x + h, h)
+      ctx.stroke()
+    }
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.12)"
+    for (let x = w + h; x > -h; x -= w * 0.012) {
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x - h, h)
+      ctx.stroke()
+    }
+
+    // Vertical center divider: Double crisp white pinstripe
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.85)"
+    ctx.lineWidth = Math.max(1, w * 0.002)
+    ctx.beginPath()
+    ctx.moveTo(w * 0.495, 0)
+    ctx.lineTo(w * 0.495, h)
+    ctx.moveTo(w * 0.505, 0)
+    ctx.lineTo(w * 0.505, h)
+    ctx.stroke()
+
+    // LEFT STRIP: Vertical White Lace Crochet Trim & Ribbon Bows
+    const laceX = w * 0.03
+    ctx.fillStyle = "rgba(255, 255, 255, 0.92)"
+    // Scalloped lace edge
+    for (let ly = h * 0.02; ly < h * 0.98; ly += h * 0.03) {
+      ctx.beginPath()
+      ctx.arc(laceX, ly, w * 0.022, -Math.PI / 2, Math.PI / 2)
+      ctx.fill()
+      // Lace eyelet hole
+      ctx.fillStyle = "#3e5c7d"
+      ctx.beginPath()
+      ctx.arc(laceX - w * 0.004, ly, w * 0.006, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = "rgba(255, 255, 255, 0.92)"
+    }
+
+    // Cute denim string bows tied along the lace
+    const bowYs = [h * 0.06, h * 0.28, h * 0.52, h * 0.76, h * 0.94]
+    for (const by of bowYs) {
+      ctx.strokeStyle = "#94a3b8"
+      ctx.lineWidth = Math.max(1, w * 0.0025)
+      ctx.beginPath()
+      ctx.ellipse(laceX + w * 0.005, by, w * 0.016, h * 0.008, 0.2, 0, Math.PI * 2)
+      ctx.ellipse(laceX - w * 0.005, by, w * 0.016, h * 0.008, -0.2, 0, Math.PI * 2)
+      ctx.stroke()
+    }
+
+    // 4 Y2K Browser Window Frames on Left Strip
+    const winSlots = [
+      { y: h * 0.072, h: h * 0.165 },
+      { y: h * 0.306, h: h * 0.165 },
+      { y: h * 0.540, h: h * 0.165 },
+      { y: h * 0.774, h: h * 0.165 },
+    ]
+    const winX = w * 0.105, winW = w * 0.35, barH = h * 0.024
+    for (const ws of winSlots) {
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.3)"
+      ctx.shadowBlur = w * 0.015
+      // Title bar
+      ctx.fillStyle = "#e2e8f0"
+      ctx.beginPath()
+      ctx.roundRect(winX, ws.y - barH, winW, barH + 2, [w * 0.008, w * 0.008, 0, 0])
+      ctx.fill()
+      // Title bar 3 dots
+      ctx.fillStyle = "#94a3b8"
+      for (let d = 0; d < 3; d++) {
+        ctx.beginPath()
+        ctx.arc(winX + w * 0.018 + d * w * 0.014, ws.y - barH / 2, w * 0.004, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      // Browser tab
+      ctx.fillStyle = "#cbd5e1"
+      ctx.fillRect(winX + w * 0.07, ws.y - barH + 3, winW * 0.35, barH - 3)
+      // Window border
+      ctx.strokeStyle = "#cbd5e1"
+      ctx.lineWidth = Math.max(1, w * 0.002)
+      ctx.strokeRect(winX, ws.y, winW, ws.h)
+      // Cherry sticker on top right of browser window
+      ctx.font = `${w * 0.025}px sans-serif`
+      ctx.fillText("🍒", winX + winW - w * 0.02, ws.y - barH * 0.2)
+      ctx.restore()
+    }
+
+    // RIGHT STRIP: 3 Giant Scalloped Postage Stamp Frames & Denim Stars
+    const stampSlots = [
+      { y: h * 0.080, h: h * 0.215 },
+      { y: h * 0.365, h: h * 0.215 },
+      { y: h * 0.650, h: h * 0.215 },
+    ]
+    const stX = w * 0.585, stW = w * 0.355, stPad = w * 0.028
+    for (const ss of stampSlots) {
+      const sx = stX - stPad, sy = ss.y - stPad, sw = stW + stPad * 2, sh = ss.h + stPad * 2
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.35)"
+      ctx.shadowBlur = w * 0.02
+      ctx.fillStyle = "#f8f5ee"
+      ctx.fillRect(sx, sy, sw, sh)
+
+      // Scalloped perforation notches around stamp edges
+      ctx.fillStyle = "#3e5c7d"
+      const pr = w * 0.009
+      for (let px = sx; px <= sx + sw; px += w * 0.024) {
+        ctx.beginPath()
+        ctx.arc(px, sy, pr, 0, Math.PI)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(px, sy + sh, pr, Math.PI, 0)
+        ctx.fill()
+      }
+      for (let py = sy; py <= sy + sh; py += h * 0.02) {
+        ctx.beginPath()
+        ctx.arc(sx, py, pr, -Math.PI / 2, Math.PI / 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(sx + sw, py, pr, Math.PI / 2, -Math.PI / 2)
+        ctx.fill()
+      }
+      ctx.restore()
+    }
+
+    // Stitched Denim Star Patches on Right Strip
+    const drawDenimStar = (cx: number, cy: number, r: number) => {
+      ctx.save()
+      ctx.shadowColor = "rgba(0,0,0,0.3)"
+      ctx.shadowBlur = w * 0.015
+      ctx.fillStyle = "#2d4866"
+      ctx.beginPath()
+      for (let i = 0; i < 5; i++) {
+        const outerA = ((i * 72 - 90) * Math.PI) / 180
+        const innerA = ((i * 72 + 36 - 90) * Math.PI) / 180
+        if (i === 0) ctx.moveTo(cx + r * Math.cos(outerA), cy + r * Math.sin(outerA))
+        else ctx.lineTo(cx + r * Math.cos(outerA), cy + r * Math.sin(outerA))
+        ctx.lineTo(cx + (r * 0.45) * Math.cos(innerA), cy + (r * 0.45) * Math.sin(innerA))
+      }
+      ctx.closePath()
+      ctx.fill()
+      // Dashed white perimeter stitching
+      ctx.setLineDash([3, 3])
+      ctx.strokeStyle = "rgba(255,255,255,0.75)"
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+      ctx.restore()
+    }
+    drawDenimStar(w * 0.93, h * 0.065, w * 0.055)
+    drawDenimStar(w * 0.57, h * 0.355, w * 0.065)
+    drawDenimStar(w * 0.94, h * 0.635, w * 0.055)
+
+    // Golden 4-point sparkle stars
+    const drawSparkle = (sx: number, sy: number, sz: number) => {
+      ctx.save()
+      ctx.fillStyle = "#facc15"
+      ctx.beginPath()
+      ctx.moveTo(sx, sy - sz)
+      ctx.quadraticCurveTo(sx, sy, sx + sz, sy)
+      ctx.quadraticCurveTo(sx, sy, sx, sy + sz)
+      ctx.quadraticCurveTo(sx, sy, sx - sz, sy)
+      ctx.quadraticCurveTo(sx, sy, sx, sy - sz)
+      ctx.fill()
+      ctx.restore()
+    }
+    drawSparkle(w * 0.54, h * 0.22, w * 0.015)
+    drawSparkle(w * 0.96, h * 0.30, w * 0.015)
+    drawSparkle(w * 0.54, h * 0.59, w * 0.015)
+    drawSparkle(w * 0.96, h * 0.84, w * 0.015)
+
+    // Bold Slab Serif Footer: "Cool"
+    ctx.save()
+    ctx.fillStyle = "#ffffff"
+    ctx.font = `900 ${w * 0.08}px 'Clash Display', 'DM Serif Display', Georgia, serif`
+    ctx.textAlign = "center"
+    ctx.fillText("Cool", w * 0.77, h * 0.945)
+    ctx.restore()
+    ctx.restore()
+  } else if (p === "K-Booth Retro 70s Groovy") {
+    // Rich chocolate backdrop
+    ctx.fillStyle = "#23150d"
+    ctx.fillRect(0, 0, w, h)
+
+    // Vertical dashed perforation line down center
+    ctx.save()
+    ctx.setLineDash([6, 6])
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.45)"
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(w * 0.5, 0)
+    ctx.lineTo(w * 0.5, h)
+    ctx.stroke()
+    ctx.restore()
+
+    // LEFT STRIP: Sage Olive Green Panel
+    const lx = w * 0.035, ly = h * 0.02, lw = w * 0.44, lh = h * 0.96, lr = w * 0.025
+    ctx.save()
+    ctx.shadowColor = "rgba(0,0,0,0.4)"
+    ctx.shadowBlur = w * 0.025
+    ctx.fillStyle = "#5c6b48"
+    ctx.beginPath()
+    ctx.roundRect(lx, ly, lw, lh, lr)
+    ctx.fill()
+
+    // Scalloped fluffy cream clouds at top and bottom of left strip
+    ctx.fillStyle = "#faf6ea"
+    for (let cx = lx + w * 0.04; cx < lx + lw; cx += w * 0.08) {
+      ctx.beginPath()
+      ctx.arc(cx, ly + h * 0.04, w * 0.05, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    for (let cx = lx + w * 0.04; cx < lx + lw; cx += w * 0.08) {
+      ctx.beginPath()
+      ctx.arc(cx, ly + lh - h * 0.03, w * 0.05, 0, Math.PI * 2)
+      ctx.fill()
+    }
+
+    // Top Bubble Header: "Groovy Days" with red sunglasses
+    ctx.fillStyle = "#faf6ea"
+    ctx.shadowColor = "rgba(0,0,0,0.3)"
+    ctx.shadowBlur = w * 0.01
+    ctx.font = `italic 900 ${w * 0.048}px 'Cooper Black', 'Caveat', cursive, serif`
+    ctx.textAlign = "center"
+    ctx.fillText("Groovy Days", lx + lw / 2, ly + h * 0.075)
+
+    // Retro Red Sunglasses Sticker at header
+    ctx.font = `${w * 0.036}px sans-serif`
+    ctx.fillText("🕶️", lx + lw / 2, ly + h * 0.04)
+
+    // Photo Frames White Borders on Left
+    ctx.strokeStyle = "#ffffff"
+    ctx.lineWidth = Math.max(2, w * 0.004)
+    for (const sy of [h * 0.135, h * 0.395, h * 0.655]) {
+      ctx.strokeRect(w * 0.065 - 1, sy - 1, w * 0.385 + 2, h * 0.225 + 2)
+    }
+
+    // Left Funky 70s Stickers: Rainbow, Tongue, Daisies, Butterfly
+    ctx.font = `${w * 0.034}px sans-serif`
+    ctx.fillText("🌈", lx + w * 0.04, h * 0.375)
+    ctx.fillText("👅", lx + lw - w * 0.04, h * 0.375)
+    ctx.fillText("🌼", lx + w * 0.04, h * 0.635)
+    ctx.fillText("🦋", lx + lw - w * 0.04, h * 0.635)
+
+    // Left Bottom Caption
+    ctx.fillStyle = "#faf6ea"
+    ctx.font = `bold ${w * 0.026}px Georgia, serif`
+    ctx.fillText("Good Friends", lx + lw / 2, ly + lh - h * 0.045)
+    ctx.fillText("Good Times", lx + lw / 2, ly + lh - h * 0.02)
+    ctx.restore()
+
+    // RIGHT STRIP: Mocha Chocolate Brown Panel
+    const rx = w * 0.525, ry = h * 0.02, rw = w * 0.44, rh = h * 0.96, rr = w * 0.025
+    ctx.save()
+    ctx.shadowColor = "rgba(0,0,0,0.4)"
+    ctx.shadowBlur = w * 0.025
+    ctx.fillStyle = "#422617"
+    ctx.beginPath()
+    ctx.roundRect(rx, ry, rw, rh, rr)
+    ctx.fill()
+
+    // Subtle bohemian star print across brown background
+    ctx.fillStyle = "rgba(255, 230, 200, 0.06)"
+    for (let y = ry + h * 0.05; y < ry + rh; y += h * 0.08) {
+      for (let x = rx + w * 0.03; x < rx + rw; x += w * 0.08) {
+        ctx.beginPath()
+        ctx.arc(x, y, w * 0.005, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+
+    // Top Header: 70s Puffy Bubble "GROOVY BABY"
+    ctx.fillStyle = "#fca5a5"
+    ctx.shadowColor = "#e11d48"
+    ctx.shadowBlur = w * 0.008
+    ctx.font = `900 ${w * 0.046}px 'Cooper Black', 'Caveat', cursive, sans-serif`
+    ctx.textAlign = "center"
+    ctx.fillText("GROOVY", rx + rw / 2, ry + h * 0.055)
+    ctx.fillStyle = "#fb923c"
+    ctx.fillText("BABY", rx + rw / 2, ry + h * 0.095)
+
+    // Daisies around header
+    ctx.font = `${w * 0.026}px sans-serif`
+    ctx.fillText("🌸", rx + w * 0.05, ry + h * 0.05)
+    ctx.fillText("🌼", rx + rw - w * 0.05, ry + h * 0.05)
+    ctx.fillText("🌸", rx + w * 0.07, ry + h * 0.10)
+    ctx.fillText("🌼", rx + rw - w * 0.07, ry + h * 0.10)
+
+    // Photo Frames White Borders on Right
+    ctx.strokeStyle = "#ffffff"
+    ctx.lineWidth = Math.max(2, w * 0.004)
+    for (const sy of [h * 0.135, h * 0.395, h * 0.655]) {
+      ctx.strokeRect(w * 0.550 - 1, sy - 1, w * 0.385 + 2, h * 0.225 + 2)
+    }
+
+    // Right Funky 70s Stickers: Balloon Dogs, Mushrooms, Flowers
+    ctx.font = `${w * 0.034}px sans-serif`
+    ctx.fillText("🌼", rx + w * 0.04, h * 0.375)
+    ctx.fillText("🎈", rx + rw - w * 0.04, h * 0.375)
+    ctx.fillText("🍄", rx + w * 0.04, h * 0.835)
+    ctx.fillText("🎀", rx + rw - w * 0.04, h * 0.875)
+
+    // Right Bottom Caption
+    ctx.fillStyle = "#faf6ea"
+    ctx.font = `bold ${w * 0.026}px Georgia, serif`
+    ctx.fillText("Good Friends", rx + rw / 2, ry + rh - h * 0.045)
+    ctx.fillText("Good Times", rx + rw / 2, ry + rh - h * 0.02)
+    ctx.restore()
+  }
+
+  ctx.restore()
+}
+
+function drawPurikuraPattern(
+  ctx: CanvasRenderingContext2D,
+  p: string,
+  w: number,
+  h: number,
+  c: Composition,
+) {
+  ctx.save()
+
+  if (p === "Purikura Shibuya Sparkle") {
+    // Cotton candy diagonal pastel bands
+    const grad = ctx.createLinearGradient(0, 0, w, h)
+    grad.addColorStop(0, "#fdf2f8")
+    grad.addColorStop(0.3, "#fce7f3")
+    grad.addColorStop(0.7, "#f3e8ff")
+    grad.addColorStop(1, "#fdf4ff")
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, w, h)
+
+    // Diagonal candy pinstripes
+    ctx.strokeStyle = "rgba(244, 63, 94, 0.08)"
+    ctx.lineWidth = w * 0.015
+    for (let x = -h; x < w + h; x += w * 0.08) {
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x + h, h)
+      ctx.stroke()
+    }
+
+    // Sparkle star bursts & hearts in margins
+    ctx.fillStyle = "rgba(244, 63, 94, 0.45)"
+    const starCoords = [
+      [0.05, 0.03],
+      [0.95, 0.03],
+      [0.05, 0.25],
+      [0.95, 0.25],
+      [0.05, 0.47],
+      [0.95, 0.47],
+      [0.05, 0.69],
+      [0.95, 0.69],
+      [0.15, 0.95],
+      [0.85, 0.95],
+      [0.5, 0.02],
+      [0.5, 0.97],
+    ]
+    for (const [sx, sy] of starCoords) {
+      const cx = sx * w
+      const cy = sy * h
+      const r = w * 0.022
+      ctx.beginPath()
+      ctx.moveTo(cx, cy - r)
+      ctx.quadraticCurveTo(cx, cy, cx + r, cy)
+      ctx.quadraticCurveTo(cx, cy, cx, cy + r)
+      ctx.quadraticCurveTo(cx, cy, cx - r, cy)
+      ctx.quadraticCurveTo(cx, cy, cx, cy - r)
+      ctx.fill()
+    }
+  } else if (p === "Purikura Harajuku Hologram") {
+    // Iridescent lavender, sky, and soft lemon shimmer gradient
+    const grad = ctx.createLinearGradient(0, 0, w, h)
+    grad.addColorStop(0, "#f3e8ff")
+    grad.addColorStop(0.25, "#e0e7ff")
+    grad.addColorStop(0.5, "#dbeafe")
+    grad.addColorStop(0.75, "#fce7f3")
+    grad.addColorStop(1, "#fef9c3")
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, w, h)
+
+    // Holographic shimmer rings
+    ctx.strokeStyle = "rgba(168, 85, 247, 0.12)"
+    ctx.lineWidth = w * 0.004
+    for (let i = 1; i <= 8; i++) {
+      ctx.beginPath()
+      ctx.arc(w * 0.5, h * 0.5, w * 0.15 * i, 0, Math.PI * 2)
+      ctx.stroke()
+    }
+
+    // Twinkles
+    ctx.fillStyle = "rgba(168, 85, 247, 0.35)"
+    for (let i = 0; i < 24; i++) {
+      const tx = (((i * 137) % 100) / 100) * w
+      const ty = (((i * 241) % 100) / 100) * h
+      ctx.beginPath()
+      ctx.arc(tx, ty, w * 0.008, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  } else if (p === "Purikura Neon Arcade") {
+    // Dark neon arcade background with electric cyan/magenta glow grid
+    ctx.fillStyle = "#18181b"
+    ctx.fillRect(0, 0, w, h)
+
+    // Neon grid
+    const step = w / 20
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.18)"
+    ctx.lineWidth = w * 0.002
+    for (let x = 0; x <= w; x += step) {
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x, h)
+      ctx.stroke()
+    }
+    for (let y = 0; y <= h; y += step) {
+      ctx.beginPath()
+      ctx.moveTo(0, y)
+      ctx.lineTo(w, y)
+      ctx.stroke()
+    }
+
+    // Neon gel pen doodle accents in corners
+    ctx.strokeStyle = "rgba(244, 63, 94, 0.6)"
+    ctx.lineWidth = w * 0.006
+    ctx.beginPath()
+    ctx.moveTo(w * 0.03, h * 0.02)
+    ctx.quadraticCurveTo(w * 0.06, h * 0.04, w * 0.03, h * 0.06)
+    ctx.stroke()
+
+    // Bottom-right neon star
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.7)"
+    const cx = w * 0.95
+    const cy = h * 0.97
+    const r = w * 0.025
+    ctx.beginPath()
+    ctx.moveTo(cx, cy - r)
+    ctx.lineTo(cx, cy + r)
+    ctx.moveTo(cx - r, cy)
+    ctx.lineTo(cx + r, cy)
+    ctx.stroke()
   }
 
   ctx.restore()
@@ -815,6 +1353,11 @@ function background(
   ctx.fillRect(0, 0, w, h)
   const p = c.backgroundPattern
   if (!p || p === "none") return
+
+  if (p.startsWith("Purikura")) {
+    drawPurikuraPattern(ctx, p, w, h, c)
+    return
+  }
 
   if (p.startsWith("K-Booth")) {
     drawKBoothPattern(ctx, p, w, h, c)

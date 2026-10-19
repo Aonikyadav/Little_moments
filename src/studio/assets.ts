@@ -392,6 +392,7 @@ export const stickerPacks = [
   "Words to keep",
   "Pop studio",
   "Celebrate",
+  "Purikura Deco 90s",
 ]
 const stickerNames = [
   ["Ribbon", "Heart", "Cherry", "Blossom", "Butterfly"],
@@ -408,6 +409,13 @@ const stickerNames = [
   ],
   ["Speech bubble", "Burst", "Lightning", "Thought cloud", "Action lines"],
   ["Birthday cake", "Graduation", "Travel tag", "Snowflake", "Party hat"],
+  [
+    "Twinkle Sparkle",
+    "Angel Wings",
+    "Shoujo Bow",
+    "Purikura Stamp",
+    "Arcade Neon",
+  ],
 ]
 const poses = ["Pocket", "Floating", "Double", "Dotted", "Framed"]
 function stickerBody(pack: number, m: number, v: number) {
@@ -533,7 +541,7 @@ function stickerBody(pack: number, m: number, v: number) {
         (_, i) =>
           `<path transform="rotate(${(i * 360) / (7 + v)} 50 50)" d="M${75 + v} 50h17M80 46h9"/>`,
       ).join("")
-  } else {
+  } else if (pack === 7) {
     if (m === 0)
       body = `<path d="M18 58h64v30H18ZM25 40h50v18H25ZM${38 - v * 3} 40V25M50 40V21M${62 + v * 3} 40V25M18 69q8 12 16 0t16 0t16 0t16 0"/><path d="M50 17q-9-12 1-15q9 10-1 15"/>`
     if (m === 1)
@@ -548,13 +556,75 @@ function stickerBody(pack: number, m: number, v: number) {
       ).join("")
     if (m === 4)
       body = `<path d="M50 12L${12 + v * 2} 86Q50 99 ${88 - v * 2} 86Z"/><circle cx="50" cy="10" r="7"/><path d="M28 59l45 10M22 75l36 10"/><circle cx="51" cy="44" r="4"/>`
+  } else {
+    // Pack 8: Purikura Deco 90s (プリクラ)
+    if (m === 0) {
+      if (v === 0)
+        body = '<path d="M50 10Q50 45 15 50Q50 55 50 90Q50 55 85 50Q50 45 50 10Z"/><circle cx="50" cy="50" r="4"/><circle cx="28" cy="28" r="2.5"/><circle cx="72" cy="72" r="2.5"/><circle cx="72" cy="28" r="1.5"/><circle cx="28" cy="72" r="1.5"/>'
+      if (v === 1)
+        body = '<path d="M50 8L54 36L82 22L64 46L92 50L64 54L82 78L54 64L50 92L46 64L18 78L36 54L8 50L36 46L18 22L46 36Z"/><circle cx="50" cy="50" r="6"/>'
+      if (v === 2)
+        body = '<path d="M42 16Q42 38 20 42Q42 46 42 68Q42 46 64 42Q42 38 42 16Z"/><path d="M74 44Q74 58 60 60Q74 62 74 76Q74 62 88 60Q74 58 74 44Z"/><path d="M68 20Q68 28 60 30Q68 32 68 40Q68 32 76 30Q68 28 68 20Z"/><circle cx="28" cy="70" r="3"/><circle cx="20" cy="22" r="2"/>'
+      if (v === 3)
+        body = '<path d="M50 18Q50 46 22 50Q50 54 50 82Q50 54 78 50Q50 46 50 18Z"/><circle cx="50" cy="50" r="32" stroke-dasharray="3 4"/><circle cx="26" cy="26" r="3"/><circle cx="74" cy="74" r="3"/><circle cx="74" cy="26" r="3"/>'
+      if (v === 4)
+        body = '<path d="M70 18Q70 34 54 36Q70 38 70 54Q70 38 86 36Q70 34 70 18Z"/><path d="M54 44Q35 55 12 78M48 54Q30 65 18 84M60 48Q44 60 26 90"/>'
+    } else if (m === 1) {
+      if (v === 0)
+        body = '<path d="M46 52C32 30 10 32 8 50C6 64 22 72 38 64M54 52C68 30 90 32 92 50C94 64 78 72 62 64M40 58C28 50 16 58 24 72M60 58C72 50 84 58 76 72"/><ellipse cx="50" cy="28" rx="20" ry="7"/>'
+      if (v === 1)
+        body = '<path d="M50 78C34 62 26 44 38 32C46 24 50 32 50 32C50 32 54 24 62 32C74 44 66 62 50 78Z"/><path d="M30 46C14 36 6 48 10 60C14 70 28 66 32 58M70 46C86 36 94 48 90 60C86 70 72 66 68 58"/><circle cx="50" cy="20" r="4"/>'
+      if (v === 2)
+        body = '<path d="M45 55C25 25 5 45 12 65C16 75 35 70 45 60M55 55C75 25 95 45 88 65C84 75 65 70 55 60"/><ellipse cx="50" cy="22" rx="22" ry="6"/><path d="M50 12v6M32 18l-4-4M68 18l4-4"/>'
+      if (v === 3)
+        body = '<path d="M46 58C30 42 16 46 16 60C16 72 34 72 44 64M54 58C70 42 84 46 84 60C84 72 66 72 56 64"/><ellipse cx="50" cy="34" rx="16" ry="6" stroke-dasharray="2 3"/><circle cx="50" cy="54" r="5"/>'
+      if (v === 4)
+        body = '<path d="M46 50C26 24 6 38 12 56C18 70 38 64 46 56M54 50C74 24 94 38 88 56C82 70 62 64 54 56M44 58C24 54 14 68 22 78C30 86 44 76 46 66M56 58C76 54 86 68 78 78C70 86 56 76 54 66"/><ellipse cx="50" cy="20" rx="18" ry="6"/>'
+    } else if (m === 2) {
+      if (v === 0)
+        body = '<circle cx="50" cy="46" r="7"/><path d="M44 44C22 24 12 50 43 49M56 44C78 24 88 50 57 49M45 52Q35 76 22 84M55 52Q65 76 78 84"/><circle cx="28" cy="34" r="2"/><circle cx="72" cy="34" r="2"/>'
+      if (v === 1)
+        body = '<rect x="44" y="40" width="12" height="12" rx="3"/><path d="M44 42C20 26 14 58 44 48M56 42C80 26 86 58 56 48M46 52L30 86L44 78L50 86M54 52L70 86L56 78L50 86"/>'
+      if (v === 2)
+        body = '<path d="M30 52C18 38 10 52 20 64L30 74L40 64C50 52 42 38 30 52ZM70 52C58 38 50 52 60 64L70 74L80 64C90 52 82 38 70 52Z"/><path d="M50 32C42 22 36 32 44 40L50 48L56 40C64 32 58 22 50 32Z"/><path d="M50 16v4M50 54v4"/>'
+      if (v === 3)
+        body = '<ellipse cx="50" cy="54" rx="32" ry="36"/><path d="M50 18V8M46 8h8"/><rect x="30" y="38" width="40" height="28" rx="6"/><circle cx="42" cy="50" r="3"/><circle cx="58" cy="50" r="3"/><path d="M46 58q4 4 8 0"/><circle cx="38" cy="76" r="3"/><circle cx="50" cy="78" r="3"/><circle cx="62" cy="76" r="3"/>'
+      if (v === 4)
+        body = '<path d="M50 84L18 52C8 40 18 20 34 20C42 20 48 26 50 30C52 26 58 20 66 20C82 20 92 40 82 52Z"/><path d="M34 20L50 46L66 20M18 52L50 46L82 52M50 46L50 84"/>'
+    } else if (m === 3) {
+      const words = ["ズッ友", "スキ♡", "盛", "ピース", "大好き"]
+      const word = words[v]
+      const fSize = v === 2 ? 36 : v === 0 ? 24 : 22
+      body = `<text x="50" y="${v === 2 ? 62 : 55}" text-anchor="middle" font-family="'Rounded Mplus 1c', 'Hiragino Maru Gothic ProN', sans-serif" font-weight="900" font-size="${fSize}" stroke="none" fill="currentColor">${word}</text>`
+      if (v === 0)
+        body += '<rect x="10" y="24" width="80" height="46" rx="23" stroke-width="2.2"/><circle cx="16" cy="18" r="2.5"/><circle cx="84" cy="78" r="2.5"/><path d="M12 26Q12 34 6 36Q12 38 12 46Q12 38 18 36Q12 34 12 26Z"/><path d="M86 52Q86 58 82 60Q86 62 86 68Q86 62 90 60Q86 58 86 52Z"/>'
+      else if (v === 1)
+        body += '<ellipse cx="50" cy="50" rx="42" ry="34" stroke-dasharray="4 3"/><path d="M22 24Q22 30 18 32Q22 34 22 40Q22 34 26 32Q22 30 22 24Z"/><path d="M78 64Q78 70 74 72Q78 74 78 80Q78 74 82 72Q78 70 78 64Z"/>'
+      else if (v === 2)
+        body += '<circle cx="50" cy="50" r="42" stroke-width="3"/><circle cx="50" cy="50" r="36" stroke-dasharray="3 4"/><path d="M50 4v6M50 90v6M4 50h6M90 50h6"/>'
+      else if (v === 3)
+        body += '<path d="M8 22H92V72H52L40 88 44 72H8Z"/><circle cx="22" cy="78" r="3"/><circle cx="30" cy="84" r="2"/>'
+      else
+        body += '<path d="M50 88C15 62 6 35 25 18C40 4 50 20 50 20C50 20 60 4 75 18C94 35 85 62 50 88Z"/><circle cx="24" cy="20" r="2"/><circle cx="76" cy="20" r="2"/>'
+    } else {
+      if (v === 0)
+        body = '<path d="M12 28Q28 14 36 32T64 36T88 24"/><path d="M16 68Q32 82 48 66T80 72"/><circle cx="28" cy="50" r="4"/><path d="M68 46C64 40 58 46 64 52L68 56L72 52C78 46 72 40 68 46Z"/>'
+      if (v === 1)
+        body = '<path d="M12 34V14H34M88 34V14H66M12 66V86H34M88 66V86H66"/><circle cx="50" cy="50" r="16"/><path d="M44 50h12M50 44v12"/>'
+      if (v === 2)
+        body = '<path d="M24 38L34 14L48 30M76 38L66 14L52 30"/><path d="M14 50h24M12 60h22M86 50h-24M88 60h-22"/><ellipse cx="50" cy="54" rx="4" ry="3"/>'
+      if (v === 3)
+        body = '<path d="M20 68L14 34L36 48L50 24L64 48L86 34L80 68Z"/><circle cx="14" cy="30" r="4"/><circle cx="50" cy="20" r="4"/><circle cx="86" cy="30" r="4"/><ellipse cx="50" cy="68" rx="30" ry="6"/>'
+      if (v === 4)
+        body = '<circle cx="50" cy="50" r="22"/><path d="M40 46v4M60 46v4M38 58Q50 70 62 58"/><path d="M50 14v8M50 78v8M14 50h8M78 50h8M24 24l6 6M70 70l6 6M24 76l6-6M70 24l6 6"/>'
+    }
   }
   return `<g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${body}${
-    v === 4 && pack !== 5
+    v === 4 && pack !== 5 && pack !== 8
       ? '<path d="M5 22V5h17M78 5h17v17M5 78v17h17M78 95h17V78"/>'
       : ""
   }${
-    v === 3 && pack !== 5
+    v === 3 && pack !== 5 && pack !== 8
       ? '<path d="M5 8h1M89 9h1M8 91h1M91 89h1" stroke-width="5"/>'
       : ""
   }</g>`
@@ -590,4 +660,7 @@ export const backgroundPatterns = [
   "Grass lawn",
   "Checkerboard",
   "Retro waves",
+  "Purikura Shibuya Sparkle",
+  "Purikura Harajuku Hologram",
+  "Purikura Neon Arcade",
 ]

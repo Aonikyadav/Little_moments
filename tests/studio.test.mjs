@@ -132,10 +132,10 @@ test("500 frame recipes: 50 per category, unique artwork, valid metadata", () =>
     assert.ok(f.customization.length > 0)
   }
 })
-test("200 transparent vector stickers: 25 per pack and no duplicated SVG content", () => {
-  assert.equal(stickers.length, 200)
-  assert.equal(new Set(stickers.map((s) => s.id)).size, 200)
-  assert.equal(new Set(stickers.map((s) => s.svg)).size, 200)
+test("225 transparent vector stickers: 25 per pack and no duplicated SVG content", () => {
+  assert.equal(stickers.length, 225)
+  assert.equal(new Set(stickers.map((s) => s.id)).size, 225)
+  assert.equal(new Set(stickers.map((s) => s.svg)).size, 225)
   for (const pack of stickerPacks)
     assert.equal(stickers.filter((s) => s.pack === pack).length, 25)
   for (const s of stickers) assert.ok(!s.svg.includes('<rect width="100%"'))
