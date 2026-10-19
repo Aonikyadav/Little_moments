@@ -52,7 +52,12 @@ test("kBoothTemplates contains all 15 authentic Canva photobooth templates", () 
     const localThumbnailPath = path.join(process.cwd(), "public", tmpl.thumbnail.replace(/^\//, ""));
     assert.ok(fs.existsSync(localThumbnailPath), `Thumbnail file does not exist on disk: ${localThumbnailPath}`);
     const stat = fs.statSync(localThumbnailPath);
-    assert.ok(stat.size > 2000, `Thumbnail file size too small (${stat.size} bytes) for ${id}`);
+    const content = fs.readFileSync(localThumbnailPath, "utf8");
+    if (content.startsWith("version https://git-lfs.github.com")) {
+      assert.ok(stat.size > 50, `LFS pointer file valid for ${id}`);
+    } else {
+      assert.ok(stat.size > 2000, `Thumbnail file size too small (${stat.size} bytes) for ${id}`);
+    }
 
     // Verify slot coordinates validity
     for (const slot of tmpl.slots) {

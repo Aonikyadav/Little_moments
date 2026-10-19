@@ -44,6 +44,8 @@ import {
   ExternalLink,
   QrCode,
   Smartphone,
+  BookOpen,
+  LayoutGrid,
 } from "lucide-react"
 import type {
   Composition,
@@ -69,6 +71,7 @@ import useFontRevision from "./studio/useFontRevision"
 import { generateQrCodeDataUrl } from "./utils/qrCode"
 import { TemplateThumbnail } from "./components/TemplateThumbnail"
 import { findGridLayout } from "./studio/gridEngine"
+import { ScrapbookAlbum } from "./components/ScrapbookAlbum"
 
 const Studio = lazy(() => import("./studio/Studio"))
 const samples = [
@@ -280,6 +283,7 @@ export default function App() {
     typeof window !== "undefined" ? window.location.host : "localhost:3000",
   )
   const [qrCopied, setQrCopied] = useState(false)
+  const [creationsTab, setCreationsTab] = useState<"scrapbook" | "grid">("scrapbook")
 
   const draftReady = useRef(false)
   const documentRevision = useRef(0)
@@ -1378,9 +1382,12 @@ export default function App() {
           <button
             type="button"
             className={page === "creations" ? "is-active" : ""}
-            onClick={() => setPage("creations")}
+            onClick={() => {
+              setCreationsTab("scrapbook")
+              setPage("creations")
+            }}
           >
-            creations ({saved.length})
+            scrapbook ({saved.length})
           </button>
           <button
             type="button"
@@ -1551,6 +1558,18 @@ export default function App() {
                     onClick={() => setPage("templates")}
                   >
                     Browse {templates.length} Authentic Templates
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sketch-button flex items-center gap-1.5 bg-[#fdfbf7]"
+                    onClick={() => {
+                      setCreationsTab("scrapbook")
+                      setPage("creations")
+                    }}
+                  >
+                    <BookOpen size={15} className="text-amber-800" />
+                    <span>Memory Scrapbook</span>
                   </button>
 
                   <button
@@ -2945,23 +2964,72 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* SCREEN 7: SAVED CREATIONS GALLERY                        */}
+        {/* SCREEN 7: INTERACTIVE SCRAPBOOK FLIPBOOK & MEMORY ALBUM  */}
         {/* ======================================================== */}
         {page === "creations" && (
           <section className="shop-section border-t-0 pt-6">
-            <header className="section-heading mb-8">
+            <header className="section-heading mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
-                <p className="eyebrow">Your Archive</p>
-                <h2>My Saved Creations</h2>
+                <p className="eyebrow">Your Archive & Keepsakes</p>
+                <h2>Interactive Memory Scrapbook</h2>
+                <p className="mt-1 text-sm text-stone-600">
+                  All compositions saved on this device. Flip through your spiral memory album or switch to the card grid.
+                </p>
               </div>
-              <p>
-                All compositions saved on this device. You can download them anytime
-                or reopen them in the Studio to keep editing.
-              </p>
+
+              {/* View Switcher: Scrapbook Album vs Grid Gallery */}
+              <div className="flex items-center gap-1 p-1 bg-stone-200/80 rounded-lg self-start sm:self-auto border border-stone-300 shadow-sm">
+                <button
+                  type="button"
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-mono font-bold transition-all ${
+                    creationsTab === "scrapbook"
+                      ? "bg-stone-900 text-amber-300 shadow-sm"
+                      : "text-stone-700 hover:text-stone-950"
+                  }`}
+                  onClick={() => setCreationsTab("scrapbook")}
+                >
+                  <BookOpen size={14} />
+                  <span>Spiral Scrapbook</span>
+                </button>
+                <button
+                  type="button"
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-mono font-bold transition-all ${
+                    creationsTab === "grid"
+                      ? "bg-stone-900 text-amber-300 shadow-sm"
+                      : "text-stone-700 hover:text-stone-950"
+                  }`}
+                  onClick={() => setCreationsTab("grid")}
+                >
+                  <LayoutGrid size={14} />
+                  <span>Grid ({saved.length})</span>
+                </button>
+              </div>
             </header>
 
-            {saved.length === 0 ? (
-              <div className="py-20 text-center border-2 border-dashed border-stone-300 p-8">
+            {creationsTab === "scrapbook" ? (
+              <ScrapbookAlbum
+                creations={saved.map((s) => ({
+                  id: s.id,
+                  name: `Photostrip · ${s.date}`,
+                  date: s.date,
+                  data: s.composition,
+                  previewUrl: s.image,
+                }))}
+                onOpenInStudio={(comp) => {
+                  setComposition(comp)
+                  setPage("editor")
+                }}
+                onExportCreation={(comp) => {
+                  setComposition(comp)
+                  setPage("export")
+                }}
+                onNewStrip={() => {
+                  setPage("camera")
+                  openCamera()
+                }}
+              />
+            ) : saved.length === 0 ? (
+              <div className="py-20 text-center border-2 border-dashed border-stone-300 p-8 bg-[#faf8f2]">
                 <Camera size={36} className="mx-auto text-stone-400 mb-3" />
                 <h3 className="font-gochi text-2xl text-stone-700">No saved creations yet</h3>
                 <p className="text-xs text-stone-500 font-mono my-3">
@@ -3418,6 +3486,7 @@ export default function App() {
                 : "text-stone-600 hover:text-stone-900"
             }`}
             onClick={() => {
+              setCreationsTab("scrapbook")
               setPage("creations")
               window.scrollTo({ top: 0, behavior: "smooth" })
             }}
@@ -3430,7 +3499,7 @@ export default function App() {
                 </span>
               )}
             </div>
-            <span className="mt-0.5">Prints</span>
+            <span className="mt-0.5">Scrapbook</span>
           </button>
         </nav>
       )}
