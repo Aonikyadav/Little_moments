@@ -35,6 +35,7 @@ import {
   UnlockKeyhole,
   WandSparkles,
   X,
+  GripVertical,
 } from "lucide-react"
 import type {
   Adjustments,
@@ -341,7 +342,17 @@ export default function Studio({
     [pan, setPan] = useState({ x: 0, y: 0 }),
     [snapped, setSnapped] = useState({ x: false, y: false }),
     [caption, setCaption] = useState("a little moment worth keeping"),
-    [confirmDelete, setConfirmDelete] = useState(false),
+    [inspectorWidth, setInspectorWidth] = useState<number>(() => {
+      try {
+        const saved = localStorage.getItem("studio-inspector-width")
+        if (saved) {
+          const val = parseInt(saved, 10)
+          if (val >= 320 && val <= 860) return val
+        }
+      } catch {}
+      return 460
+    }),
+    [isResizing, setIsResizing] = useState(false),
     [replacing, setReplacing] = useState(false),
     [touchMode, setTouchMode] = useState<"photo" | "canvas">("photo"),
     [gestureHud, setGestureHud] = useState<{ text: string; sub?: string } | null>(null),
@@ -415,6 +426,58 @@ export default function Studio({
       notify("Preferences could not be stored. Your project is unchanged.")
     }
   }, [favorites, recent, stickerFavorites, recentStickers])
+
+  const handleResizeStart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX
+    const initialWidth = inspectorWidth
+
+    const handlePointerMove = (evt: MouseEvent | TouchEvent) => {
+      const curX = "touches" in evt ? evt.touches[0].clientX : (evt as MouseEvent).clientX
+      const delta = clientX - curX
+      const minW = 320
+      const maxW = Math.min(860, Math.floor(window.innerWidth * 0.65))
+      const nextW = Math.max(minW, Math.min(maxW, initialWidth + delta))
+      setInspectorWidth(nextW)
+    }
+
+    const handlePointerUp = () => {
+      setIsResizing(false)
+      window.removeEventListener("mousemove", handlePointerMove)
+      window.removeEventListener("mouseup", handlePointerUp)
+      window.removeEventListener("touchmove", handlePointerMove)
+      window.removeEventListener("touchend", handlePointerUp)
+      try {
+        localStorage.setItem("studio-inspector-width", String(inspectorWidth))
+      } catch {}
+    }
+
+    window.addEventListener("mousemove", handlePointerMove)
+    window.addEventListener("mouseup", handlePointerUp)
+    window.addEventListener("touchmove", handlePointerMove)
+    window.addEventListener("touchend", handlePointerUp)
+  }
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("studio-inspector-width", String(inspectorWidth))
+    } catch {}
+  }, [inspectorWidth])
+
+  useEffect(() => {
+    if (isResizing) {
+      document.body.style.cursor = "col-resize"
+      document.body.style.userSelect = "none"
+    } else {
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
+    }
+    return () => {
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
+    }
+  }, [isResizing])
   const setPanel = (name: string) => {
     contextStart.current = c
     setTool(name)
@@ -1406,7 +1469,10 @@ export default function Studio({
           </button>
         </div>
       </div>
-      <div className="studio-body">
+      <div
+        className="studio-body"
+        style={{ "--studio-inspector-width": `${inspectorWidth}px` } as CSSProperties}
+      >
         <div className="studio-workbench">
           <div className="canvas-topline">
             <div className="mode-switch">
@@ -1867,8 +1933,12 @@ export default function Studio({
               </button>
               <button
                 aria-label="Delete selected layer"
+                title="Delete layer"
                 disabled={layer.properties.locked}
-                onClick={() => setConfirmDelete(true)}
+                onClick={() => {
+                  commit(deleteLayer(c, selected))
+                  setSelected("")
+                }}
               >
                 <Trash2 size={15} />
               </button>
@@ -1883,6 +1953,19 @@ export default function Studio({
 
         </div>
         <aside className="studio-inspector">
+          {/* Draggable sidebar resizer handle */}
+          <div
+            className={`studio-resizer ${isResizing ? "resizing" : ""}`}
+            onMouseDown={handleResizeStart}
+            onTouchStart={handleResizeStart}
+            title="Drag left/right to resize sidebar. Double-click to reset (460px)."
+            onDoubleClick={() => setInspectorWidth(460)}
+          >
+            <div className="studio-resizer-line" />
+            <div className="studio-resizer-handle">
+              <GripVertical size={13} />
+            </div>
+          </div>
           <nav className="studio-rail studio-tools" aria-label="Editing tools">
             {tools.map(({ name, icon: Icon }) => (
               <button
@@ -1922,7 +2005,35 @@ export default function Studio({
                               : "Set the scene."}
               </h2>
             </div>
-            <span className="hand">make it yours</span>
+            <div className="inspector-header-right">
+              <span className="hand hidden sm:inline">make it yours</span>
+              <div className="inspector-width-presets" title="Quick panel width">
+                <button
+                  type="button"
+                  className={`width-preset-btn ${inspectorWidth <= 390 ? "active" : ""}`}
+                  onClick={() => setInspectorWidth(360)}
+                  title="Compact width (360px)"
+                >
+                  360px
+                </button>
+                <button
+                  type="button"
+                  className={`width-preset-btn ${inspectorWidth > 390 && inspectorWidth <= 520 ? "active" : ""}`}
+                  onClick={() => setInspectorWidth(460)}
+                  title="Medium width (460px)"
+                >
+                  460px
+                </button>
+                <button
+                  type="button"
+                  className={`width-preset-btn ${inspectorWidth > 520 ? "active" : ""}`}
+                  onClick={() => setInspectorWidth(620)}
+                  title="Wide width (620px)"
+                >
+                  620px
+                </button>
+              </div>
+            </div>
           </div>
           <div className="inspector-body">
             {tool === "Frames" && (
@@ -4073,40 +4184,6 @@ export default function Studio({
           </div>
         </aside>
       </div>
-      {confirmDelete && (
-        <div className="modal-backdrop">
-          <section
-            className="confirm-modal"
-            role="alertdialog"
-            aria-modal="true"
-            aria-label="Remove layer"
-          >
-            <h2>Remove this piece?</h2>
-            <p>
-              This removes only the selected layer from this project. You can
-              undo it. Your original file is never changed.
-            </p>
-            <div className="choices">
-              <button
-                className="button secondary"
-                onClick={() => setConfirmDelete(false)}
-              >
-                Keep it
-              </button>
-              <button
-                className="button primary"
-                onClick={() => {
-                  commit(deleteLayer(c, selected))
-                  setSelected("")
-                  setConfirmDelete(false)
-                }}
-              >
-                Remove layer
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
     </section>
   )
 }

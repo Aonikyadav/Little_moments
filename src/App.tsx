@@ -946,11 +946,16 @@ export default function App() {
       notify("Creation saved to your gallery!")
 
       if (isSupabaseConfigured()) {
-        savePhotoboothToSupabase(exportId, dataUrl, {
-          title: getTemplate(composition.templateId)?.name || "Little Moments Keepsake",
-          templateId: composition.templateId,
-          composition,
-        }).catch((err) => console.warn("[Supabase] Auto-save creation notice:", err))
+        savePhotoboothToSupabase(
+          exportId,
+          dataUrl,
+          {
+            title: getTemplate(composition.templateId)?.name || "Little Moments Keepsake",
+            templateId: composition.templateId,
+            composition,
+          },
+          currentUser,
+        ).catch((err) => console.warn("[Supabase] Auto-save creation notice:", err))
       }
     } catch {
       notify("Could not save to local storage.")
@@ -1035,51 +1040,15 @@ export default function App() {
       setQrDataUrl(initialQrSvg)
       setQrModalOpen(true)
 
-      // Start Tier 1: Save to Supabase (PostgreSQL + Cloud Storage) with active user context
-      savePhotoboothToSupabase(
-        exportId,
-        dataUrl,
-        {
-          title: t?.name || "Little Moments Keepsake",
-          templateId: composition.templateId,
-          composition,
-        },
-        currentUser,
-      )
-        .then((supabaseRes) => {
-          if (supabaseRes.success) {
-            setQrSyncStatus("cloud_db_saved")
-          }
-        })
-        .catch((err) => {
-          console.warn("[Supabase] Save notice:", err)
-        })
-
-      // Also save to Firebase if configured
-      if (isFirebaseConfigured()) {
-        savePhotoboothToCloud(exportId, dataUrl, {
-          title: t?.name || "Little Moments Keepsake",
-          templateId: composition.templateId,
-          composition,
-        })
-          .then((cloudRes) => {
-            if (cloudRes.success) {
-              setQrSyncStatus("cloud_db_saved")
-            }
-          })
-          .catch((err) => {
-            console.warn("[Firebase Cloud] Save notice:", err)
-          })
-      }
-
-      // Start Tier 2: Cloud Relay fallback in background
+      // Temporary exports use ephemeral Cloud Relay and direct WebRTC P2P;
+      // Permanent database storage in Supabase is strictly reserved for explicit user "Save Image" actions.
       const blob = dataUrlToBlob(dataUrl)
       uploadStripToCloudRelay(blob)
         .then((uploadRes) => {
           if (uploadRes.success && uploadRes.url) {
             const cloudTargetUrl = `${protocol}//${host}/?view=mobile&img=${encodeURIComponent(uploadRes.url)}&peer=lm-${exportId}&id=${exportId}`
             setQrExportUrl(cloudTargetUrl)
-            setQrSyncStatus((prev) => (prev === "cloud_db_saved" ? prev : "cloud_ready"))
+            setQrSyncStatus("cloud_ready")
             const cloudQrSvg = generateQrCodeDataUrl(cloudTargetUrl, {
               size: 320,
               margin: 4,
@@ -1089,8 +1058,8 @@ export default function App() {
             setQrDataUrl(cloudQrSvg)
           }
         })
-        .catch(() => {
-          // keep existing status
+        .catch((err) => {
+          console.warn("[Cloud Relay] Upload notice:", err)
         })
     } catch {
       notify("Failed to generate QR transfer code.")
