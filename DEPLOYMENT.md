@@ -82,3 +82,59 @@ npm run preview
 ```
 
 The preview server will start at `http://localhost:3000` mirroring the exact production behavior.
+
+---
+
+## ⚡ Supabase Setup (PostgreSQL Database & Cloud Storage) — Recommended
+
+Supabase only requires **2 keys** (`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`) with zero Google Cloud console wizards:
+
+1. **Create a Supabase Project**:
+   - Go to [supabase.com/dashboard](https://supabase.com/dashboard) and click **New project**.
+   - Name it `little-moments`, set a database password, and click **Create new project**.
+
+2. **Get Your 2 Keys**:
+   - Go to **Project Settings** (gear icon) ➔ **API**.
+   - Copy **Project URL** (`https://xyz.supabase.co`).
+   - Copy **Project API Key (anon public)** (`eyJ...`).
+
+3. **Create the Public Storage Bucket**:
+   - In the left sidebar, click **Storage**.
+   - Click **New bucket**, name it `photos`, and toggle **Public bucket** ON ➔ click **Save**.
+
+4. **Run the 1-Click SQL Table Creation**:
+   - In the left sidebar, click **SQL Editor** ➔ **New query**.
+   - Paste the following and click **Run**:
+
+```sql
+create table if not exists photos (
+  id text primary key,
+  user_id text,
+  image_url text not null,
+  title text,
+  template_id text,
+  created_at timestamp with time zone default now()
+);
+
+alter table photos enable row level security;
+create policy "Public photos can be read by anyone" on photos for select using (true);
+create policy "Anyone can insert photos" on photos for insert with check (true);
+```
+
+5. **Connect It to Little Moments**:
+   - Open Little Moments in your browser, click **Cloud DB** in the top navigation bar, paste your Project URL and Anon Key, and click **Save & Connect Supabase**!
+   - On **Render**: In your Render Dashboard ➔ Environment, add:
+     - `VITE_SUPABASE_URL`
+     - `VITE_SUPABASE_ANON_KEY`
+
+---
+
+## 🔥 Alternative: Firebase Cloud Database Setup
+
+If you prefer Firebase instead, configure:
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`

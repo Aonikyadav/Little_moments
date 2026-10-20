@@ -46,6 +46,8 @@ import {
   Smartphone,
   BookOpen,
   LayoutGrid,
+  Database,
+  User,
 } from "lucide-react"
 import type {
   Composition,
@@ -78,6 +80,17 @@ import {
   dataUrlToBlob,
   PhotoTransferHost,
 } from "./utils/photoTransfer"
+import {
+  initAuthListener,
+  savePhotoboothToCloud,
+  isFirebaseConfigured,
+  type FirebaseUserAccount,
+} from "./services/firebase"
+import {
+  savePhotoboothToSupabase,
+  isSupabaseConfigured,
+} from "./services/supabase"
+import { UserAccountModal } from "./components/UserAccountModal"
 
 const Studio = lazy(() => import("./studio/Studio"))
 const samples = [
@@ -307,9 +320,11 @@ export default function App() {
     typeof window !== "undefined" ? window.location.host : "localhost:3000",
   )
   const [qrCopied, setQrCopied] = useState(false)
-  const [qrSyncStatus, setQrSyncStatus] = useState<"connecting" | "cloud_ready" | "p2p_active" | "local">("connecting")
+  const [qrSyncStatus, setQrSyncStatus] = useState<"connecting" | "cloud_ready" | "cloud_db_saved" | "p2p_active" | "local">("connecting")
   const qrTransferHostRef = useRef<PhotoTransferHost | null>(null)
   const [creationsTab, setCreationsTab] = useState<"scrapbook" | "grid">("scrapbook")
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUserAccount | null>(null)
+  const [accountModalOpen, setAccountModalOpen] = useState(false)
 
   const draftReady = useRef(false)
   const documentRevision = useRef(0)
@@ -320,6 +335,13 @@ export default function App() {
   const slotReplaceIndex = useRef<number | null>(null)
 
   const notify = (s: string) => setToast(s)
+
+  useEffect(() => {
+    const unsub = initAuthListener((u) => {
+      setFirebaseUser(u)
+    })
+    return () => unsub()
+  }, [])
 
   useEffect(() => {
     if (toast) {
@@ -949,14 +971,46 @@ export default function App() {
       setQrDataUrl(initialQrSvg)
       setQrModalOpen(true)
 
-      // Start Tier 1 Cloud Upload in background
+      // Start Tier 1: Save to Supabase (PostgreSQL + Cloud Storage)
+      savePhotoboothToSupabase(exportId, dataUrl, {
+        title: t?.name || "Little Moments Keepsake",
+        templateId: composition.templateId,
+        composition,
+      })
+        .then((supabaseRes) => {
+          if (supabaseRes.success) {
+            setQrSyncStatus("cloud_db_saved")
+          }
+        })
+        .catch((err) => {
+          console.warn("[Supabase] Save notice:", err)
+        })
+
+      // Also save to Firebase if configured
+      if (isFirebaseConfigured()) {
+        savePhotoboothToCloud(exportId, dataUrl, {
+          title: t?.name || "Little Moments Keepsake",
+          templateId: composition.templateId,
+          composition,
+        })
+          .then((cloudRes) => {
+            if (cloudRes.success) {
+              setQrSyncStatus("cloud_db_saved")
+            }
+          })
+          .catch((err) => {
+            console.warn("[Firebase Cloud] Save notice:", err)
+          })
+      }
+
+      // Start Tier 2: Cloud Relay fallback in background
       const blob = dataUrlToBlob(dataUrl)
       uploadStripToCloudRelay(blob)
         .then((uploadRes) => {
           if (uploadRes.success && uploadRes.url) {
             const cloudTargetUrl = `${protocol}//${host}/?view=mobile&img=${encodeURIComponent(uploadRes.url)}&peer=lm-${exportId}&id=${exportId}`
             setQrExportUrl(cloudTargetUrl)
-            setQrSyncStatus("cloud_ready")
+            setQrSyncStatus((prev) => (prev === "cloud_db_saved" ? prev : "cloud_ready"))
             const cloudQrSvg = generateQrCodeDataUrl(cloudTargetUrl, {
               size: 260,
               margin: 3,
@@ -964,12 +1018,10 @@ export default function App() {
               lightColor: "#ffffff",
             })
             setQrDataUrl(cloudQrSvg)
-          } else {
-            setQrSyncStatus("local")
           }
         })
         .catch(() => {
-          setQrSyncStatus("local")
+          // keep existing status
         })
     } catch {
       notify("Failed to generate QR transfer code.")
@@ -1433,10 +1485,46 @@ export default function App() {
           >
             settings
           </button>
+
+          {/* Cloud Database & Account Button */}
+          <button
+            type="button"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-stone-800 bg-white hover:bg-stone-100 text-xs font-mono shadow-sm transition-all ml-1"
+            onClick={() => setAccountModalOpen(true)}
+            title="Cloud Database & User Account"
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isSupabaseConfigured()
+                  ? "bg-emerald-500 animate-pulse"
+                  : isFirebaseConfigured()
+                    ? "bg-amber-500"
+                    : "bg-stone-400"
+              }`}
+            />
+            <span className="font-bold">
+              {isSupabaseConfigured()
+                ? "Supabase Sync"
+                : firebaseUser?.displayName
+                  ? firebaseUser.displayName.split(" ")[0]
+                  : "Cloud DB"}
+            </span>
+            <Database size={13} className="text-stone-600" />
+          </button>
         </nav>
 
         {/* Mobile & Tablet quick actions */}
         <div className="flex items-center gap-2 lg:hidden">
+          <button
+            type="button"
+            className="w-9 h-9 border-2 border-stone-900 bg-white shadow-[2px_2px_0_#171717] flex items-center justify-center text-stone-900 active:scale-95 transition-transform"
+            onClick={() => setAccountModalOpen(true)}
+            title="Cloud Database & User Account"
+            aria-label="Cloud Database & User Account"
+          >
+            <Database size={16} />
+          </button>
+
           <button
             type="button"
             className="sketch-button sketch-button--sm text-xs py-1.5 px-2.5 flex items-center gap-1.5 bg-rose-600 text-white border-stone-900 shadow-[2px_2px_0_#171717] active:scale-95"
@@ -3342,6 +3430,11 @@ export default function App() {
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-emerald-700 font-bold">✓ Phone Connected via P2P!</span>
                   </>
+                ) : qrSyncStatus === "cloud_db_saved" ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-emerald-800 font-bold">● Cloud Database Synced (Universal Scan)</span>
+                  </>
                 ) : qrSyncStatus === "cloud_ready" ? (
                   <>
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -3350,7 +3443,7 @@ export default function App() {
                 ) : (
                   <>
                     <Loader2 size={13} className="animate-spin text-amber-600" />
-                    <span className="text-stone-600">Preparing Wireless Relay...</span>
+                    <span className="text-stone-600">Connecting Cloud Sync...</span>
                   </>
                 )}
               </span>
@@ -3575,6 +3668,15 @@ export default function App() {
           <span>Crafted with vintage ink & real paper textures.</span>
         </footer>
       )}
+
+      {/* Cloud Database & User Account Modal */}
+      <UserAccountModal
+        isOpen={accountModalOpen}
+        onClose={() => setAccountModalOpen(false)}
+        user={firebaseUser}
+        onUserUpdated={setFirebaseUser}
+        cloudCreationsCount={saved.length}
+      />
     </div>
   )
 }

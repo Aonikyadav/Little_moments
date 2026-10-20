@@ -9,11 +9,19 @@ import {
   RefreshCw,
   Smartphone,
   ShieldCheck,
+  Database,
 } from "lucide-react"
 import {
   listenForP2PPhoto,
   savePhotoToCameraRoll,
 } from "../utils/photoTransfer"
+import {
+  fetchPhotoboothFromCloud,
+  type CloudPhotobooth,
+} from "../services/firebase"
+import {
+  fetchPhotoboothFromSupabase,
+} from "../services/supabase"
 
 interface MobileKeepsakeViewerProps {
   exportId?: string | null
@@ -29,6 +37,7 @@ export const MobileKeepsakeViewer: React.FC<MobileKeepsakeViewerProps> = ({
   localSavedPhoto,
 }) => {
   const [photoSrc, setPhotoSrc] = useState<string | null>(null)
+  const [cloudPhoto, setCloudPhoto] = useState<CloudPhotobooth | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [statusMessage, setStatusMessage] = useState<string>("Connecting to studio...")
   const [isP2pConnected, setIsP2pConnected] = useState<boolean>(false)
@@ -52,8 +61,7 @@ export const MobileKeepsakeViewer: React.FC<MobileKeepsakeViewerProps> = ({
       }
       img.onerror = () => {
         if (!isMounted) return
-        // If direct cloud image fails, fall through to P2P / session storage
-        checkLocalAndP2p()
+        checkDatabaseAndFallbacks()
       }
       img.src = initialImgUrl
       return () => {
@@ -61,10 +69,51 @@ export const MobileKeepsakeViewer: React.FC<MobileKeepsakeViewerProps> = ({
       }
     }
 
-    checkLocalAndP2p()
+    checkDatabaseAndFallbacks()
 
-    function checkLocalAndP2p() {
-      // 2. Check local sessionStorage / saved creation (same device or cache)
+    async function checkDatabaseAndFallbacks() {
+      // 2. Query Cloud Databases (Supabase first, then Firebase)
+      if (exportId) {
+        setStatusMessage("Fetching from Cloud Database...")
+
+        // Try Supabase (PostgreSQL + Cloud Storage)
+        try {
+          const supabaseResult = await fetchPhotoboothFromSupabase(exportId)
+          if (isMounted && supabaseResult.success && supabaseResult.photo?.imageUrl) {
+            setPhotoSrc(supabaseResult.photo.imageUrl)
+            setCloudPhoto({
+              id: supabaseResult.photo.id,
+              userId: supabaseResult.photo.userId,
+              isAnonymous: true,
+              userDisplayName: "Little Moments Creator",
+              imageUrl: supabaseResult.photo.imageUrl,
+              createdAtMs: supabaseResult.photo.createdAtMs,
+              title: supabaseResult.photo.title,
+            })
+            setLoading(false)
+            setStatusMessage("Verified from Supabase Database ✓")
+            return
+          }
+        } catch (err) {
+          console.warn("[MobileKeepsakeViewer] Supabase DB lookup notice:", err)
+        }
+
+        // Try Firebase (if active)
+        try {
+          const cloudResult = await fetchPhotoboothFromCloud(exportId)
+          if (isMounted && cloudResult.success && cloudResult.photo?.imageUrl) {
+            setPhotoSrc(cloudResult.photo.imageUrl)
+            setCloudPhoto(cloudResult.photo)
+            setLoading(false)
+            setStatusMessage("Verified from Cloud Database ✓")
+            return
+          }
+        } catch (err) {
+          console.warn("[MobileKeepsakeViewer] Cloud DB lookup notice:", err)
+        }
+      }
+
+      // 3. Check local sessionStorage / saved creation (same device or cache)
       if (exportId && typeof sessionStorage !== "undefined") {
         const cached = sessionStorage.getItem(`lm_export_${exportId}`)
         if (cached) {
@@ -82,10 +131,10 @@ export const MobileKeepsakeViewer: React.FC<MobileKeepsakeViewerProps> = ({
         return
       }
 
-      // 3. WebRTC P2P Transfer from Desktop Host (?peer=lm-exportId or ?id=exportId)
+      // 4. WebRTC P2P Transfer from Desktop Host (?peer=lm-exportId or ?id=exportId)
       const targetPeer = initialPeerId || (exportId ? `lm-${exportId.replace(/[^a-zA-Z0-9_-]/g, "")}` : null)
       if (targetPeer) {
-        setStatusMessage("Connecting directly to your screen (P2P)...")
+        setStatusMessage("Connecting directly to screen (P2P)...")
         cancelP2p = listenForP2PPhoto(
           targetPeer,
           (receivedDataUrl) => {
@@ -198,6 +247,20 @@ export const MobileKeepsakeViewer: React.FC<MobileKeepsakeViewerProps> = ({
                 </div>
               )}
             </div>
+
+            {cloudPhoto && (
+              <div className="w-full flex items-center justify-between text-[11px] font-mono text-stone-500 px-1 mb-3">
+                <span className="flex items-center gap-1">
+                  <Database size={12} className="text-amber-600" />
+                  <span className="font-semibold text-stone-700">
+                    {cloudPhoto.userDisplayName || (cloudPhoto.isAnonymous ? "Guest Memory" : "Photobooth Memory")}
+                  </span>
+                </span>
+                <span className="text-[10px] text-stone-400">
+                  {new Date(cloudPhoto.createdAtMs).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                </span>
+              </div>
+            )}
 
             {/* Quick Action Buttons */}
             <div className="w-full space-y-2.5">
