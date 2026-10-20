@@ -13,6 +13,8 @@ import {
 } from "lucide-react"
 import {
   listenForP2PPhoto,
+  downloadPhotoDirectly,
+  sharePhotoNative,
   savePhotoToCameraRoll,
 } from "../utils/photoTransfer"
 import {
@@ -41,8 +43,10 @@ export const MobileKeepsakeViewer: React.FC<MobileKeepsakeViewerProps> = ({
   const [loading, setLoading] = useState<boolean>(true)
   const [statusMessage, setStatusMessage] = useState<string>("Connecting to studio...")
   const [isP2pConnected, setIsP2pConnected] = useState<boolean>(false)
-  const [isSaving, setIsSaving] = useState<boolean>(false)
-  const [saveSuccess, setSaveSuccess] = useState<boolean>(false)
+  const [isDownloading, setIsDownloading] = useState<boolean>(false)
+  const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false)
+  const [isSharing, setIsSharing] = useState<boolean>(false)
+  const [shareSuccess, setShareSuccess] = useState<boolean>(false)
 
   useEffect(() => {
     let cancelP2p: (() => void) | undefined
@@ -191,22 +195,41 @@ export const MobileKeepsakeViewer: React.FC<MobileKeepsakeViewerProps> = ({
     }
   }, [initialImgUrl, exportId, initialPeerId, localSavedPhoto])
 
-  const handleSaveToDevice = async () => {
+  const handleDownloadPhoto = async () => {
     if (!photoSrc) return
-    setIsSaving(true)
+    setIsDownloading(true)
     try {
-      const result = await savePhotoToCameraRoll(
+      const result = await downloadPhotoDirectly(
         photoSrc,
         `little-moments-${exportId || Date.now()}.png`,
       )
       if (result.success) {
-        setSaveSuccess(true)
-        setTimeout(() => setSaveSuccess(false), 3000)
+        setDownloadSuccess(true)
+        setTimeout(() => setDownloadSuccess(false), 3500)
       }
-    } catch {
-      // fallback handled inside savePhotoToCameraRoll
+    } catch (e) {
+      console.error("[handleDownloadPhoto] Download failed:", e)
     } finally {
-      setIsSaving(false)
+      setIsDownloading(false)
+    }
+  }
+
+  const handleSharePhoto = async () => {
+    if (!photoSrc) return
+    setIsSharing(true)
+    try {
+      const result = await sharePhotoNative(
+        photoSrc,
+        `little-moments-${exportId || Date.now()}.png`,
+      )
+      if (result.success) {
+        setShareSuccess(true)
+        setTimeout(() => setShareSuccess(false), 3000)
+      }
+    } catch (e) {
+      console.error("[handleSharePhoto] Share failed:", e)
+    } finally {
+      setIsSharing(false)
     }
   }
 
@@ -275,39 +298,55 @@ export const MobileKeepsakeViewer: React.FC<MobileKeepsakeViewerProps> = ({
             <div className="w-full space-y-2.5">
               <button
                 type="button"
-                onClick={handleSaveToDevice}
-                disabled={isSaving}
+                onClick={handleDownloadPhoto}
+                disabled={isDownloading}
                 className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-[#42131b] text-[#faf8f2] border-2 border-stone-900 shadow-[3px_3px_0_#1c1917] hover:bg-[#5a1b26] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2"
               >
-                {isSaving ? (
+                {isDownloading ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    Saving to Device...
+                    Downloading File...
                   </>
-                ) : saveSuccess ? (
+                ) : downloadSuccess ? (
                   <>
                     <Check size={18} className="text-emerald-400" />
-                    Saved to Camera Roll!
+                    Photo Downloaded to Device!
                   </>
                 ) : (
                   <>
                     <Download size={18} />
-                    Save to Camera Roll / Photos
+                    Download Photo to Device
                   </>
                 )}
               </button>
 
               <button
                 type="button"
-                onClick={handleSaveToDevice}
+                onClick={handleSharePhoto}
+                disabled={isSharing}
                 className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 transition-colors flex items-center justify-center gap-2"
               >
-                <Share2 size={14} /> Share with Friends
+                {isSharing ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Opening Share Menu...
+                  </>
+                ) : shareSuccess ? (
+                  <>
+                    <Check size={14} className="text-emerald-600" />
+                    Shared / Link Copied!
+                  </>
+                ) : (
+                  <>
+                    <Share2 size={14} />
+                    Share with Friends
+                  </>
+                )}
               </button>
             </div>
 
             <p className="text-[11px] text-stone-400 text-center mt-3 font-mono">
-              Tip: Press & hold the photo to save directly to Apple Photos or Google Gallery
+              Tip: Tapping Download saves the image file to your device Downloads/Photos. You can also press & hold the photo to save directly to Gallery.
             </p>
           </div>
         ) : (

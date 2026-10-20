@@ -202,10 +202,109 @@ export function listenForP2PPhoto(
 }
 
 /**
- * Native Camera Roll Saving: Triggers native OS share sheet (iOS/Android)
- * or downloads directly as an image file.
+ * Direct File Download: Always downloads the physical image file to device storage / gallery.
+ * Does NOT invoke navigator.share popup.
  */
-export async function savePhotoToCameraRoll(
+export async function downloadPhotoDirectly(
+  imageUrl: string,
+  fileName = `little-moments-${Date.now()}.png`,
+): Promise<{ success: boolean; message: string }> {
+  try {
+    let blob: Blob
+
+    if (imageUrl.startsWith("data:")) {
+      blob = dataUrlToBlob(imageUrl)
+    } else {
+      const response = await fetch(imageUrl, { mode: "cors" })
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} fetching image`)
+      }
+      blob = await response.blob()
+    }
+
+    if (!blob.type || blob.type === "application/octet-stream") {
+      blob = new Blob([blob], { type: "image/png" })
+    }
+
+    // Direct Browser Download via Object URL
+    const objectUrl = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = objectUrl
+    link.download = fileName
+    link.style.display = "none"
+    document.body.appendChild(link)
+    link.click()
+
+    setTimeout(() => {
+      document.body.removeChild(link)
+      URL.revokeObjectURL(objectUrl)
+    }, 1500)
+
+    return {
+      success: true,
+      message: "Photo downloaded to your device gallery!",
+    }
+  } catch (err) {
+    console.warn("[downloadPhotoDirectly] Direct fetch failed, trying canvas export:", err)
+
+    // Canvas fallback: Render image to canvas to bypass any CORS/download restrictions
+    try {
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = (e) => reject(e)
+        img.src = imageUrl
+      })
+
+      const canvas = document.createElement("canvas")
+      canvas.width = img.naturalWidth || img.width
+      canvas.height = img.naturalHeight || img.height
+      const ctx = canvas.getContext("2d")
+      if (ctx) {
+        ctx.drawImage(img, 0, 0)
+        const canvasBlob = await new Promise<Blob | null>((res) =>
+          canvas.toBlob((b) => res(b), "image/png", 1.0),
+        )
+        if (canvasBlob) {
+          const canvasUrl = URL.createObjectURL(canvasBlob)
+          const fallbackLink = document.createElement("a")
+          fallbackLink.href = canvasUrl
+          fallbackLink.download = fileName
+          fallbackLink.style.display = "none"
+          document.body.appendChild(fallbackLink)
+          fallbackLink.click()
+          setTimeout(() => {
+            document.body.removeChild(fallbackLink)
+            URL.revokeObjectURL(canvasUrl)
+          }, 1500)
+          return { success: true, message: "Photo downloaded to your device gallery!" }
+        }
+      }
+    } catch (fallbackErr) {
+      console.warn("[downloadPhotoDirectly] Canvas fallback notice:", fallbackErr)
+    }
+
+    // Direct anchor navigation fallback
+    const directLink = document.createElement("a")
+    directLink.href = imageUrl
+    directLink.target = "_blank"
+    directLink.download = fileName
+    document.body.appendChild(directLink)
+    directLink.click()
+    setTimeout(() => document.body.removeChild(directLink), 1000)
+
+    return {
+      success: true,
+      message: "Download triggered. If prompted, confirm download or press & hold image.",
+    }
+  }
+}
+
+/**
+ * Native OS Share: Opens the system sharing dialog (WhatsApp, Messages, AirDrop, Nearby Share)
+ */
+export async function sharePhotoNative(
   imageUrl: string,
   fileName = `little-moments-${Date.now()}.png`,
 ): Promise<{ success: boolean; shared: boolean; message: string }> {
@@ -220,7 +319,7 @@ export async function savePhotoToCameraRoll(
 
     const file = new File([blob], fileName, { type: blob.type || "image/png" })
 
-    // Check if Web Share API with files is supported (modern iOS Safari and Android Chrome)
+    // Check if Web Share API with files is supported
     if (
       typeof navigator !== "undefined" &&
       navigator.canShare &&
@@ -230,42 +329,49 @@ export async function savePhotoToCameraRoll(
         await navigator.share({
           files: [file],
           title: "Little Moments Photobooth",
-          text: "My Photobooth Keepsake · Little Moments",
+          text: "Check out our Little Moments photobooth keepsake!",
         })
-        return {
-          success: true,
-          shared: true,
-          message: "Saved to device / shared successfully!",
-        }
+        return { success: true, shared: true, message: "Shared successfully!" }
       } catch (shareErr: any) {
-        // User may cancel the share dialog, which is normal
         if (shareErr.name === "AbortError") {
           return { success: true, shared: true, message: "Share dialog closed" }
         }
       }
     }
 
-    // Direct Browser Download Fallback
-    const objectUrl = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = objectUrl
-    link.download = fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
+    // Fallback: Web Share with URL or Clipboard
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: "Little Moments Photobooth",
+          text: "Check out our Little Moments photobooth keepsake!",
+          url: window.location.href,
+        })
+        return { success: true, shared: true, message: "Link shared successfully!" }
+      } catch {
+        // ignore
+      }
+    }
 
-    return {
-      success: true,
-      shared: false,
-      message: "Photo downloaded to your device gallery!",
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(window.location.href)
+      return { success: true, shared: false, message: "Keepsake link copied to clipboard!" }
     }
-  } catch (err) {
-    console.error("[savePhotoToCameraRoll] Error saving:", err)
-    return {
-      success: false,
-      shared: false,
-      message: "Could not save photo automatically. Press and hold image to save.",
-    }
+
+    return { success: false, shared: false, message: "Sharing not available on this browser." }
+  } catch (err: any) {
+    console.error("[sharePhotoNative] Error sharing:", err)
+    return { success: false, shared: false, message: "Could not open share menu." }
   }
+}
+
+/**
+ * Backward compatibility: defaults to direct local file download
+ */
+export async function savePhotoToCameraRoll(
+  imageUrl: string,
+  fileName = `little-moments-${Date.now()}.png`,
+): Promise<{ success: boolean; shared: boolean; message: string }> {
+  const result = await downloadPhotoDirectly(imageUrl, fileName)
+  return { success: result.success, shared: false, message: result.message }
 }
