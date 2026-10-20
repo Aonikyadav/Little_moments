@@ -286,14 +286,14 @@ function drawKBoothPattern(
       ctx.stroke()
       ctx.restore()
 
-      // Header text "HAPPY BIRTHDAY"
+      // Header text "HAPPY BIRTHDAY" - Increased size and bold
       ctx.save()
       ctx.fillStyle = "#1e1b24"
-      ctx.font = `bold ${w * 0.022}px 'DM Sans', sans-serif`
+      ctx.font = `900 ${w * 0.038}px 'DM Sans', sans-serif`
       ctx.textAlign = "center"
-      ctx.fillText("✦ HAPPY BIRTHDAY ✦", x + sw / 2, y + sh * 0.04)
-      ctx.font = `italic ${w * 0.016}px 'Caveat', cursive`
-      ctx.fillStyle = "#8b5cf6"
+      ctx.fillText("✦ HAPPY BIRTHDAY ✦", x + sw / 2, y + sh * 0.042)
+      ctx.font = `bold italic ${w * 0.028}px 'Caveat', cursive`
+      ctx.fillStyle = "#7c3aed"
       ctx.fillText("little moments · photobooth", x + sw / 2, y + sh * 0.97)
       ctx.restore()
     }
@@ -340,14 +340,14 @@ function drawKBoothPattern(
       ctx.lineWidth = w * 0.002
       ctx.stroke()
 
-      // Header & footer branding
-      ctx.fillStyle = "#3e271d"
-      ctx.font = `bold ${w * 0.024}px Georgia, serif`
+      // Header & footer branding - Increased size and bold
+      ctx.fillStyle = "#2a170e"
+      ctx.font = `900 ${w * 0.042}px Georgia, serif`
       ctx.textAlign = "center"
-      ctx.fillText("RETRO MEMORIES", 0, -sh / 2 + sh * 0.04)
-      ctx.font = `${w * 0.018}px 'Caveat', cursive`
-      ctx.fillStyle = "#8c5338"
-      ctx.fillText("photobooth keepsake", 0, sh / 2 - sh * 0.02)
+      ctx.fillText("RETRO MEMORIES", 0, -sh / 2 + sh * 0.045)
+      ctx.font = `bold ${w * 0.032}px 'Caveat', cursive`
+      ctx.fillStyle = "#70381f"
+      ctx.fillText("photobooth keepsake", 0, sh / 2 - sh * 0.025)
       ctx.restore()
     }
 
@@ -447,18 +447,18 @@ function drawKBoothPattern(
         ctx.fill()
       }
 
-      // Ticket header
+      // Ticket header - Increased size and bold
       ctx.fillStyle = "#0c4a6e"
-      ctx.font = `bold ${w * 0.022}px 'DM Sans', sans-serif`
+      ctx.font = `900 ${w * 0.038}px 'DM Sans', sans-serif`
       ctx.textAlign = "center"
       ctx.fillText("★ ADMIT ONE ★", x + sw / 2, y + sh * 0.05)
-      ctx.font = `${w * 0.016}px 'Caveat', cursive`
+      ctx.font = `bold ${w * 0.028}px 'Caveat', cursive`
       ctx.fillStyle = "#0284c7"
-      ctx.fillText("Couple Memories", x + sw / 2, y + sh * 0.08)
+      ctx.fillText("Couple Memories", x + sw / 2, y + sh * 0.085)
 
       // Barcode lines at bottom
       const barY = y + sh * 0.88
-      const barH = sh * 0.06
+      const barH = sh * 0.055
       const barX = x + sw * 0.12
       const barW = sw * 0.76
       ctx.fillStyle = "#0f172a"
@@ -466,8 +466,8 @@ function drawKBoothPattern(
         const lineW = (bx * 7) % 3 === 0 ? w * 0.0035 : w * 0.0018
         ctx.fillRect(barX + bx, barY, lineW, barH)
       }
-      ctx.font = `${w * 0.014}px monospace`
-      ctx.fillText("№ 2026-COUPLE-08", x + sw / 2, barY + barH + w * 0.02)
+      ctx.font = `bold ${w * 0.024}px monospace`
+      ctx.fillText("№ 2026-COUPLE-08", x + sw / 2, barY + barH + w * 0.025)
       ctx.restore()
     }
     drawTicketStrip(w * 0.08, h * 0.08, w * 0.41, h * 0.84)
@@ -500,11 +500,11 @@ function drawKBoothPattern(
       ctx.fill()
 
       ctx.fillStyle = "#0f172a"
-      ctx.font = `bold ${w * 0.02}px 'DM Sans', sans-serif`
+      ctx.font = `900 ${w * 0.038}px 'DM Sans', sans-serif`
       ctx.textAlign = "center"
-      ctx.fillText(label, x + sw / 2, y + sh * 0.05)
-      ctx.font = `${w * 0.015}px monospace`
-      ctx.fillStyle = "#64748b"
+      ctx.fillText(label, x + sw / 2, y + sh * 0.052)
+      ctx.font = `bold ${w * 0.026}px monospace`
+      ctx.fillStyle = "#475569"
       ctx.fillText("MOMENTS · ARCHIVE", x + sw / 2, y + sh * 0.96)
       ctx.restore()
     }
@@ -540,11 +540,11 @@ function drawKBoothPattern(
       ctx.strokeRect(x + sw * 0.03, y + sh * 0.02, sw * 0.94, sh * 0.96)
 
       ctx.fillStyle = "#f5ebe6"
-      ctx.font = `italic ${w * 0.022}px 'Caveat', cursive`
+      ctx.font = `italic 700 ${w * 0.038}px 'Caveat', cursive`
       ctx.textAlign = "center"
       ctx.fillText("Forever Young · 2026", x + sw / 2, y + sh * 0.045)
-      ctx.font = `${w * 0.014}px 'DM Sans', sans-serif`
-      ctx.fillStyle = "rgba(255,255,255,0.6)"
+      ctx.font = `900 ${w * 0.026}px 'DM Sans', sans-serif`
+      ctx.fillStyle = "#ffffff"
       ctx.fillText("LITTLE MOMENTS", x + sw / 2, y + sh * 0.97)
       ctx.restore()
     }
@@ -571,12 +571,12 @@ function drawKBoothPattern(
     ctx.beginPath()
     ctx.roundRect(sx, sy, sw, sh, w * 0.01)
     ctx.fill()
-    ctx.fillStyle = "#2c2f24"
-    ctx.font = `bold ${w * 0.02}px 'DM Sans', sans-serif`
+    ctx.fillStyle = "#1c1e17"
+    ctx.font = `900 ${w * 0.038}px 'DM Sans', sans-serif`
     ctx.textAlign = "center"
     ctx.fillText("2026 · AUGUST", sx + sw / 2, sy + sh * 0.035)
-    ctx.font = `${w * 0.014}px monospace`
-    ctx.fillStyle = "#78716c"
+    ctx.font = `bold ${w * 0.026}px monospace`
+    ctx.fillStyle = "#57534e"
     ctx.fillText("LIFE FOUR CUTS", sx + sw / 2, sy + sh * 0.97)
     ctx.restore()
 
@@ -614,11 +614,11 @@ function drawKBoothPattern(
     ctx.roundRect(sx, sy, sw, sh, w * 0.01)
     ctx.fill()
     ctx.fillStyle = "#181411"
-    ctx.font = `bold ${w * 0.02}px 'DM Sans', sans-serif`
+    ctx.font = `900 ${w * 0.038}px 'DM Sans', sans-serif`
     ctx.textAlign = "center"
     ctx.fillText("PORTRAIT · ARCHIVE", sx + sw / 2, sy + sh * 0.035)
-    ctx.font = `${w * 0.015}px Georgia, serif`
-    ctx.fillStyle = "#574c43"
+    ctx.font = `bold italic ${w * 0.028}px Georgia, serif`
+    ctx.fillStyle = "#3e3229"
     ctx.fillText("Authentic Studio Edition", sx + sw / 2, sy + sh * 0.97)
     ctx.restore()
 
@@ -659,7 +659,7 @@ function drawKBoothPattern(
       c.photos.length <= 1 &&
       (!c.templateId || c.templateId.includes("09"))
     ) {
-      // Giant postage stamp frame
+      // Giant postage stamp frame (Template 9)
       const sx = w * 0.13,
         sy = h * 0.11,
         sw = w * 0.74,
@@ -687,9 +687,17 @@ function drawKBoothPattern(
         ctx.arc(sx + sw, y, pr, Math.PI / 2, -Math.PI / 2)
         ctx.fill()
       }
+      // Top and bottom bold stamp text
+      ctx.fillStyle = "#be123c"
+      ctx.font = `900 ${w * 0.040}px 'DM Sans', sans-serif`
+      ctx.textAlign = "center"
+      ctx.fillText("AIR MAIL · OFFICIAL POSTAGE", sx + sw / 2, sy + sh * 0.045)
+      ctx.font = `bold ${w * 0.032}px monospace`
+      ctx.fillStyle = "#9f1239"
+      ctx.fillText("SEOUL · 2026 · № 09-SOLO", sx + sw / 2, sy + sh * 0.965)
       ctx.restore()
     } else {
-      // 3-Cut stamp strip
+      // 3-Cut stamp strip (Template 8)
       const sx = w * 0.23,
         sy = h * 0.07,
         sw = w * 0.54,
@@ -727,18 +735,36 @@ function drawKBoothPattern(
         ctx.arc(sx + sw * 0.96, y, w * 0.003, 0, Math.PI * 2)
         ctx.fill()
       }
+      // Bold stamp strip header and footer
+      ctx.fillStyle = "#be123c"
+      ctx.font = `900 ${w * 0.036}px 'DM Sans', sans-serif`
+      ctx.textAlign = "center"
+      ctx.fillText("★ POSTAGE STAMP · 2026 ★", sx + sw / 2, sy + sh * 0.035)
+      ctx.font = `bold italic ${w * 0.028}px 'Caveat', cursive`
+      ctx.fillStyle = "#9f1239"
+      ctx.fillText("little moments · air mail", sx + sw / 2, sy + sh * 0.97)
       ctx.restore()
     }
   } else if (p === "K-Booth Vintage Parchment") {
-    // Parchment texture flecks
+    // Parchment texture flecks (Template 10 Moodboard)
     for (let i = 0; i < 400; i++) {
       const px = (((i * 197) % 1000) / 1000) * w
       const py = (((i * 431) % 1000) / 1000) * h
       ctx.fillStyle = "rgba(100, 70, 40, 0.04)"
       ctx.fillRect(px, py, w * 0.006, h * 0.004)
     }
+    // Prominent bold vintage moodboard labels
+    ctx.save()
+    ctx.fillStyle = "#451a03"
+    ctx.font = `italic 700 ${w * 0.046}px 'Playfair Display', Georgia, serif`
+    ctx.textAlign = "center"
+    ctx.fillText("Memories & Stories", w * 0.5, h * 0.045)
+    ctx.font = `bold ${w * 0.028}px monospace`
+    ctx.fillStyle = "#78350f"
+    ctx.fillText("VINTAGE MOODBOARD · PHOTOBOOTH 2026", w * 0.5, h * 0.965)
+    ctx.restore()
   } else if (p === "K-Booth Kraft Scrapbook") {
-    // Kraft cardboard fiber
+    // Kraft cardboard fiber (Template 11)
     ctx.strokeStyle = "rgba(0,0,0,0.06)"
     for (let i = 0; i < 200; i++) {
       const px = (((i * 311) % 1000) / 1000) * w
@@ -748,8 +774,18 @@ function drawKBoothPattern(
       ctx.lineTo(px + w * 0.015, py + ((i % 3) - 1))
       ctx.stroke()
     }
+    // Prominent bold handcrafted kraft scrapbook labels
+    ctx.save()
+    ctx.fillStyle = "#fef3c7"
+    ctx.font = `italic 700 ${w * 0.050}px 'Caveat', cursive`
+    ctx.textAlign = "center"
+    ctx.fillText("Our Story & Good Times ✦", w * 0.5, h * 0.045)
+    ctx.font = `900 ${w * 0.028}px 'DM Sans', sans-serif`
+    ctx.fillStyle = "#fde68a"
+    ctx.fillText("KRAFT SCRAPBOOK · 2026 ARCHIVE", w * 0.5, h * 0.965)
+    ctx.restore()
   } else if (p === "K-Booth Purple Cinema Night") {
-    // Deep royal purple cinema background
+    // Deep royal purple cinema background (Template 12)
     const drawCinemaStrip = (
       x: number,
       y: number,
@@ -776,16 +812,16 @@ function drawKBoothPattern(
         ctx.fill()
       }
 
-      // Title banner
+      // Title banner - Increased size and bold
       ctx.fillStyle = "#3b0764"
-      ctx.font = `italic bold ${w * 0.03}px 'Caveat', cursive`
+      ctx.font = `italic 700 ${w * 0.052}px 'Caveat', cursive`
       ctx.textAlign = "center"
-      ctx.fillText("Night Movie", x + sw / 2, y + sh * 0.06)
-      ctx.font = `${w * 0.014}px monospace`
-      ctx.fillStyle = "#7e22ce"
-      ctx.fillText("CINEMA TICKETS · ROW A", x + sw / 2, y + sh * 0.09)
+      ctx.fillText("Night Movie", x + sw / 2, y + sh * 0.065)
+      ctx.font = `bold ${w * 0.026}px monospace`
+      ctx.fillStyle = "#6b21a8"
+      ctx.fillText("CINEMA TICKETS · ROW A", x + sw / 2, y + sh * 0.10)
 
-      // Barcode footer
+      // Barcode footer - Increased size and bold
       const barY = y + sh * 0.88,
         barH = sh * 0.05,
         barX = x + sw * 0.12,
@@ -795,14 +831,14 @@ function drawKBoothPattern(
         const lineW = (bx * 9) % 4 === 0 ? w * 0.004 : w * 0.0018
         ctx.fillRect(barX + bx, barY, lineW, barH)
       }
-      ctx.font = `${w * 0.013}px monospace`
-      ctx.fillText("* 0 8 2 4 9 9 1 2 *", x + sw / 2, barY + barH + w * 0.018)
+      ctx.font = `bold ${w * 0.024}px monospace`
+      ctx.fillText("* 0 8 2 4 9 9 1 2 *", x + sw / 2, barY + barH + w * 0.022)
       ctx.restore()
     }
     drawCinemaStrip(w * 0.07, h * 0.08, w * 0.42, h * 0.84)
     drawCinemaStrip(w * 0.51, h * 0.08, w * 0.42, h * 0.84)
   } else if (p === "K-Booth Cream & Maroon Bookmark") {
-    // Rich deep maroon background
+    // Rich deep maroon background (Template 13)
     ctx.fillStyle = "#42131b"
     ctx.fillRect(0, 0, w, h)
 
@@ -826,16 +862,16 @@ function drawKBoothPattern(
     ctx.stroke()
     ctx.restore()
 
-    // Calligraphy Header: "Photograph" in rich maroon
+    // Calligraphy Header: "Photograph" in rich maroon - Extra bold and prominent
     ctx.save()
     ctx.fillStyle = "#42131b"
-    ctx.font = `italic 700 ${w * 0.085}px 'Playfair Display', Georgia, serif`
+    ctx.font = `italic 700 ${w * 0.088}px 'Playfair Display', Georgia, serif`
     ctx.textAlign = "center"
     ctx.fillText("Photograph", w * 0.5, h * 0.115)
 
     // 5 Gold Stars ★★★★★
     ctx.fillStyle = "#f59e0b"
-    ctx.font = `bold ${w * 0.042}px 'DM Sans', sans-serif`
+    ctx.font = `900 ${w * 0.045}px 'DM Sans', sans-serif`
     ctx.fillText("★ ★ ★ ★ ★", w * 0.5, h * 0.155)
 
     // Photo Cut Framing Borders (fine maroon stroke around each of the 4 slots)
@@ -865,34 +901,34 @@ function drawKBoothPattern(
     ctx.lineTo(tx + tw, ty + th * 0.45)
     ctx.stroke()
 
-    // Table labels & values
+    // Table labels & values - cleanly proportioned and bold
     ctx.fillStyle = "#42131b"
-    ctx.font = `500 ${w * 0.024}px 'DM Sans', sans-serif`
+    ctx.font = `700 ${w * 0.024}px 'DM Sans', sans-serif`
     ctx.textAlign = "center"
     // Col 1: Date & Time
-    ctx.fillText("Sunday, 3 May 2047", tx + col1W / 2, ty + th * 0.32)
-    ctx.font = `bold ${w * 0.034}px 'DM Sans', sans-serif`
+    ctx.fillText("Sunday, 3 May 2047", tx + col1W / 2, ty + th * 0.34)
+    ctx.font = `900 ${w * 0.040}px 'DM Sans', sans-serif`
     ctx.fillText("20.00", tx + col1W / 2, ty + th * 0.84)
 
     // Col 2: Row A
-    ctx.font = `500 ${w * 0.024}px 'DM Sans', sans-serif`
-    ctx.fillText("Row", tx + col1W + col2W / 2, ty + th * 0.32)
-    ctx.font = `bold ${w * 0.034}px 'DM Sans', sans-serif`
+    ctx.font = `700 ${w * 0.024}px 'DM Sans', sans-serif`
+    ctx.fillText("Row", tx + col1W + col2W / 2, ty + th * 0.34)
+    ctx.font = `900 ${w * 0.040}px 'DM Sans', sans-serif`
     ctx.fillText("A", tx + col1W + col2W / 2, ty + th * 0.84)
 
     // Col 3: Seat 15
     const col3W = tw - col1W - col2W
-    ctx.font = `500 ${w * 0.024}px 'DM Sans', sans-serif`
-    ctx.fillText("Seat", tx + col1W + col2W + col3W / 2, ty + th * 0.32)
-    ctx.font = `bold ${w * 0.034}px 'DM Sans', sans-serif`
+    ctx.font = `700 ${w * 0.024}px 'DM Sans', sans-serif`
+    ctx.fillText("Seat", tx + col1W + col2W + col3W / 2, ty + th * 0.34)
+    ctx.font = `900 ${w * 0.040}px 'DM Sans', sans-serif`
     ctx.fillText("15", tx + col1W + col2W + col3W / 2, ty + th * 0.84)
 
-    // Elegant bottom caption
-    ctx.font = `italic ${w * 0.038}px Georgia, serif`
-    ctx.fillText("Enjoy the moment", w * 0.5, h * 0.932)
+    // Elegant bottom caption - cleanly sized
+    ctx.font = `italic 700 ${w * 0.044}px Georgia, serif`
+    ctx.fillText("Enjoy the moment", w * 0.5, h * 0.935)
     ctx.restore()
   } else if (p === "K-Booth Denim & Lace Y2K") {
-    // Rich textured denim blue background
+    // Rich textured denim blue background (Template 14)
     ctx.fillStyle = "#3e5c7d"
     ctx.fillRect(0, 0, w, h)
 
@@ -975,15 +1011,19 @@ function drawKBoothPattern(
         ctx.arc(winX + w * 0.018 + d * w * 0.014, ws.y - barH / 2, w * 0.004, 0, Math.PI * 2)
         ctx.fill()
       }
-      // Browser tab
+      // Browser tab title - Increased size and bold
       ctx.fillStyle = "#cbd5e1"
-      ctx.fillRect(winX + w * 0.07, ws.y - barH + 3, winW * 0.35, barH - 3)
+      ctx.fillRect(winX + w * 0.07, ws.y - barH + 3, winW * 0.45, barH - 3)
+      ctx.fillStyle = "#334155"
+      ctx.font = `bold ${w * 0.024}px 'DM Sans', sans-serif`
+      ctx.fillText("besties.html", winX + w * 0.18, ws.y - barH * 0.25)
+
       // Window border
       ctx.strokeStyle = "#cbd5e1"
       ctx.lineWidth = Math.max(1, w * 0.002)
       ctx.strokeRect(winX, ws.y, winW, ws.h)
       // Cherry sticker on top right of browser window
-      ctx.font = `${w * 0.025}px sans-serif`
+      ctx.font = `${w * 0.028}px sans-serif`
       ctx.fillText("🍒", winX + winW - w * 0.02, ws.y - barH * 0.2)
       ctx.restore()
     }
@@ -1070,16 +1110,20 @@ function drawKBoothPattern(
     drawSparkle(w * 0.54, h * 0.59, w * 0.015)
     drawSparkle(w * 0.96, h * 0.84, w * 0.015)
 
-    // Bold Slab Serif Footer: "Cool"
+    // Right Strip Header - Increased size and bold
     ctx.save()
     ctx.fillStyle = "#ffffff"
-    ctx.font = `900 ${w * 0.08}px 'Clash Display', 'DM Serif Display', Georgia, serif`
+    ctx.font = `900 ${w * 0.040}px 'DM Sans', sans-serif`
     ctx.textAlign = "center"
+    ctx.fillText("★ BEST FRIENDS ★", w * 0.76, h * 0.045)
+
+    // Bold Slab Serif Footer: "Cool" - Extra large & bold
+    ctx.font = `900 ${w * 0.11}px 'Clash Display', 'DM Serif Display', Georgia, serif`
     ctx.fillText("Cool", w * 0.77, h * 0.945)
     ctx.restore()
     ctx.restore()
   } else if (p === "K-Booth Retro 70s Groovy") {
-    // Rich chocolate backdrop
+    // Rich chocolate backdrop (Template 15)
     ctx.fillStyle = "#23150d"
     ctx.fillRect(0, 0, w, h)
 
@@ -1117,17 +1161,17 @@ function drawKBoothPattern(
       ctx.fill()
     }
 
-    // Top Bubble Header: "Groovy Days" with red sunglasses
+    // Top Bubble Header: "Groovy Days" with red sunglasses - Increased size & extra bold
     ctx.fillStyle = "#faf6ea"
     ctx.shadowColor = "rgba(0,0,0,0.3)"
     ctx.shadowBlur = w * 0.01
-    ctx.font = `italic 900 ${w * 0.048}px 'Cooper Black', 'Caveat', cursive, serif`
+    ctx.font = `italic 900 ${w * 0.062}px 'Cooper Black', 'Caveat', cursive, serif`
     ctx.textAlign = "center"
     ctx.fillText("Groovy Days", lx + lw / 2, ly + h * 0.075)
 
     // Retro Red Sunglasses Sticker at header
-    ctx.font = `${w * 0.036}px sans-serif`
-    ctx.fillText("🕶️", lx + lw / 2, ly + h * 0.04)
+    ctx.font = `${w * 0.040}px sans-serif`
+    ctx.fillText("🕶️", lx + lw / 2, ly + h * 0.038)
 
     // Photo Frames White Borders on Left
     ctx.strokeStyle = "#ffffff"
@@ -1137,15 +1181,15 @@ function drawKBoothPattern(
     }
 
     // Left Funky 70s Stickers: Rainbow, Tongue, Daisies, Butterfly
-    ctx.font = `${w * 0.034}px sans-serif`
+    ctx.font = `${w * 0.036}px sans-serif`
     ctx.fillText("🌈", lx + w * 0.04, h * 0.375)
     ctx.fillText("👅", lx + lw - w * 0.04, h * 0.375)
     ctx.fillText("🌼", lx + w * 0.04, h * 0.635)
     ctx.fillText("🦋", lx + lw - w * 0.04, h * 0.635)
 
-    // Left Bottom Caption
+    // Left Bottom Caption - Increased size & extra bold
     ctx.fillStyle = "#faf6ea"
-    ctx.font = `bold ${w * 0.026}px Georgia, serif`
+    ctx.font = `900 ${w * 0.038}px Georgia, serif`
     ctx.fillText("Good Friends", lx + lw / 2, ly + lh - h * 0.045)
     ctx.fillText("Good Times", lx + lw / 2, ly + lh - h * 0.02)
     ctx.restore()
@@ -1170,18 +1214,18 @@ function drawKBoothPattern(
       }
     }
 
-    // Top Header: 70s Puffy Bubble "GROOVY BABY"
+    // Top Header: 70s Puffy Bubble "GROOVY BABY" - Increased size & extra bold
     ctx.fillStyle = "#fca5a5"
     ctx.shadowColor = "#e11d48"
     ctx.shadowBlur = w * 0.008
-    ctx.font = `900 ${w * 0.046}px 'Cooper Black', 'Caveat', cursive, sans-serif`
+    ctx.font = `900 ${w * 0.060}px 'Cooper Black', 'Caveat', cursive, sans-serif`
     ctx.textAlign = "center"
     ctx.fillText("GROOVY", rx + rw / 2, ry + h * 0.055)
     ctx.fillStyle = "#fb923c"
     ctx.fillText("BABY", rx + rw / 2, ry + h * 0.095)
 
     // Daisies around header
-    ctx.font = `${w * 0.026}px sans-serif`
+    ctx.font = `${w * 0.028}px sans-serif`
     ctx.fillText("🌸", rx + w * 0.05, ry + h * 0.05)
     ctx.fillText("🌼", rx + rw - w * 0.05, ry + h * 0.05)
     ctx.fillText("🌸", rx + w * 0.07, ry + h * 0.10)
@@ -1195,15 +1239,15 @@ function drawKBoothPattern(
     }
 
     // Right Funky 70s Stickers: Balloon Dogs, Mushrooms, Flowers
-    ctx.font = `${w * 0.034}px sans-serif`
+    ctx.font = `${w * 0.036}px sans-serif`
     ctx.fillText("🌼", rx + w * 0.04, h * 0.375)
     ctx.fillText("🎈", rx + rw - w * 0.04, h * 0.375)
     ctx.fillText("🍄", rx + w * 0.04, h * 0.835)
     ctx.fillText("🎀", rx + rw - w * 0.04, h * 0.875)
 
-    // Right Bottom Caption
+    // Right Bottom Caption - Increased size & extra bold
     ctx.fillStyle = "#faf6ea"
-    ctx.font = `bold ${w * 0.026}px Georgia, serif`
+    ctx.font = `900 ${w * 0.038}px Georgia, serif`
     ctx.fillText("Good Friends", rx + rw / 2, ry + rh - h * 0.045)
     ctx.fillText("Good Times", rx + rw / 2, ry + rh - h * 0.02)
     ctx.restore()
