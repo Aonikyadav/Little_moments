@@ -16,13 +16,16 @@ async function loadModule(path) {
       },
     })
     outputText = outputText.replace(
-      /(from\s*["'])(\.[^"']+)(["'])/g,
+      /(from\s*["'])([^"']+)(["'])/g,
       (_, before, specifier, after) => {
-        const dependency = new URL(
-          specifier.endsWith(".ts") ? specifier : `${specifier}.ts`,
-          file,
-        )
-        return `${before}${compile(dependency)}${after}`
+        if (specifier.startsWith(".")) {
+          const dependency = new URL(
+            specifier.endsWith(".ts") ? specifier : `${specifier}.ts`,
+            file,
+          )
+          return `${before}${compile(dependency)}${after}`
+        }
+        return `${before}${import.meta.resolve(specifier)}${after}`
       },
     )
     const data = `data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`

@@ -1027,20 +1027,25 @@ export default function App() {
       setQrSyncStatus("connecting")
 
       const initialQrSvg = generateQrCodeDataUrl(initialTargetUrl, {
-        size: 260,
-        margin: 3,
-        darkColor: "#18181b",
+        size: 320,
+        margin: 4,
+        darkColor: "#000000",
         lightColor: "#ffffff",
       })
       setQrDataUrl(initialQrSvg)
       setQrModalOpen(true)
 
-      // Start Tier 1: Save to Supabase (PostgreSQL + Cloud Storage)
-      savePhotoboothToSupabase(exportId, dataUrl, {
-        title: t?.name || "Little Moments Keepsake",
-        templateId: composition.templateId,
-        composition,
-      })
+      // Start Tier 1: Save to Supabase (PostgreSQL + Cloud Storage) with active user context
+      savePhotoboothToSupabase(
+        exportId,
+        dataUrl,
+        {
+          title: t?.name || "Little Moments Keepsake",
+          templateId: composition.templateId,
+          composition,
+        },
+        currentUser,
+      )
         .then((supabaseRes) => {
           if (supabaseRes.success) {
             setQrSyncStatus("cloud_db_saved")
@@ -1076,9 +1081,9 @@ export default function App() {
             setQrExportUrl(cloudTargetUrl)
             setQrSyncStatus((prev) => (prev === "cloud_db_saved" ? prev : "cloud_ready"))
             const cloudQrSvg = generateQrCodeDataUrl(cloudTargetUrl, {
-              size: 260,
-              margin: 3,
-              darkColor: "#18181b",
+              size: 320,
+              margin: 4,
+              darkColor: "#000000",
               lightColor: "#ffffff",
             })
             setQrDataUrl(cloudQrSvg)
@@ -1100,9 +1105,9 @@ export default function App() {
     const targetUrl = `${protocol}//${newHost}/?view=mobile&id=${Date.now()}`
     setQrExportUrl(targetUrl)
     const qrSvg = generateQrCodeDataUrl(targetUrl, {
-      size: 260,
-      margin: 3,
-      darkColor: "#18181b",
+      size: 320,
+      margin: 4,
+      darkColor: "#000000",
       lightColor: "#ffffff",
     })
     setQrDataUrl(qrSvg)
@@ -3528,21 +3533,24 @@ export default function App() {
               <span className="text-[10px] text-stone-400 font-mono">Zero-Install</span>
             </div>
 
-            {/* QR Code Container */}
-            <div className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-stone-300 shadow-inner my-4">
+            {/* QR Code Container - Standards Compliant Optical Target */}
+            <div className="flex flex-col items-center justify-center p-5 bg-white rounded-2xl border-2 border-stone-900 shadow-[4px_4px_0_#1c1917] my-4">
               {qrDataUrl ? (
-                <img
-                  src={qrDataUrl}
-                  alt="Scan with mobile camera"
-                  className="w-56 h-56 rounded-lg object-contain shadow-sm"
-                />
+                <div className="p-2 bg-white flex items-center justify-center">
+                  <img
+                    src={qrDataUrl}
+                    alt="Scan with phone camera or Google Lens"
+                    className="w-64 h-64 object-contain select-none"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                </div>
               ) : (
-                <div className="w-56 h-56 flex items-center justify-center text-stone-400">
-                  <Loader2 size={32} className="animate-spin" />
+                <div className="w-64 h-64 flex items-center justify-center text-stone-400">
+                  <Loader2 size={36} className="animate-spin text-stone-600" />
                 </div>
               )}
-              <span className="mt-2 text-[11px] font-mono text-stone-500">
-                Point phone camera at QR code to open
+              <span className="mt-2 text-[11px] font-mono text-stone-600 font-semibold text-center">
+                Point phone camera or Google Lens at QR code
               </span>
             </div>
 
@@ -3585,6 +3593,16 @@ export default function App() {
                   )}
                   {qrCopied ? "Copied" : "Copy"}
                 </button>
+                <a
+                  href={qrExportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sketch-button sketch-button--sm text-xs py-1.5 px-2.5 flex items-center gap-1 flex-shrink-0 text-stone-900"
+                  title="Open keepsake link directly in a new tab"
+                >
+                  <ExternalLink size={12} />
+                  <span>Open</span>
+                </a>
               </div>
 
               <div className="pt-2 flex items-center justify-between text-[11px] text-stone-500 border-t border-stone-200">

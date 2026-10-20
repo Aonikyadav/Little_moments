@@ -385,8 +385,28 @@ export async function savePhotoboothToSupabase(
   }
 
   try {
-    const userId = currentUser ? currentUser.id : getOrCreateUserId()
-    const userEmail = currentUser ? currentUser.email : null
+    let userId = currentUser?.id || null
+    let userEmail = currentUser?.email || null
+
+    // If currentUser was not provided, check the active Supabase auth session
+    if (!userId) {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        if (sessionData?.session?.user) {
+          userId = sessionData.session.user.id
+          userEmail = sessionData.session.user.email || null
+        }
+      } catch (sessionErr) {
+        console.warn("[Supabase] Session check warning:", sessionErr)
+      }
+    }
+
+    // Fall back to persistent guest client ID if not signed in
+    if (!userId) {
+      userId = getOrCreateUserId()
+      userEmail = "Guest (Unregistered)"
+    }
+
     const filename = `${exportId}.png`
     const blob = dataUrlToBlob(dataUrl)
 

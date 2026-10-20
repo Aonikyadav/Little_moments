@@ -508,24 +508,46 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                   {adminStats?.photos.map((p) => (
                     <div
                       key={p.id}
-                      className="p-2.5 bg-white rounded-xl border border-stone-200 shadow-sm flex items-center justify-between gap-3 text-xs font-mono"
+                      className="p-3 bg-white rounded-xl border border-stone-200 shadow-sm flex items-center justify-between gap-3 text-xs font-mono"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
                         <img
                           src={p.imageUrl}
                           alt={p.title}
-                          className="w-10 h-10 rounded-lg object-cover border border-stone-200 shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                          className="w-12 h-12 rounded-lg object-cover border border-stone-200 shrink-0 cursor-pointer hover:scale-105 transition-transform bg-stone-50"
                           onClick={() => setPreviewingPhoto(p.imageUrl)}
+                          title="Click to preview full keepsake"
                         />
-                        <div className="min-w-0">
-                          <p className="font-bold text-stone-900 truncate max-w-[170px]">{p.title}</p>
-                          <p className="text-[10px] text-stone-400 truncate">
-                            {p.userEmail || `User: ${p.userId.slice(0, 8)}...`}
+                        <div className="min-w-0 space-y-0.5">
+                          <p className="font-bold text-stone-900 truncate max-w-[200px] text-[13px]">{p.title}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                            <span className={`px-1.5 py-0.2 rounded font-semibold ${
+                              p.userEmail && !p.userEmail.includes("Guest")
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-stone-100 text-stone-600 border border-stone-200"
+                            }`}>
+                              {p.userEmail || `User: ${p.userId}`}
+                            </span>
+                            <span className="text-stone-400">
+                              {new Date(p.createdAtMs).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+                          <p className="text-[9px] text-stone-400 font-mono truncate max-w-[210px]">
+                            ID: {p.id}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <a
+                          href={p.imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700"
+                          title="Open CDN image link in new tab"
+                        >
+                          <ExternalLink size={13} />
+                        </a>
                         <button
                           type="button"
                           onClick={() => setPreviewingPhoto(p.imageUrl)}
@@ -538,7 +560,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                           type="button"
                           onClick={() => handleDeletePhoto(p.id)}
                           className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700"
-                          title="Delete prohibited/abusive photo"
+                          title="Delete prohibited/abusive photo from Database & Storage"
                         >
                           <Trash2 size={13} />
                         </button>
