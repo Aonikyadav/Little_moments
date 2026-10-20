@@ -361,6 +361,7 @@ export default function Studio({
     [templateCutFilter, setTemplateCutFilter] = useState<number | "all">("all"),
     [filterSearch, setFilterSearch] = useState("")
   const stage = useRef<HTMLDivElement>(null),
+    studioBodyRef = useRef<HTMLDivElement>(null),
     importInput = useRef<HTMLInputElement>(null),
     stickerInput = useRef<HTMLInputElement>(null),
     clipboard = useRef<LayerClipboard | null>(null),
@@ -427,39 +428,50 @@ export default function Studio({
     }
   }, [favorites, recent, stickerFavorites, recentStickers])
 
-  const handleResizeStart = (e: React.MouseEvent | React.TouchEvent) => {
+  const isDraggingResizer = useRef(false)
+  const dragResizerStart = useRef<{ clientX: number; width: number } | null>(null)
+
+  const onResizerPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault()
+    e.stopPropagation()
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {}
+    isDraggingResizer.current = true
+    dragResizerStart.current = { clientX: e.clientX, width: inspectorWidth }
     setIsResizing(true)
-    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX
-    const initialWidth = inspectorWidth
+  }
 
-    const handlePointerMove = (evt: MouseEvent | TouchEvent) => {
-      const curX = "touches" in evt ? evt.touches[0].clientX : (evt as MouseEvent).clientX
-      const delta = clientX - curX
-      const minW = 320
-      const maxW = Math.min(860, Math.floor(window.innerWidth * 0.65))
-      const nextW = Math.max(minW, Math.min(maxW, initialWidth + delta))
-      setInspectorWidth(nextW)
+  const onResizerPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingResizer.current || !dragResizerStart.current) return
+    e.preventDefault()
+    // Moving cursor LEFT (e.clientX < start) increases sidebar width
+    const delta = dragResizerStart.current.clientX - e.clientX
+    const minW = 320
+    const maxW = Math.min(880, Math.floor(window.innerWidth * 0.72))
+    const nextW = Math.max(minW, Math.min(maxW, Math.round(dragResizerStart.current.width + delta)))
+    if (studioBodyRef.current) {
+      studioBodyRef.current.style.setProperty("--studio-inspector-width", `${nextW}px`)
+      studioBodyRef.current.style.setProperty("grid-template-columns", `1fr ${nextW}px`, "important")
     }
+    setInspectorWidth(nextW)
+  }
 
-    const handlePointerUp = () => {
-      setIsResizing(false)
-      window.removeEventListener("mousemove", handlePointerMove)
-      window.removeEventListener("mouseup", handlePointerUp)
-      window.removeEventListener("touchmove", handlePointerMove)
-      window.removeEventListener("touchend", handlePointerUp)
-      try {
-        localStorage.setItem("studio-inspector-width", String(inspectorWidth))
-      } catch {}
-    }
-
-    window.addEventListener("mousemove", handlePointerMove)
-    window.addEventListener("mouseup", handlePointerUp)
-    window.addEventListener("touchmove", handlePointerMove)
-    window.addEventListener("touchend", handlePointerUp)
+  const onResizerPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingResizer.current) return
+    isDraggingResizer.current = false
+    dragResizerStart.current = null
+    setIsResizing(false)
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {}
   }
 
   useEffect(() => {
+    if (studioBodyRef.current) {
+      studioBodyRef.current.style.setProperty("--studio-inspector-width", `${inspectorWidth}px`)
+      studioBodyRef.current.style.setProperty("grid-template-columns", `1fr ${inspectorWidth}px`, "important")
+    }
     try {
       localStorage.setItem("studio-inspector-width", String(inspectorWidth))
     } catch {}
@@ -1470,8 +1482,12 @@ export default function Studio({
         </div>
       </div>
       <div
+        ref={studioBodyRef}
         className="studio-body"
-        style={{ "--studio-inspector-width": `${inspectorWidth}px` } as CSSProperties}
+        style={{
+          "--studio-inspector-width": `${inspectorWidth}px`,
+          gridTemplateColumns: `1fr ${inspectorWidth}px`,
+        } as CSSProperties}
       >
         <div className="studio-workbench">
           <div className="canvas-topline">
@@ -1952,12 +1968,20 @@ export default function Studio({
           )}
 
         </div>
-        <aside className="studio-inspector">
+        <aside
+          className="studio-inspector"
+          style={{
+            width: `${inspectorWidth}px`,
+            maxWidth: "85vw",
+          }}
+        >
           {/* Draggable sidebar resizer handle */}
           <div
             className={`studio-resizer ${isResizing ? "resizing" : ""}`}
-            onMouseDown={handleResizeStart}
-            onTouchStart={handleResizeStart}
+            onPointerDown={onResizerPointerDown}
+            onPointerMove={onResizerPointerMove}
+            onPointerUp={onResizerPointerUp}
+            onPointerCancel={onResizerPointerUp}
             title="Drag left/right to resize sidebar. Double-click to reset (460px)."
             onDoubleClick={() => setInspectorWidth(460)}
           >
@@ -1965,6 +1989,11 @@ export default function Studio({
             <div className="studio-resizer-handle">
               <GripVertical size={13} />
             </div>
+            {isResizing && (
+              <div className="studio-resizer-badge">
+                {inspectorWidth}px
+              </div>
+            )}
           </div>
           <nav className="studio-rail studio-tools" aria-label="Editing tools">
             {tools.map(({ name, icon: Icon }) => (
@@ -1980,6 +2009,15 @@ export default function Studio({
                 <span>{name}</span>
               </button>
             ))}
+            <button
+              type="button"
+              className={`rail-item rail-resize-btn ${inspectorWidth >= 560 ? "active" : ""}`}
+              onClick={() => setInspectorWidth((w) => (w >= 560 ? 360 : w <= 400 ? 460 : 620))}
+              title={inspectorWidth >= 560 ? "Collapse to compact (360px)" : "Expand sidebar (620px)"}
+            >
+              <Maximize size={16} />
+              <span>{inspectorWidth >= 560 ? "Narrow" : "Widen"}</span>
+            </button>
           </nav>
           <div className="studio-panel">
             <div className="inspector-heading">
