@@ -76,26 +76,35 @@ export const MobileKeepsakeViewer: React.FC<MobileKeepsakeViewerProps> = ({
       if (exportId) {
         setStatusMessage("Fetching from Cloud Database...")
 
-        // Try Supabase (PostgreSQL + Cloud Storage)
-        try {
-          const supabaseResult = await fetchPhotoboothFromSupabase(exportId)
-          if (isMounted && supabaseResult.success && supabaseResult.photo?.imageUrl) {
-            setPhotoSrc(supabaseResult.photo.imageUrl)
-            setCloudPhoto({
-              id: supabaseResult.photo.id,
-              userId: supabaseResult.photo.userId,
-              isAnonymous: true,
-              userDisplayName: "Little Moments Creator",
-              imageUrl: supabaseResult.photo.imageUrl,
-              createdAtMs: supabaseResult.photo.createdAtMs,
-              title: supabaseResult.photo.title,
-            })
-            setLoading(false)
-            setStatusMessage("Verified from Supabase Database ✓")
-            return
+        // Try Supabase (PostgreSQL + Cloud Storage) with fast polling retry
+        let attempts = 0
+        const maxAttempts = 12
+        while (isMounted && attempts < maxAttempts) {
+          try {
+            const supabaseResult = await fetchPhotoboothFromSupabase(exportId)
+            if (isMounted && supabaseResult.success && supabaseResult.photo?.imageUrl) {
+              setPhotoSrc(supabaseResult.photo.imageUrl)
+              setCloudPhoto({
+                id: supabaseResult.photo.id,
+                userId: supabaseResult.photo.userId,
+                isAnonymous: true,
+                userDisplayName: "Little Moments Creator",
+                imageUrl: supabaseResult.photo.imageUrl,
+                createdAtMs: supabaseResult.photo.createdAtMs,
+                title: supabaseResult.photo.title,
+              })
+              setLoading(false)
+              setStatusMessage("Verified from Supabase Database ✓")
+              return
+            }
+          } catch (err) {
+            console.warn("[MobileKeepsakeViewer] Supabase DB lookup notice:", err)
           }
-        } catch (err) {
-          console.warn("[MobileKeepsakeViewer] Supabase DB lookup notice:", err)
+
+          attempts++
+          if (attempts < maxAttempts && isMounted) {
+            await new Promise((r) => setTimeout(r, 400))
+          }
         }
 
         // Try Firebase (if active)

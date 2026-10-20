@@ -88,7 +88,11 @@ import {
 } from "./services/firebase"
 import {
   savePhotoboothToSupabase,
+  fetchUserPhotoboothsFromSupabase,
   isSupabaseConfigured,
+  getCurrentUser,
+  onAuthStateChange as onSupabaseAuthStateChange,
+  type UserAccount,
 } from "./services/supabase"
 import { UserAccountModal } from "./components/UserAccountModal"
 
@@ -324,6 +328,7 @@ export default function App() {
   const qrTransferHostRef = useRef<PhotoTransferHost | null>(null)
   const [creationsTab, setCreationsTab] = useState<"scrapbook" | "grid">("scrapbook")
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUserAccount | null>(null)
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(null)
   const [accountModalOpen, setAccountModalOpen] = useState(false)
 
   const draftReady = useRef(false)
@@ -336,12 +341,48 @@ export default function App() {
 
   const notify = (s: string) => setToast(s)
 
+  // Auth Listeners: Supabase (Primary) + Firebase (Fallback)
   useEffect(() => {
-    const unsub = initAuthListener((u) => {
+    const unsubSupabase = onSupabaseAuthStateChange((u) => {
+      setCurrentUser(u)
+    })
+    getCurrentUser().then((u) => {
+      if (u) setCurrentUser(u)
+    })
+    const unsubFirebase = initAuthListener((u) => {
       setFirebaseUser(u)
     })
-    return () => unsub()
+    return () => {
+      unsubSupabase()
+      unsubFirebase()
+    }
   }, [])
+
+  // Sync user's private creations from Supabase when logged in
+  useEffect(() => {
+    if (!currentUser) return
+    let active = true
+    fetchUserPhotoboothsFromSupabase(currentUser.id).then((res) => {
+      if (!active || !res.success || !res.photos) return
+      const cloudItems: Saved[] = res.photos.map((p) => ({
+        id: p.id,
+        date: new Date(p.createdAt).toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        image: p.imageUrl,
+        composition: emptyComposition(p.templateId || "kbooth-01"),
+      }))
+      setSaved((old) => [
+        ...cloudItems.filter((c) => !old.some((o) => o.id === c.id)),
+        ...old,
+      ])
+    })
+    return () => {
+      active = false
+    }
+  }, [currentUser])
 
   useEffect(() => {
     if (toast) {
@@ -887,20 +928,30 @@ export default function App() {
         getTemplate(composition.templateId),
         0.3,
       )
+      const exportId = `creation_${Date.now()}`
+      const dataUrl = preview.toDataURL("image/jpeg", 0.8)
       const entry: Saved = {
-        id: crypto.randomUUID(),
+        id: exportId,
         date: new Date().toLocaleDateString(undefined, {
           month: "short",
           day: "numeric",
           year: "numeric",
         }),
-        image: preview.toDataURL("image/jpeg", 0.8),
+        image: dataUrl,
         composition,
       }
       await saveProject(entry)
       recordTemplateUsage(composition.templateId)
       setSaved((prev) => [entry, ...prev.filter((x) => x.id !== entry.id)])
-      notify("Creation saved to your local gallery!")
+      notify("Creation saved to your gallery!")
+
+      if (isSupabaseConfigured()) {
+        savePhotoboothToSupabase(exportId, dataUrl, {
+          title: getTemplate(composition.templateId)?.name || "Little Moments Keepsake",
+          templateId: composition.templateId,
+          composition,
+        }).catch((err) => console.warn("[Supabase] Auto-save creation notice:", err))
+      }
     } catch {
       notify("Could not save to local storage.")
     }
@@ -914,12 +965,25 @@ export default function App() {
       const t = getTemplate(composition.templateId)
       await renderComposition(canvas, composition, t, exportScale)
       const mime = format === "png" ? "image/png" : "image/jpeg"
-      const dataUrl = canvas.toDataURL(mime, 0.95)
-      
+
+      // Reliable cross-platform high-resolution Blob download
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((b) => resolve(b), mime, 0.95)
+      })
+      if (!blob) throw new Error("Canvas export failed")
+
+      const blobUrl = URL.createObjectURL(blob)
       const a = document.createElement("a")
-      a.href = dataUrl
+      a.href = blobUrl
       a.download = `little-moments-${t.id}-${Date.now()}.${format}`
+      document.body.appendChild(a)
       a.click()
+
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(blobUrl)
+      }, 500)
+
       notify("Download started!")
       await saveCurrentCreation()
     } catch {
@@ -1489,27 +1553,41 @@ export default function App() {
           {/* Cloud Database & Account Button */}
           <button
             type="button"
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-stone-800 bg-white hover:bg-stone-100 text-xs font-mono shadow-sm transition-all ml-1"
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-mono shadow-sm transition-all ml-1 ${
+              currentUser?.role === "superadmin"
+                ? "border-amber-500 bg-amber-50 text-amber-950 font-bold hover:bg-amber-100"
+                : currentUser
+                  ? "border-emerald-600 bg-emerald-50 text-emerald-950 hover:bg-emerald-100 font-medium"
+                  : "border-stone-800 bg-white hover:bg-stone-100 text-stone-800"
+            }`}
             onClick={() => setAccountModalOpen(true)}
-            title="Cloud Database & User Account"
+            title={currentUser ? `Logged in: ${currentUser.email} (${currentUser.role})` : "Cloud Database & User Account"}
           >
             <span
               className={`w-2 h-2 rounded-full ${
-                isSupabaseConfigured()
-                  ? "bg-emerald-500 animate-pulse"
-                  : isFirebaseConfigured()
-                    ? "bg-amber-500"
-                    : "bg-stone-400"
+                currentUser?.role === "superadmin"
+                  ? "bg-amber-500 animate-pulse"
+                  : currentUser
+                    ? "bg-emerald-500"
+                    : isSupabaseConfigured()
+                      ? "bg-emerald-500 animate-pulse"
+                      : isFirebaseConfigured()
+                        ? "bg-amber-500"
+                        : "bg-stone-400"
               }`}
             />
-            <span className="font-bold">
-              {isSupabaseConfigured()
-                ? "Supabase Sync"
-                : firebaseUser?.displayName
-                  ? firebaseUser.displayName.split(" ")[0]
-                  : "Cloud DB"}
+            <span className="font-bold truncate max-w-[130px]">
+              {currentUser?.role === "superadmin"
+                ? "🛡️ Superadmin"
+                : currentUser
+                  ? currentUser.email.split("@")[0]
+                  : isSupabaseConfigured()
+                    ? "Sign In / Supabase"
+                    : firebaseUser?.displayName
+                      ? firebaseUser.displayName.split(" ")[0]
+                      : "Cloud DB"}
             </span>
-            <Database size={13} className="text-stone-600" />
+            <Database size={13} className="text-stone-600 flex-shrink-0" />
           </button>
         </nav>
 
@@ -3673,8 +3751,8 @@ export default function App() {
       <UserAccountModal
         isOpen={accountModalOpen}
         onClose={() => setAccountModalOpen(false)}
-        user={firebaseUser}
-        onUserUpdated={setFirebaseUser}
+        currentUser={currentUser}
+        onUserUpdated={setCurrentUser}
         cloudCreationsCount={saved.length}
       />
     </div>

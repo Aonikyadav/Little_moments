@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+import { createClient, type SupabaseClient, type User as SupabaseUser } from "@supabase/supabase-js"
 import { dataUrlToBlob } from "../utils/photoTransfer"
 
 export interface SupabaseCredentials {
@@ -9,11 +9,19 @@ export interface SupabaseCredentials {
 export interface SupabasePhotobooth {
   id: string
   userId: string
+  userEmail?: string | null
   imageUrl: string
   title: string
   templateId?: string
   createdAt: string
   createdAtMs: number
+}
+
+export interface UserAccount {
+  id: string
+  email: string
+  role: "user" | "superadmin"
+  createdAt?: string
 }
 
 const STORAGE_KEY_CUSTOM_SUPABASE = "lm_custom_supabase_config"
@@ -115,8 +123,251 @@ export function getSupabaseClient(): SupabaseClient | null {
   }
 }
 
+/* =========================================================================
+   USER AUTHENTICATION (Sign Up, Sign In, Sign Out, Superadmin Detection)
+   ========================================================================= */
+
 /**
- * Uploads photobooth strip to Supabase Storage & inserts record into "photos" table
+ * Register a new user with Email & Password in Supabase
+ */
+export async function signUpUser(
+  email: string,
+  pass: string,
+): Promise<{ success: boolean; user?: UserAccount; error?: string }> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return { success: false, error: "Supabase not configured." }
+
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password: pass,
+    })
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    if (!data.user) {
+      return { success: false, error: "User registration failed." }
+    }
+
+    // Attempt auto-login if session was not returned immediately
+    if (!data.session) {
+      const loginRes = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: pass,
+      })
+      if (loginRes.data?.user) {
+        return {
+          success: true,
+          user: {
+            id: loginRes.data.user.id,
+            email: loginRes.data.user.email || email,
+            role: "user",
+          },
+        }
+      }
+    }
+
+    return {
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email || email,
+        role: "user",
+      },
+    }
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to sign up." }
+  }
+}
+
+/**
+ * Sign in an existing user with Email & Password
+ */
+export async function signInUser(
+  email: string,
+  pass: string,
+): Promise<{
+  success: boolean
+  user?: UserAccount
+  isSuperadmin: boolean
+  error?: string
+}> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return { success: false, isSuperadmin: false, error: "Supabase not configured." }
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: pass,
+    })
+
+    if (error) {
+      return { success: false, isSuperadmin: false, error: error.message }
+    }
+
+    if (!data.user) {
+      return { success: false, isSuperadmin: false, error: "Sign in failed." }
+    }
+
+    // Check if user is superadmin
+    let role: "user" | "superadmin" = "user"
+    if (
+      data.user.email === "admin@littlemoments.com" ||
+      data.user.app_metadata?.role === "superadmin" ||
+      data.user.user_metadata?.role === "superadmin"
+    ) {
+      role = "superadmin"
+    } else {
+      // Query profiles table
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .maybeSingle()
+        if (profile?.role === "superadmin") {
+          role = "superadmin"
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    return {
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email || email,
+        role,
+      },
+      isSuperadmin: role === "superadmin",
+    }
+  } catch (err: any) {
+    return {
+      success: false,
+      isSuperadmin: false,
+      error: err.message || "Sign in error.",
+    }
+  }
+}
+
+/**
+ * Sign out of Supabase
+ */
+export async function signOutUser(): Promise<void> {
+  const supabase = getSupabaseClient()
+  if (supabase) {
+    try {
+      await supabase.auth.signOut()
+    } catch {
+      // ignore
+    }
+  }
+}
+
+/**
+ * Retrieves the currently logged in user
+ */
+export async function getCurrentUser(): Promise<UserAccount | null> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return null
+
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (!data?.user) return null
+
+    let role: "user" | "superadmin" = "user"
+    if (
+      data.user.email === "admin@littlemoments.com" ||
+      data.user.app_metadata?.role === "superadmin" ||
+      data.user.user_metadata?.role === "superadmin"
+    ) {
+      role = "superadmin"
+    } else {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .maybeSingle()
+        if (profile?.role === "superadmin") {
+          role = "superadmin"
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    return {
+      id: data.user.id,
+      email: data.user.email || "",
+      role,
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Listens for Auth state changes (login, logout, token refresh)
+ */
+export function onAuthStateChange(
+  callback: (user: UserAccount | null) => void,
+): () => void {
+  const supabase = getSupabaseClient()
+  if (!supabase) {
+    callback(null)
+    return () => {}
+  }
+
+  const { data: authListener } = supabase.auth.onAuthStateChange(
+    async (event, session) => {
+      if (session?.user) {
+        let role: "user" | "superadmin" = "user"
+        if (
+          session.user.email === "admin@littlemoments.com" ||
+          session.user.app_metadata?.role === "superadmin"
+        ) {
+          role = "superadmin"
+        } else {
+          try {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", session.user.id)
+              .maybeSingle()
+            if (profile?.role === "superadmin") {
+              role = "superadmin"
+            }
+          } catch {
+            // fallback
+          }
+        }
+        callback({
+          id: session.user.id,
+          email: session.user.email || "",
+          role,
+        })
+      } else {
+        callback(null)
+      }
+    },
+  )
+
+  return () => {
+    authListener.subscription.unsubscribe()
+  }
+}
+
+/* =========================================================================
+   PHOTO STORAGE & DATA PRIVACY (Strict Separation per User)
+   ========================================================================= */
+
+/**
+ * Uploads photobooth strip to Supabase Storage & inserts record into "photos" table.
+ * Strictly associates photo with the authenticated user ID.
  */
 export async function savePhotoboothToSupabase(
   exportId: string,
@@ -126,6 +377,7 @@ export async function savePhotoboothToSupabase(
     templateId?: string
     composition?: any
   },
+  currentUser?: UserAccount | null,
 ): Promise<{ success: boolean; photo?: SupabasePhotobooth; error?: string }> {
   const supabase = getSupabaseClient()
   if (!supabase) {
@@ -133,7 +385,8 @@ export async function savePhotoboothToSupabase(
   }
 
   try {
-    const userId = getOrCreateUserId()
+    const userId = currentUser ? currentUser.id : getOrCreateUserId()
+    const userEmail = currentUser ? currentUser.email : null
     const filename = `${exportId}.png`
     const blob = dataUrlToBlob(dataUrl)
 
@@ -173,9 +426,11 @@ export async function savePhotoboothToSupabase(
       {
         id: exportId,
         user_id: userId,
+        user_email: userEmail,
         image_url: finalImageUrl,
         title,
         template_id: templateId,
+        is_public: true, // Allows single QR mobile viewing without exposing the whole gallery
         created_at: nowIso,
       },
       { onConflict: "id" },
@@ -188,6 +443,7 @@ export async function savePhotoboothToSupabase(
     const photobooth: SupabasePhotobooth = {
       id: exportId,
       userId,
+      userEmail,
       imageUrl: finalImageUrl,
       title,
       templateId: templateId || undefined,
@@ -203,7 +459,8 @@ export async function savePhotoboothToSupabase(
 }
 
 /**
- * Fetches a photobooth record from Supabase by its unique exportId
+ * Fetches a single photobooth record by its secret exportId.
+ * Used for QR code scanning. Does NOT reveal the user's email or other private photos.
  */
 export async function fetchPhotoboothFromSupabase(
   exportId: string,
@@ -214,10 +471,10 @@ export async function fetchPhotoboothFromSupabase(
   }
 
   try {
-    // 1. Query "photos" table
+    // 1. Query "photos" table (sanitized - returns title, imageUrl, createdAt)
     const { data, error } = await supabase
       .from("photos")
-      .select("*")
+      .select("id, user_id, image_url, title, template_id, created_at")
       .eq("id", exportId)
       .maybeSingle()
 
@@ -255,7 +512,7 @@ export async function fetchPhotoboothFromSupabase(
       }
     }
 
-    return { success: false, error: "Photo not found in Supabase." }
+    return { success: false, error: "Photo not found in database." }
   } catch (err: any) {
     console.error("[Supabase] fetchPhotoboothFromSupabase error:", err)
     return { success: false, error: err.message || "Failed to fetch from Supabase." }
@@ -263,10 +520,11 @@ export async function fetchPhotoboothFromSupabase(
 }
 
 /**
- * Fetches all saved photobooths for the current user
+ * Fetches only the CURRENT user's saved photobooths.
+ * Prevents unauthorized users from seeing others' data.
  */
 export async function fetchUserPhotoboothsFromSupabase(
-  userId?: string,
+  targetUserId: string,
 ): Promise<{ success: boolean; photos: SupabasePhotobooth[]; error?: string }> {
   const supabase = getSupabaseClient()
   if (!supabase) {
@@ -274,10 +532,9 @@ export async function fetchUserPhotoboothsFromSupabase(
   }
 
   try {
-    const targetUserId = userId || getOrCreateUserId()
     const { data, error } = await supabase
       .from("photos")
-      .select("*")
+      .select("id, user_id, image_url, title, template_id, created_at")
       .eq("user_id", targetUserId)
       .order("created_at", { ascending: false })
 
@@ -299,5 +556,81 @@ export async function fetchUserPhotoboothsFromSupabase(
   } catch (err: any) {
     console.error("[Supabase] fetchUserPhotoboothsFromSupabase error:", err)
     return { success: false, photos: [], error: err.message }
+  }
+}
+
+/* =========================================================================
+   SUPERADMIN PORTAL METHODS
+   ========================================================================= */
+
+/**
+ * Fetches system stats (Superadmin only)
+ */
+export async function fetchSuperadminStats(): Promise<{
+  totalPhotos: number
+  totalUsers: number
+  photos: SupabasePhotobooth[]
+}> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return { totalPhotos: 0, totalUsers: 0, photos: [] }
+
+  try {
+    // 1. Photos
+    const { data: photosData } = await supabase
+      .from("photos")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50)
+
+    // 2. Profiles / Users count
+    const { count: usersCount } = await supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+
+    const photos: SupabasePhotobooth[] = (photosData || []).map((row: any) => ({
+      id: row.id,
+      userId: row.user_id,
+      userEmail: row.user_email,
+      imageUrl: row.image_url,
+      title: row.title || "Photo Strip",
+      templateId: row.template_id,
+      createdAt: row.created_at,
+      createdAtMs: new Date(row.created_at).getTime(),
+    }))
+
+    return {
+      totalPhotos: photosData?.length || 0,
+      totalUsers: usersCount || 1,
+      photos,
+    }
+  } catch (err) {
+    console.error("[Supabase] fetchSuperadminStats error:", err)
+    return { totalPhotos: 0, totalUsers: 0, photos: [] }
+  }
+}
+
+/**
+ * Superadmin can delete any prohibited/abusive photo
+ */
+export async function deletePhotoAsAdmin(
+  photoId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return { success: false, error: "Supabase not configured." }
+
+  try {
+    // 1. Delete from storage bucket
+    await supabase.storage.from("photos").remove([`${photoId}.png`])
+
+    // 2. Delete from photos table
+    const { error } = await supabase.from("photos").delete().eq("id", photoId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err.message }
   }
 }
