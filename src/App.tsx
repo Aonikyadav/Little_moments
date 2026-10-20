@@ -72,6 +72,12 @@ import { generateQrCodeDataUrl } from "./utils/qrCode"
 import { TemplateThumbnail } from "./components/TemplateThumbnail"
 import { findGridLayout } from "./studio/gridEngine"
 import { ScrapbookAlbum } from "./components/ScrapbookAlbum"
+import { MobileKeepsakeViewer } from "./components/MobileKeepsakeViewer"
+import {
+  uploadStripToCloudRelay,
+  dataUrlToBlob,
+  PhotoTransferHost,
+} from "./utils/photoTransfer"
 
 const Studio = lazy(() => import("./studio/Studio"))
 const samples = [
@@ -301,6 +307,8 @@ export default function App() {
     typeof window !== "undefined" ? window.location.host : "localhost:3000",
   )
   const [qrCopied, setQrCopied] = useState(false)
+  const [qrSyncStatus, setQrSyncStatus] = useState<"connecting" | "cloud_ready" | "p2p_active" | "local">("connecting")
+  const qrTransferHostRef = useRef<PhotoTransferHost | null>(null)
   const [creationsTab, setCreationsTab] = useState<"scrapbook" | "grid">("scrapbook")
 
   const draftReady = useRef(false)
@@ -915,19 +923,54 @@ export default function App() {
         console.warn("sessionStorage export cache warning:", e)
       }
 
+      // Cleanup existing P2P host if any
+      qrTransferHostRef.current?.destroy()
+
+      // Start P2P Host (Tier 2)
+      const hostInstance = new PhotoTransferHost(exportId, dataUrl, () => {
+        setQrSyncStatus("p2p_active")
+        notify("Phone connected via Wireless P2P!")
+      })
+      hostInstance.start()
+      qrTransferHostRef.current = hostInstance
+
       const protocol = window.location.protocol
       const host = qrLanHost || window.location.host
-      const targetUrl = `${protocol}//${host}/?view=mobile&id=${exportId}`
-      setQrExportUrl(targetUrl)
+      const initialTargetUrl = `${protocol}//${host}/?view=mobile&id=${exportId}&peer=lm-${exportId}`
+      setQrExportUrl(initialTargetUrl)
+      setQrSyncStatus("connecting")
 
-      const qrSvg = generateQrCodeDataUrl(targetUrl, {
+      const initialQrSvg = generateQrCodeDataUrl(initialTargetUrl, {
         size: 260,
         margin: 3,
         darkColor: "#18181b",
         lightColor: "#ffffff",
       })
-      setQrDataUrl(qrSvg)
+      setQrDataUrl(initialQrSvg)
       setQrModalOpen(true)
+
+      // Start Tier 1 Cloud Upload in background
+      const blob = dataUrlToBlob(dataUrl)
+      uploadStripToCloudRelay(blob)
+        .then((uploadRes) => {
+          if (uploadRes.success && uploadRes.url) {
+            const cloudTargetUrl = `${protocol}//${host}/?view=mobile&img=${encodeURIComponent(uploadRes.url)}&peer=lm-${exportId}&id=${exportId}`
+            setQrExportUrl(cloudTargetUrl)
+            setQrSyncStatus("cloud_ready")
+            const cloudQrSvg = generateQrCodeDataUrl(cloudTargetUrl, {
+              size: 260,
+              margin: 3,
+              darkColor: "#18181b",
+              lightColor: "#ffffff",
+            })
+            setQrDataUrl(cloudQrSvg)
+          } else {
+            setQrSyncStatus("local")
+          }
+        })
+        .catch(() => {
+          setQrSyncStatus("local")
+        })
     } catch {
       notify("Failed to generate QR transfer code.")
     } finally {
@@ -1257,63 +1300,18 @@ export default function App() {
       : null
   const isMobileView = searchParams?.get("view") === "mobile"
   const mobileExportId = searchParams?.get("id")
+  const mobileImgUrl = searchParams?.get("img")
+  const mobilePeerId = searchParams?.get("peer")
 
   if (isMobileView) {
-    const cachedImage =
-      (mobileExportId && typeof sessionStorage !== "undefined"
-        ? sessionStorage.getItem(`lm_export_${mobileExportId}`)
-        : null) || (saved.length > 0 ? saved[0].image : null)
-
+    const localPhoto = saved.length > 0 ? saved[0].image : null
     return (
-      <div className="min-h-screen bg-[#faf8f2] flex flex-col items-center justify-center p-4 text-stone-900 font-sans">
-        <header className="mb-4 text-center">
-          <h1 className="font-gochi text-3xl text-stone-900 mb-1 flex items-center justify-center gap-2">
-            <Sparkles className="text-rose-500" size={24} /> Little Moments
-          </h1>
-          <p className="text-xs font-mono text-stone-500 tracking-wider uppercase">
-            Your Photobooth Keepsake
-          </p>
-        </header>
-
-        <main className="max-w-sm w-full bg-white p-4 rounded-2xl shadow-xl border-2 border-stone-900 flex flex-col items-center">
-          {cachedImage ? (
-            <img
-              src={cachedImage}
-              alt="Your Photobooth Print"
-              className="max-h-[65vh] w-auto rounded-xl object-contain shadow-md mb-4 border border-stone-200"
-            />
-          ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-stone-400 p-6 text-center">
-              <Camera size={40} className="mb-2 text-stone-300" />
-              <p className="text-sm font-mono text-stone-600">Photo print ready</p>
-              <p className="text-xs text-stone-400 mt-1">
-                If scanned on another phone, download directly or create a new memory below.
-              </p>
-            </div>
-          )}
-
-          <div className="w-full space-y-2 mt-2">
-            {cachedImage && (
-              <a
-                href={cachedImage}
-                download={`little-moments-${Date.now()}.png`}
-                className="sketch-button sketch-button--dark w-full text-center flex items-center justify-center gap-2 py-3 text-sm font-semibold"
-              >
-                <Download size={16} /> Save to Camera Roll
-              </a>
-            )}
-            <a
-              href="/"
-              className="sketch-button w-full text-center flex items-center justify-center gap-2 py-2 text-xs text-stone-600"
-            >
-              Open Photo Studio & Create New ✦
-            </a>
-          </div>
-          <p className="text-[11px] text-stone-400 text-center mt-3 font-mono">
-            Tip: Press and hold the photo to save directly to Photos
-          </p>
-        </main>
-      </div>
+      <MobileKeepsakeViewer
+        exportId={mobileExportId}
+        imgUrl={mobileImgUrl}
+        peerId={mobilePeerId}
+        localSavedPhoto={localPhoto}
+      />
     )
   }
 
@@ -3312,13 +3310,17 @@ export default function App() {
             <button
               type="button"
               className="absolute top-4 right-4 text-stone-500 hover:text-stone-900 p-1 rounded-full hover:bg-stone-200 transition-colors"
-              onClick={() => setQrModalOpen(false)}
+              onClick={() => {
+                setQrModalOpen(false)
+                qrTransferHostRef.current?.destroy()
+                qrTransferHostRef.current = null
+              }}
               aria-label="Close QR Modal"
             >
               <X size={20} />
             </button>
 
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-2">
               <span className="p-2 rounded-lg bg-rose-100 text-rose-600 border border-rose-300">
                 <QrCode size={20} />
               </span>
@@ -3330,6 +3332,29 @@ export default function App() {
                   Instant Wireless Photo Transfer
                 </p>
               </div>
+            </div>
+
+            {/* Live Sync Status Badge */}
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-mono mb-2 bg-stone-100/90 border border-stone-200">
+              <span className="flex items-center gap-2">
+                {qrSyncStatus === "p2p_active" ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-emerald-700 font-bold">✓ Phone Connected via P2P!</span>
+                  </>
+                ) : qrSyncStatus === "cloud_ready" ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                    <span className="text-emerald-800 font-bold">● Cloud Relay Ready (Any Network / 5G)</span>
+                  </>
+                ) : (
+                  <>
+                    <Loader2 size={13} className="animate-spin text-amber-600" />
+                    <span className="text-stone-600">Preparing Wireless Relay...</span>
+                  </>
+                )}
+              </span>
+              <span className="text-[10px] text-stone-400 font-mono">Zero-Install</span>
             </div>
 
             {/* QR Code Container */}
