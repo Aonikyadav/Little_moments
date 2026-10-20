@@ -1532,7 +1532,18 @@ export async function renderComposition(
         const image = await loadImage(
           svgUrl(frameArtwork(f, c.frameColor ?? f.color), 1000, 1400),
         )
-        ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+        const ft = c.frameTransform ?? {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          rotation: 0,
+        }
+        const fw = ft.width * sx,
+          fh = ft.height * sy
+        ctx.translate((ft.x + ft.width / 2) * sx, (ft.y + ft.height / 2) * sy)
+        ctx.rotate((ft.rotation * Math.PI) / 180)
+        ctx.drawImage(image, -fw / 2, -fh / 2, fw, fh)
       }
     } else if (layer.kind === "sticker") {
       const s = c.stickers.find((s) => s.id === layer.id)!

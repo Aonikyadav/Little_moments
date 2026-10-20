@@ -314,7 +314,123 @@
 
 .canvas-hit.selected {
   outline: 2px solid #853b43;
-  outline-offset: 2px;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.selection-tag {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: #1f1d1a;
+  color: #fff;
+  font-family: monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  letter-spacing: 0.03em;
+  z-index: 60;
+}
+
+/* Corner Resize Handles */
+.selection-resize {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border: 2px solid #853b43;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  z-index: 65;
+  padding: 0;
+  transition: transform 0.15s ease, background 0.15s ease;
+  touch-action: none;
+}
+
+.selection-resize:hover {
+  transform: scale(1.3);
+  background: #fce7f3;
+}
+
+.selection-resize:active {
+  transform: scale(1.4);
+  background: #853b43;
+}
+
+.selection-resize.handle-se {
+  right: -7px;
+  bottom: -7px;
+  cursor: nwse-resize;
+}
+
+.selection-resize.handle-ne {
+  right: -7px;
+  top: -7px;
+  cursor: nesw-resize;
+}
+
+.selection-resize.handle-sw {
+  left: -7px;
+  bottom: -7px;
+  cursor: nesw-resize;
+}
+
+.selection-resize.handle-nw {
+  left: -7px;
+  top: -7px;
+  cursor: nwse-resize;
+}
+
+/* Rotation Handle with Top Stem */
+.selection-rotate-stem {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  width: 1.5px;
+  height: 20px;
+  background: #853b43;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 59;
+}
+
+.selection-rotate {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #853b43;
+  color: #853b43;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  cursor: grab;
+  z-index: 65;
+  padding: 0;
+  transition: transform 0.15s ease, background 0.15s ease;
+  touch-action: none;
+}
+
+.selection-rotate:hover {
+  transform: translateX(-50%) scale(1.15);
+  background: #853b43;
+  color: #ffffff;
+}
+
+.selection-rotate:active {
+  transform: translateX(-50%) scale(1.2);
+  cursor: grabbing;
+  background: #853b43;
+  color: #ffffff;
 }
 
 /* 4. Canvas Dock */

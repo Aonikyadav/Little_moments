@@ -14,6 +14,9 @@ import {
   StickyNote,
   Palette,
   RotateCcw,
+  RotateCw,
+  ZoomIn,
+  ZoomOut,
   Trash2,
   Check,
   Edit3,
@@ -87,6 +90,10 @@ export function ScrapbookAlbum({
   // Global settings (Binder & Paper theme)
   const [settings, setSettings] = useState(() => loadScrapbookSettings())
   const [customizations, setCustomizations] = useState(() => loadAllPageCustomizations())
+  const customizationsRef = useRef(customizations)
+  useEffect(() => {
+    customizationsRef.current = customizations
+  }, [customizations])
 
   // Navigation
   const [currentSpread, setCurrentSpread] = useState(0)
@@ -105,6 +112,18 @@ export function ScrapbookAlbum({
   const [targetSide, setTargetSide] = useState<"left" | "right">("left")
   const [washiToast, setWashiToast] = useState<string | null>(null)
 
+  // Placement rotation angles
+  const [stickyPlacementAngle, setStickyPlacementAngle] = useState<number | "random">("random")
+  const [stampPlacementAngle, setStampPlacementAngle] = useState<number | "random">("random")
+
+  // Selected decoration (for rotation badge & controls)
+  const [selectedDecoration, setSelectedDecoration] = useState<{
+    type: "sticky" | "stamp"
+    side: "left" | "right"
+    itemId: string
+    elemId: string
+  } | null>(null)
+
   // Dragging support for sticky notes & stamps
   const draggingItemRef = useRef<{
     type: "sticky" | "stamp"
@@ -117,6 +136,18 @@ export function ScrapbookAlbum({
     startElemY: number
     pageWidth: number
     pageHeight: number
+  } | null>(null)
+
+  // Rotating support for sticky notes & stamps
+  const rotatingItemRef = useRef<{
+    type: "sticky" | "stamp"
+    side: "left" | "right"
+    itemId: string
+    elemId: string
+    centerX: number
+    centerY: number
+    startAngle: number
+    startRotation: number
   } | null>(null)
 
   const leftPageRef = useRef<HTMLDivElement>(null)
@@ -277,13 +308,18 @@ export function ScrapbookAlbum({
         ? "Best moments in Seoul ♡"
         : "remember this moment ♡")
 
+    const initialRot =
+      stickyPlacementAngle === "random"
+        ? (variant === "dymo" ? 0 : Math.round((Math.random() * 8 - 4) * 10) / 10)
+        : Number(stickyPlacementAngle)
+
     const newNote: StickyNoteItem = {
       id: `sticky_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       text: defaultText,
       color,
       x: side === "left" ? 18 : 65,
       y: variant === "caption-strip" || variant === "dymo" ? 42 : 72,
-      rotation: variant === "dymo" ? 0 : Math.round((Math.random() * 8 - 4) * 10) / 10,
+      rotation: initialRot,
       fontFamily: variant === "dymo" ? undefined : "caveat",
       variant,
     }
@@ -323,6 +359,34 @@ export function ScrapbookAlbum({
     }))
   }
 
+  // Rotate Sticky Note
+  const rotateStickyNote = (
+    itemId: string,
+    noteId: string,
+    deltaOrExact: number,
+    isExact = false,
+    persist = true,
+  ) => {
+    let nextNotes: StickyNoteItem[] = []
+    setCustomizations((prev) => {
+      const currentNotes = prev[itemId]?.stickyNotes || []
+      nextNotes = currentNotes.map((n) => {
+        if (n.id !== noteId) return n
+        const newRotation = isExact
+          ? Math.round(deltaOrExact)
+          : Math.round(((n.rotation + deltaOrExact + 180) % 360) - 180)
+        return { ...n, rotation: newRotation }
+      })
+      return {
+        ...prev,
+        [itemId]: { ...prev[itemId], stickyNotes: nextNotes },
+      }
+    })
+    if (persist) {
+      savePageCustomization(itemId, { stickyNotes: nextNotes })
+    }
+  }
+
   // Update Sticky Note text
   const updateStickyNoteText = (itemId: string, noteId: string, newText: string) => {
     const currentNotes = (customizations[itemId]?.stickyNotes || [])
@@ -339,12 +403,17 @@ export function ScrapbookAlbum({
     const item = side === "left" ? leftItem : rightItem
     if (!item) return
 
+    const initialRot =
+      stampPlacementAngle === "random"
+        ? Math.round((Math.random() * 20 - 10) * 10) / 10
+        : Number(stampPlacementAngle)
+
     const newStamp: PlacedDecoStamp = {
       id: `stamp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       stampId,
       x: side === "left" ? 14 : 72,
       y: 22,
-      rotation: Math.round((Math.random() * 20 - 10) * 10) / 10,
+      rotation: initialRot,
       scale: 1,
     }
 
@@ -356,6 +425,93 @@ export function ScrapbookAlbum({
       [item.id]: { ...prev[item.id], decoStamps: nextStamps },
     }))
     setActiveToolTray(null)
+  }
+
+  // Rotate Deco Stamp
+  const rotateDecoStamp = (
+    itemId: string,
+    stampElemId: string,
+    deltaOrExact: number,
+    isExact = false,
+    persist = true,
+  ) => {
+    let nextStamps: PlacedDecoStamp[] = []
+    setCustomizations((prev) => {
+      const currentStamps = prev[itemId]?.decoStamps || []
+      nextStamps = currentStamps.map((s) => {
+        if (s.id !== stampElemId) return s
+        const newRotation = isExact
+          ? Math.round(deltaOrExact)
+          : Math.round(((s.rotation + deltaOrExact + 180) % 360) - 180)
+        return { ...s, rotation: newRotation }
+      })
+      return {
+        ...prev,
+        [itemId]: { ...prev[itemId], decoStamps: nextStamps },
+      }
+    })
+    if (persist) {
+      savePageCustomization(itemId, { decoStamps: nextStamps })
+    }
+  }
+
+  // Scale Deco Stamp
+  const scaleDecoStamp = (itemId: string, stampElemId: string, deltaOrExact: number, isExact = false) => {
+    const currentStamps = customizations[itemId]?.decoStamps || []
+    const nextStamps = currentStamps.map((s) => {
+      if (s.id !== stampElemId) return s
+      const newScale = isExact
+        ? Math.max(0.4, Math.min(2.5, deltaOrExact))
+        : Math.max(0.4, Math.min(2.5, (s.scale || 1) + deltaOrExact))
+      return { ...s, scale: Math.round(newScale * 100) / 100 }
+    })
+    savePageCustomization(itemId, { decoStamps: nextStamps })
+    setCustomizations((prev) => ({
+      ...prev,
+      [itemId]: { ...prev[itemId], decoStamps: nextStamps },
+    }))
+  }
+
+  // Tilt / rotate Photostrip card
+  const rotateStrip = (itemId: string, deltaOrExact: number, isExact = false) => {
+    const currentRot = customizations[itemId]?.stripRotation ?? 0
+    const newRot = isExact
+      ? Math.round(deltaOrExact * 10) / 10
+      : Math.round((currentRot + deltaOrExact) * 10) / 10
+    savePageCustomization(itemId, { stripRotation: newRot })
+    setCustomizations((prev) => ({
+      ...prev,
+      [itemId]: { ...prev[itemId], stripRotation: newRot },
+    }))
+  }
+
+  // Start rotating gesture via rotate handle
+  const startRotating = (
+    type: "sticky" | "stamp",
+    side: "left" | "right",
+    itemId: string,
+    elemId: string,
+    currentRotation: number,
+    e: React.PointerEvent,
+  ) => {
+    e.stopPropagation()
+    const target = (e.currentTarget as HTMLElement).closest("[data-deco-item]") as HTMLElement | null
+    if (!target) return
+    const rect = target.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    const startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI)
+    rotatingItemRef.current = {
+      type,
+      side,
+      itemId,
+      elemId,
+      centerX,
+      centerY,
+      startAngle,
+      startRotation: currentRotation,
+    }
+    setSelectedDecoration({ type, side, itemId, elemId })
   }
 
   // Delete Deco Stamp
@@ -379,11 +535,39 @@ export function ScrapbookAlbum({
     })
   }
 
-  // Drag listeners
+  // Drag and rotate listeners
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
+      // 1. Rotation gesture (single rotator handle in any direction)
+      const rot = rotatingItemRef.current
+      if (rot) {
+        document.body.style.cursor = "grabbing"
+        document.body.style.userSelect = "none"
+        const currentAngle = Math.atan2(e.clientY - rot.centerY, e.clientX - rot.centerX) * (180 / Math.PI)
+        let delta = currentAngle - rot.startAngle
+        while (delta > 180) delta -= 360
+        while (delta < -180) delta += 360
+        let newRot = rot.startRotation + delta
+        if (e.shiftKey) {
+          newRot = Math.round(newRot / 15) * 15
+        }
+        newRot = Math.round(newRot)
+        rot.startAngle = currentAngle
+        rot.startRotation = newRot
+
+        if (rot.type === "sticky") {
+          rotateStickyNote(rot.itemId, rot.elemId, newRot, true, false)
+        } else {
+          rotateDecoStamp(rot.itemId, rot.elemId, newRot, true, false)
+        }
+        return
+      }
+
+      // 2. Drag / translation gesture
       const drag = draggingItemRef.current
       if (!drag) return
+      document.body.style.cursor = "grabbing"
+      document.body.style.userSelect = "none"
       const deltaX = e.clientX - drag.startX
       const deltaY = e.clientY - drag.startY
       const deltaPercentX = (deltaX / drag.pageWidth) * 100
@@ -418,14 +602,26 @@ export function ScrapbookAlbum({
     }
 
     const handlePointerUp = () => {
-      const drag = draggingItemRef.current
-      if (!drag) return
-      // Persist final position
-      const finalCustom = customizations[drag.itemId]
-      if (finalCustom) {
-        savePageCustomization(drag.itemId, finalCustom)
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
+
+      if (rotatingItemRef.current) {
+        const rot = rotatingItemRef.current
+        const finalCustom = customizationsRef.current[rot.itemId]
+        if (finalCustom) {
+          savePageCustomization(rot.itemId, finalCustom)
+        }
+        rotatingItemRef.current = null
       }
-      draggingItemRef.current = null
+
+      const drag = draggingItemRef.current
+      if (drag) {
+        const finalCustom = customizationsRef.current[drag.itemId]
+        if (finalCustom) {
+          savePageCustomization(drag.itemId, finalCustom)
+        }
+        draggingItemRef.current = null
+      }
     }
 
     window.addEventListener("pointermove", handlePointerMove)
@@ -433,8 +629,10 @@ export function ScrapbookAlbum({
     return () => {
       window.removeEventListener("pointermove", handlePointerMove)
       window.removeEventListener("pointerup", handlePointerUp)
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
     }
-  }, [customizations])
+  }, [])
 
   // Page turns
   const goToNextSpread = () => {
@@ -459,17 +657,26 @@ export function ScrapbookAlbum({
     }
   }
 
-  // Keyboard navigation
+  // Keyboard navigation & tray dismiss
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (editingMemoSide !== null) return // don't navigate while typing memo
+      if (e.key === "Escape") {
+        if (activeToolTray) {
+          setActiveToolTray(null)
+          return
+        }
+        if (isFullscreen) {
+          setIsFullscreen(false)
+          return
+        }
+      }
       if (e.key === "ArrowRight") goToNextSpread()
       if (e.key === "ArrowLeft") goToPrevSpread()
-      if (e.key === "Escape" && isFullscreen) setIsFullscreen(false)
     }
     window.addEventListener("keydown", handleKey)
     return () => window.removeEventListener("keydown", handleKey)
-  }, [currentSpread, totalSpreads, isFullscreen, editingMemoSide])
+  }, [currentSpread, totalSpreads, isFullscreen, editingMemoSide, activeToolTray])
 
   // Autoplay slideshow
   useEffect(() => {
@@ -491,11 +698,19 @@ export function ScrapbookAlbum({
           : "relative w-full my-4"
       }`}
     >
+      {/* Click outside backdrop to close active dropdown tray */}
+      {activeToolTray && (
+        <div
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+          onClick={() => setActiveToolTray(null)}
+        />
+      )}
+
       {/* ======================================================== */}
       {/* TOP FLOATING ALBUM TOOLBAR                               */}
       {/* ======================================================== */}
-      <div className="max-w-5xl mx-auto w-full mb-4 px-2">
-        <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3 bg-stone-900/95 backdrop-blur-md text-white rounded-2xl border-2 border-stone-800 shadow-[4px_4px_0_#000]">
+      <div className="relative z-50 max-w-5xl mx-auto w-full mb-4 px-2">
+        <div className="relative z-50 flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3 bg-stone-900/95 backdrop-blur-md text-white rounded-2xl border-2 border-stone-800 shadow-[4px_4px_0_#000]">
           {/* Left: Album Meta & Jump to Strip */}
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-amber-400 text-stone-950 font-bold shadow-sm">
@@ -531,7 +746,7 @@ export function ScrapbookAlbum({
 
               {/* Theme Dropdown Tray */}
               {activeToolTray === "themes" && (
-                <div className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-50 p-3 bg-stone-950 border border-stone-700 rounded-xl shadow-2xl w-80 text-xs font-mono space-y-3 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-50 p-3 bg-stone-950 border border-stone-700 rounded-xl shadow-2xl w-80 max-w-[calc(100vw-32px)] max-h-[75vh] overflow-y-auto text-xs font-mono space-y-3 animate-in fade-in slide-in-from-top-2">
                   <div>
                     <span className="text-amber-400 text-[10px] uppercase font-bold block mb-1.5">
                       Binder Style (Coils & Materials)
@@ -598,7 +813,7 @@ export function ScrapbookAlbum({
               </button>
 
               {activeToolTray === "sticky" && (
-                <div className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-50 p-3 bg-stone-950 border border-stone-700 rounded-xl shadow-2xl w-80 text-xs font-mono space-y-3 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-50 p-3 bg-stone-950 border border-stone-700 rounded-xl shadow-2xl w-80 max-w-[calc(100vw-32px)] max-h-[75vh] overflow-y-auto text-xs font-mono space-y-3 animate-in fade-in slide-in-from-top-2">
                   {/* Page target picker */}
                   <div className="flex items-center justify-between pb-1 border-b border-stone-800">
                     <span className="text-amber-400 text-[10px] uppercase font-bold">
@@ -627,6 +842,38 @@ export function ScrapbookAlbum({
                       >
                         Right Page
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Pre-placement Rotation Selector */}
+                  <div className="flex items-center justify-between pb-1 border-b border-stone-800">
+                    <span className="text-stone-300 text-[10px] uppercase font-bold flex items-center gap-1">
+                      <RotateCw size={11} className="text-amber-400" />
+                      Tilt / Rotation:
+                    </span>
+                    <div className="flex items-center gap-1 bg-stone-900 p-0.5 rounded border border-stone-800">
+                      {[
+                        { label: "-8°", val: -8 },
+                        { label: "-4°", val: -4 },
+                        { label: "0°", val: 0 },
+                        { label: "+4°", val: 4 },
+                        { label: "+8°", val: 8 },
+                        { label: "🎲", val: "random" },
+                      ].map((p) => (
+                        <button
+                          key={String(p.val)}
+                          type="button"
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
+                            stickyPlacementAngle === p.val
+                              ? "bg-amber-400 text-stone-950 shadow-sm"
+                              : "text-stone-400 hover:text-stone-200"
+                          }`}
+                          onClick={() => setStickyPlacementAngle(p.val as any)}
+                          title={`Place with ${p.label} rotation`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -712,7 +959,7 @@ export function ScrapbookAlbum({
               </button>
 
               {activeToolTray === "stamps" && (
-                <div className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-50 p-3 bg-stone-950 border border-stone-700 rounded-xl shadow-2xl w-72 text-xs font-mono space-y-2 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-50 p-3 bg-stone-950 border border-stone-700 rounded-xl shadow-2xl w-80 max-w-[calc(100vw-32px)] max-h-[75vh] overflow-y-auto text-xs font-mono space-y-2 animate-in fade-in slide-in-from-top-2">
                   {/* Page target picker */}
                   <div className="flex items-center justify-between pb-1 border-b border-stone-800">
                     <span className="text-amber-400 text-[10px] uppercase font-bold">
@@ -741,6 +988,38 @@ export function ScrapbookAlbum({
                       >
                         Right Page
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Pre-placement Stamp Rotation Selector */}
+                  <div className="flex items-center justify-between pb-1 border-b border-stone-800">
+                    <span className="text-stone-300 text-[10px] uppercase font-bold flex items-center gap-1">
+                      <RotateCw size={11} className="text-amber-400" />
+                      Stamp Rotation:
+                    </span>
+                    <div className="flex items-center gap-1 bg-stone-900 p-0.5 rounded border border-stone-800">
+                      {[
+                        { label: "-15°", val: -15 },
+                        { label: "-8°", val: -8 },
+                        { label: "0°", val: 0 },
+                        { label: "+8°", val: 8 },
+                        { label: "+15°", val: 15 },
+                        { label: "🎲", val: "random" },
+                      ].map((p) => (
+                        <button
+                          key={String(p.val)}
+                          type="button"
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
+                            stampPlacementAngle === p.val
+                              ? "bg-amber-400 text-stone-950 shadow-sm"
+                              : "text-stone-400 hover:text-stone-200"
+                          }`}
+                          onClick={() => setStampPlacementAngle(p.val as any)}
+                          title={`Place stamp at ${p.label} rotation`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -832,7 +1111,7 @@ export function ScrapbookAlbum({
       {/* ======================================================== */}
       {/* 2-PAGE SPIRAL-BOUND ALBUM DESK SPREAD                    */}
       {/* ======================================================== */}
-      <div className="relative max-w-5xl mx-auto w-full">
+      <div className="relative z-10 max-w-5xl mx-auto w-full">
         {/* Desk Surface & Outer Album Cover */}
         <div
           className="relative rounded-2xl border-2 border-stone-900 shadow-[10px_16px_36px_rgba(0,0,0,0.22),4px_4px_0_#1c1917] p-3 sm:p-6 overflow-hidden transition-colors duration-300"
@@ -947,13 +1226,38 @@ export function ScrapbookAlbum({
 
                   {/* Photostrip Card Container */}
                   <div
-                    className="mt-3 p-3.5 border shadow-[2px_3px_12px_rgba(0,0,0,0.09)] rounded-sm flex flex-col items-center group transition-transform"
+                    className="relative mt-3 p-3.5 border shadow-[2px_3px_12px_rgba(0,0,0,0.09)] rounded-sm flex flex-col items-center group transition-transform"
                     style={{
                       background: activePaper.cardBg,
                       borderColor: activePaper.cardBorder,
-                      transform: `rotate(${leftItem.rotation || 0}deg)`,
+                      transform: `rotate(${leftCustom.stripRotation ?? leftItem.rotation ?? 0}deg)`,
                     }}
                   >
+                    {/* Tilt Photostrip Controls */}
+                    <div className="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                      <button
+                        type="button"
+                        className="p-1 rounded-full bg-stone-900/80 hover:bg-stone-900 text-amber-300 shadow-sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          rotateStrip(leftItem.id, -2)
+                        }}
+                        title="Tilt left -2°"
+                      >
+                        <RotateCcw size={9} />
+                      </button>
+                      <button
+                        type="button"
+                        className="p-1 rounded-full bg-stone-900/80 hover:bg-stone-900 text-amber-300 shadow-sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          rotateStrip(leftItem.id, 2)
+                        }}
+                        title="Tilt right +2°"
+                      >
+                        <RotateCw size={9} />
+                      </button>
+                    </div>
                     <div className="w-full max-w-[200px] sm:max-w-[230px] aspect-[1/2] bg-stone-100 border border-stone-200 overflow-hidden relative shadow-inner">
                       {leftItem.previewUrl ? (
                         <img
@@ -1107,11 +1411,15 @@ export function ScrapbookAlbum({
                     const preset = STICKY_PRESETS.find((c) => c.id === note.color) || STICKY_PRESETS[0]
                     const isDymo = note.variant === "dymo" || note.color === "dymo-black"
                     const isCaption = note.variant === "caption-strip" || note.color === "polaroid" || note.color === "kraft-tag"
+                    const isSelected = selectedDecoration?.elemId === note.id
 
                     return (
                       <div
                         key={note.id}
-                        className={`absolute z-25 cursor-grab active:cursor-grabbing group transition-shadow ${
+                        data-deco-item="true"
+                        className={`absolute z-25 cursor-grab active:cursor-grabbing group transition-all ${
+                          isSelected ? "ring-2 ring-amber-400 shadow-xl" : ""
+                        } ${
                           isDymo
                             ? "px-3 py-1 bg-stone-950 text-white rounded-sm border border-stone-800 shadow-md flex items-center justify-between"
                             : isCaption
@@ -1126,6 +1434,10 @@ export function ScrapbookAlbum({
                           transform: `rotate(${note.rotation}deg)`,
                           width: isDymo ? "auto" : isCaption ? "170px" : "130px",
                           maxWidth: "220px",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedDecoration({ type: "sticky", side: "left", itemId: leftItem.id, elemId: note.id })
                         }}
                         onPointerDown={(e) => {
                           const rect = leftPageRef.current?.getBoundingClientRect()
@@ -1142,41 +1454,65 @@ export function ScrapbookAlbum({
                             pageWidth: rect.width,
                             pageHeight: rect.height,
                           }
+                          setSelectedDecoration({ type: "sticky", side: "left", itemId: leftItem.id, elemId: note.id })
                         }}
                       >
-                        {/* Hover action buttons: delete & font toggle */}
-                        <div className="absolute -top-2.5 -right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30">
-                          {!isDymo && (
-                            <button
-                              type="button"
-                              className="p-0.5 rounded-full bg-stone-900 text-amber-300 hover:bg-stone-800 shadow-sm text-[9px] font-bold px-1"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleStickyNoteFont(leftItem.id, note.id)
-                              }}
-                              title="Toggle font (Caveat / Gochi Hand)"
-                            >
-                              {note.fontFamily === "gochi" ? "Gochi" : "Caveat"}
-                            </button>
-                          )}
+                        {/* Single Rotator Circle Handle (Mobile-style drag to rotate 360° freely in any direction) */}
+                        <div
+                          className={`absolute -top-7 left-1/2 -translate-x-1/2 flex flex-col items-center z-40 cursor-grab active:cursor-grabbing select-none transition-transform ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90 hover:scale-110"
+                          }`}
+                          onPointerDown={(e) => {
+                            e.stopPropagation()
+                            startRotating("sticky", "left", leftItem.id, note.id, note.rotation, e)
+                          }}
+                          title="Drag circle to rotate freely in any direction"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-stone-900 border-2 border-amber-400 text-amber-300 flex items-center justify-center shadow-lg hover:bg-stone-800 hover:border-amber-300 transition-colors">
+                            <RotateCw size={12} className="pointer-events-none" />
+                          </div>
+                          <div className="w-0.5 h-2 bg-amber-400" />
+                        </div>
+
+                        {/* Top-Right: Delete button */}
+                        <button
+                          type="button"
+                          className={`absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full bg-stone-900 text-stone-300 hover:text-white hover:bg-rose-600 shadow-md flex items-center justify-center transition-all z-40 active:scale-90 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deleteStickyNote(leftItem.id, note.id)
+                            if (selectedDecoration?.elemId === note.id) setSelectedDecoration(null)
+                          }}
+                          title="Remove note"
+                        >
+                          <Trash2 size={10} />
+                        </button>
+
+                        {/* Top-Left: Font Toggle (only for handwriting notes) */}
+                        {!isDymo && (
                           <button
                             type="button"
-                            className="p-0.5 rounded-full bg-stone-900 text-white hover:bg-rose-600 shadow-sm"
+                            className={`absolute -top-2.5 -left-2.5 px-1.5 py-0.5 rounded-full bg-stone-900 text-amber-300 hover:bg-stone-800 shadow-md text-[9px] font-bold font-mono tracking-tight transition-all z-40 active:scale-90 ${
+                              isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                            }`}
                             onClick={(e) => {
                               e.stopPropagation()
-                              deleteStickyNote(leftItem.id, note.id)
+                              toggleStickyNoteFont(leftItem.id, note.id)
                             }}
-                            title="Remove note"
+                            title="Toggle font (Caveat / Gochi Hand)"
                           >
-                            <Trash2 size={10} />
+                            {note.fontFamily === "gochi" ? "Gochi" : "Caveat"}
                           </button>
-                        </div>
+                        )}
 
                         {isDymo ? (
                           <input
                             type="text"
                             value={note.text}
                             onChange={(e) => updateStickyNoteText(leftItem.id, note.id, e.target.value)}
+                            onPointerDown={(e) => e.stopPropagation()}
                             className="bg-transparent border-none p-0 font-mono text-[11px] font-bold tracking-widest text-white uppercase focus:outline-none w-full"
                           />
                         ) : (
@@ -1184,6 +1520,7 @@ export function ScrapbookAlbum({
                             type="text"
                             value={note.text}
                             onChange={(e) => updateStickyNoteText(leftItem.id, note.id, e.target.value)}
+                            onPointerDown={(e) => e.stopPropagation()}
                             className={`w-full bg-transparent border-none p-0 ${
                               note.fontFamily === "gochi" ? "font-gochi" : "font-caveat"
                             } ${isCaption ? "text-base sm:text-lg font-bold" : "text-base sm:text-lg font-bold"} leading-tight focus:outline-none`}
@@ -1198,15 +1535,24 @@ export function ScrapbookAlbum({
                   {(leftCustom.decoStamps || []).map((stamp) => {
                     const def = DECO_STAMPS.find((d) => d.id === stamp.stampId)
                     if (!def) return null
+                    const isSelected = selectedDecoration?.elemId === stamp.id
+
                     return (
                       <div
                         key={stamp.id}
-                        className="absolute z-25 cursor-grab active:cursor-grabbing group hover:scale-105 transition-transform"
+                        data-deco-item="true"
+                        className={`absolute z-25 cursor-grab active:cursor-grabbing group hover:scale-105 transition-transform ${
+                          isSelected ? "ring-2 ring-amber-400 shadow-xl rounded-md" : ""
+                        }`}
                         style={{
                           left: `${stamp.x}%`,
                           top: `${stamp.y}%`,
-                          transform: `rotate(${stamp.rotation}deg)`,
+                          transform: `rotate(${stamp.rotation}deg) scale(${stamp.scale || 1})`,
                           width: `${def.defaultWidth}px`,
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedDecoration({ type: "stamp", side: "left", itemId: leftItem.id, elemId: stamp.id })
                         }}
                         onPointerDown={(e) => {
                           const rect = leftPageRef.current?.getBoundingClientRect()
@@ -1223,19 +1569,72 @@ export function ScrapbookAlbum({
                             pageWidth: rect.width,
                             pageHeight: rect.height,
                           }
+                          setSelectedDecoration({ type: "stamp", side: "left", itemId: leftItem.id, elemId: stamp.id })
                         }}
                       >
+                        {/* Single Rotator Circle Handle (Mobile-style drag to rotate 360° freely in any direction) */}
+                        <div
+                          className={`absolute -top-7 left-1/2 -translate-x-1/2 flex flex-col items-center z-40 cursor-grab active:cursor-grabbing select-none transition-transform ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90 hover:scale-110"
+                          }`}
+                          onPointerDown={(e) => {
+                            e.stopPropagation()
+                            startRotating("stamp", "left", leftItem.id, stamp.id, stamp.rotation, e)
+                          }}
+                          title="Drag circle to rotate freely in any direction"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-stone-900 border-2 border-amber-400 text-amber-300 flex items-center justify-center shadow-lg hover:bg-stone-800 hover:border-amber-300 transition-colors">
+                            <RotateCw size={12} className="pointer-events-none" />
+                          </div>
+                          <div className="w-0.5 h-2 bg-amber-400" />
+                        </div>
+
+                        {/* Top-Right: Delete button */}
                         <button
                           type="button"
-                          className="absolute -top-1 -right-1 p-0.5 rounded-full bg-stone-900 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-600 shadow-sm z-30"
+                          className={`absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full bg-stone-900 text-stone-300 hover:text-white hover:bg-rose-600 shadow-md flex items-center justify-center transition-all z-40 active:scale-90 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation()
                             deleteDecoStamp(leftItem.id, stamp.id)
+                            if (selectedDecoration?.elemId === stamp.id) setSelectedDecoration(null)
                           }}
                           title="Remove stamp"
                         >
                           <Trash2 size={10} />
                         </button>
+
+                        {/* Bottom-Right: Subtle scale buttons */}
+                        <div
+                          className={`absolute -bottom-2.5 -right-2.5 flex items-center gap-0.5 transition-all z-40 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            className="w-4 h-4 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-200 shadow-md flex items-center justify-center transition-transform active:scale-90"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              scaleDecoStamp(leftItem.id, stamp.id, -0.15)
+                            }}
+                            title="Scale smaller"
+                          >
+                            <ZoomOut size={9} />
+                          </button>
+                          <button
+                            type="button"
+                            className="w-4 h-4 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-200 shadow-md flex items-center justify-center transition-transform active:scale-90"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              scaleDecoStamp(leftItem.id, stamp.id, 0.15)
+                            }}
+                            title="Scale larger"
+                          >
+                            <ZoomIn size={9} />
+                          </button>
+                        </div>
+
                         <svg
                           viewBox={def.viewBox || "0 0 54 54"}
                           className="w-full h-auto pointer-events-none"
@@ -1304,13 +1703,38 @@ export function ScrapbookAlbum({
 
                   {/* Photostrip Card Container */}
                   <div
-                    className="mt-3 p-3.5 border shadow-[2px_3px_12px_rgba(0,0,0,0.09)] rounded-sm flex flex-col items-center group transition-transform"
+                    className="relative mt-3 p-3.5 border shadow-[2px_3px_12px_rgba(0,0,0,0.09)] rounded-sm flex flex-col items-center group transition-transform"
                     style={{
                       background: activePaper.cardBg,
                       borderColor: activePaper.cardBorder,
-                      transform: `rotate(${rightItem.rotation || 0}deg)`,
+                      transform: `rotate(${rightCustom.stripRotation ?? rightItem.rotation ?? 0}deg)`,
                     }}
                   >
+                    {/* Tilt Photostrip Controls */}
+                    <div className="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                      <button
+                        type="button"
+                        className="p-1 rounded-full bg-stone-900/80 hover:bg-stone-900 text-amber-300 shadow-sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          rotateStrip(rightItem.id, -2)
+                        }}
+                        title="Tilt left -2°"
+                      >
+                        <RotateCcw size={9} />
+                      </button>
+                      <button
+                        type="button"
+                        className="p-1 rounded-full bg-stone-900/80 hover:bg-stone-900 text-amber-300 shadow-sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          rotateStrip(rightItem.id, 2)
+                        }}
+                        title="Tilt right +2°"
+                      >
+                        <RotateCw size={9} />
+                      </button>
+                    </div>
                     <div className="w-full max-w-[200px] sm:max-w-[230px] aspect-[1/2] bg-stone-100 border border-stone-200 overflow-hidden relative shadow-inner">
                       {rightItem.previewUrl ? (
                         <img
@@ -1464,11 +1888,15 @@ export function ScrapbookAlbum({
                     const preset = STICKY_PRESETS.find((c) => c.id === note.color) || STICKY_PRESETS[0]
                     const isDymo = note.variant === "dymo" || note.color === "dymo-black"
                     const isCaption = note.variant === "caption-strip" || note.color === "polaroid" || note.color === "kraft-tag"
+                    const isSelected = selectedDecoration?.elemId === note.id
 
                     return (
                       <div
                         key={note.id}
-                        className={`absolute z-25 cursor-grab active:cursor-grabbing group transition-shadow ${
+                        data-deco-item="true"
+                        className={`absolute z-25 cursor-grab active:cursor-grabbing group transition-all ${
+                          isSelected ? "ring-2 ring-amber-400 shadow-xl" : ""
+                        } ${
                           isDymo
                             ? "px-3 py-1 bg-stone-950 text-white rounded-sm border border-stone-800 shadow-md flex items-center justify-between"
                             : isCaption
@@ -1483,6 +1911,10 @@ export function ScrapbookAlbum({
                           transform: `rotate(${note.rotation}deg)`,
                           width: isDymo ? "auto" : isCaption ? "170px" : "130px",
                           maxWidth: "220px",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedDecoration({ type: "sticky", side: "right", itemId: rightItem.id, elemId: note.id })
                         }}
                         onPointerDown={(e) => {
                           const rect = rightPageRef.current?.getBoundingClientRect()
@@ -1499,41 +1931,65 @@ export function ScrapbookAlbum({
                             pageWidth: rect.width,
                             pageHeight: rect.height,
                           }
+                          setSelectedDecoration({ type: "sticky", side: "right", itemId: rightItem.id, elemId: note.id })
                         }}
                       >
-                        {/* Hover action buttons: delete & font toggle */}
-                        <div className="absolute -top-2.5 -right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30">
-                          {!isDymo && (
-                            <button
-                              type="button"
-                              className="p-0.5 rounded-full bg-stone-900 text-amber-300 hover:bg-stone-800 shadow-sm text-[9px] font-bold px-1"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleStickyNoteFont(rightItem.id, note.id)
-                              }}
-                              title="Toggle font (Caveat / Gochi Hand)"
-                            >
-                              {note.fontFamily === "gochi" ? "Gochi" : "Caveat"}
-                            </button>
-                          )}
+                        {/* Single Rotator Circle Handle (Mobile-style drag to rotate 360° freely in any direction) */}
+                        <div
+                          className={`absolute -top-7 left-1/2 -translate-x-1/2 flex flex-col items-center z-40 cursor-grab active:cursor-grabbing select-none transition-transform ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90 hover:scale-110"
+                          }`}
+                          onPointerDown={(e) => {
+                            e.stopPropagation()
+                            startRotating("sticky", "right", rightItem.id, note.id, note.rotation, e)
+                          }}
+                          title="Drag circle to rotate freely in any direction"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-stone-900 border-2 border-amber-400 text-amber-300 flex items-center justify-center shadow-lg hover:bg-stone-800 hover:border-amber-300 transition-colors">
+                            <RotateCw size={12} className="pointer-events-none" />
+                          </div>
+                          <div className="w-0.5 h-2 bg-amber-400" />
+                        </div>
+
+                        {/* Top-Right: Delete button */}
+                        <button
+                          type="button"
+                          className={`absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full bg-stone-900 text-stone-300 hover:text-white hover:bg-rose-600 shadow-md flex items-center justify-center transition-all z-40 active:scale-90 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deleteStickyNote(rightItem.id, note.id)
+                            if (selectedDecoration?.elemId === note.id) setSelectedDecoration(null)
+                          }}
+                          title="Remove note"
+                        >
+                          <Trash2 size={10} />
+                        </button>
+
+                        {/* Top-Left: Font Toggle (only for handwriting notes) */}
+                        {!isDymo && (
                           <button
                             type="button"
-                            className="p-0.5 rounded-full bg-stone-900 text-white hover:bg-rose-600 shadow-sm"
+                            className={`absolute -top-2.5 -left-2.5 px-1.5 py-0.5 rounded-full bg-stone-900 text-amber-300 hover:bg-stone-800 shadow-md text-[9px] font-bold font-mono tracking-tight transition-all z-40 active:scale-90 ${
+                              isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                            }`}
                             onClick={(e) => {
                               e.stopPropagation()
-                              deleteStickyNote(rightItem.id, note.id)
+                              toggleStickyNoteFont(rightItem.id, note.id)
                             }}
-                            title="Remove note"
+                            title="Toggle font (Caveat / Gochi Hand)"
                           >
-                            <Trash2 size={10} />
+                            {note.fontFamily === "gochi" ? "Gochi" : "Caveat"}
                           </button>
-                        </div>
+                        )}
 
                         {isDymo ? (
                           <input
                             type="text"
                             value={note.text}
                             onChange={(e) => updateStickyNoteText(rightItem.id, note.id, e.target.value)}
+                            onPointerDown={(e) => e.stopPropagation()}
                             className="bg-transparent border-none p-0 font-mono text-[11px] font-bold tracking-widest text-white uppercase focus:outline-none w-full"
                           />
                         ) : (
@@ -1541,6 +1997,7 @@ export function ScrapbookAlbum({
                             type="text"
                             value={note.text}
                             onChange={(e) => updateStickyNoteText(rightItem.id, note.id, e.target.value)}
+                            onPointerDown={(e) => e.stopPropagation()}
                             className={`w-full bg-transparent border-none p-0 ${
                               note.fontFamily === "gochi" ? "font-gochi" : "font-caveat"
                             } ${isCaption ? "text-base sm:text-lg font-bold" : "text-base sm:text-lg font-bold"} leading-tight focus:outline-none`}
@@ -1555,15 +2012,24 @@ export function ScrapbookAlbum({
                   {(rightCustom.decoStamps || []).map((stamp) => {
                     const def = DECO_STAMPS.find((d) => d.id === stamp.stampId)
                     if (!def) return null
+                    const isSelected = selectedDecoration?.elemId === stamp.id
+
                     return (
                       <div
                         key={stamp.id}
-                        className="absolute z-25 cursor-grab active:cursor-grabbing group hover:scale-105 transition-transform"
+                        data-deco-item="true"
+                        className={`absolute z-25 cursor-grab active:cursor-grabbing group hover:scale-105 transition-transform ${
+                          isSelected ? "ring-2 ring-amber-400 shadow-xl rounded-md" : ""
+                        }`}
                         style={{
                           left: `${stamp.x}%`,
                           top: `${stamp.y}%`,
-                          transform: `rotate(${stamp.rotation}deg)`,
+                          transform: `rotate(${stamp.rotation}deg) scale(${stamp.scale || 1})`,
                           width: `${def.defaultWidth}px`,
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedDecoration({ type: "stamp", side: "right", itemId: rightItem.id, elemId: stamp.id })
                         }}
                         onPointerDown={(e) => {
                           const rect = rightPageRef.current?.getBoundingClientRect()
@@ -1580,19 +2046,72 @@ export function ScrapbookAlbum({
                             pageWidth: rect.width,
                             pageHeight: rect.height,
                           }
+                          setSelectedDecoration({ type: "stamp", side: "right", itemId: rightItem.id, elemId: stamp.id })
                         }}
                       >
+                        {/* Single Rotator Circle Handle (Mobile-style drag to rotate 360° freely in any direction) */}
+                        <div
+                          className={`absolute -top-7 left-1/2 -translate-x-1/2 flex flex-col items-center z-40 cursor-grab active:cursor-grabbing select-none transition-transform ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90 hover:scale-110"
+                          }`}
+                          onPointerDown={(e) => {
+                            e.stopPropagation()
+                            startRotating("stamp", "right", rightItem.id, stamp.id, stamp.rotation, e)
+                          }}
+                          title="Drag circle to rotate freely in any direction"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-stone-900 border-2 border-amber-400 text-amber-300 flex items-center justify-center shadow-lg hover:bg-stone-800 hover:border-amber-300 transition-colors">
+                            <RotateCw size={12} className="pointer-events-none" />
+                          </div>
+                          <div className="w-0.5 h-2 bg-amber-400" />
+                        </div>
+
+                        {/* Top-Right: Delete button */}
                         <button
                           type="button"
-                          className="absolute -top-1 -right-1 p-0.5 rounded-full bg-stone-900 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-600 shadow-sm z-30"
+                          className={`absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full bg-stone-900 text-stone-300 hover:text-white hover:bg-rose-600 shadow-md flex items-center justify-center transition-all z-40 active:scale-90 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation()
                             deleteDecoStamp(rightItem.id, stamp.id)
+                            if (selectedDecoration?.elemId === stamp.id) setSelectedDecoration(null)
                           }}
                           title="Remove stamp"
                         >
                           <Trash2 size={10} />
                         </button>
+
+                        {/* Bottom-Right: Subtle scale buttons */}
+                        <div
+                          className={`absolute -bottom-2.5 -right-2.5 flex items-center gap-0.5 transition-all z-40 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            className="w-4 h-4 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-200 shadow-md flex items-center justify-center transition-transform active:scale-90"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              scaleDecoStamp(rightItem.id, stamp.id, -0.15)
+                            }}
+                            title="Scale smaller"
+                          >
+                            <ZoomOut size={9} />
+                          </button>
+                          <button
+                            type="button"
+                            className="w-4 h-4 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-200 shadow-md flex items-center justify-center transition-transform active:scale-90"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              scaleDecoStamp(rightItem.id, stamp.id, 0.15)
+                            }}
+                            title="Scale larger"
+                          >
+                            <ZoomIn size={9} />
+                          </button>
+                        </div>
+
                         <svg
                           viewBox={def.viewBox || "0 0 54 54"}
                           className="w-full h-auto pointer-events-none"

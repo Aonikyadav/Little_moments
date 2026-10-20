@@ -102,7 +102,10 @@ export function orderedLayers(c: Composition): LayerItem[] {
       id: "frame",
       kind: "frame",
       label: "Decorative frame",
-      properties: { opacity: c.frameOpacity ?? 1 },
+      properties: {
+        opacity: c.frameOpacity ?? 1,
+        ...(c.frameTransform ? { transform: c.frameTransform } : {}),
+      },
     })
   }
 
@@ -235,6 +238,14 @@ export function duplicateLayer(
 }
 
 export function deleteLayer(c: Composition, id: string): Composition {
+  if (id === "frame") {
+    return {
+      ...c,
+      frameId: undefined,
+      frameTransform: undefined,
+      layerOrder: c.layerOrder ? c.layerOrder.filter((item) => item !== id) : undefined,
+    }
+  }
   return {
     ...c,
     photos: c.photos.filter((p) => p.id !== id),
@@ -247,12 +258,13 @@ export function deleteLayer(c: Composition, id: string): Composition {
 export function patchLayer(
   c: Composition,
   id: string,
-  patch: LayerProperties,
+  patch: LayerProperties & { transform?: any },
 ): Composition {
   if (id === "frame") {
     return {
       ...c,
       frameOpacity: patch.opacity !== undefined ? patch.opacity : c.frameOpacity,
+      frameTransform: patch.transform !== undefined ? patch.transform : c.frameTransform,
     }
   }
 

@@ -686,18 +686,31 @@ export default function Studio({
     }
   }
   const layerBounds = (id: string, composition = c) => {
+    if (id === "frame") {
+      return (
+        composition.frameTransform ?? {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          rotation: 0,
+        }
+      )
+    }
     const i = composition.photos.findIndex((p) => p.id === id)
     if (i >= 0)
       return photoBounds(composition, getTemplate(composition.templateId), i)
     const s = composition.stickers.find((s) => s.id === id)
-    if (s)
+    if (s) {
+      const h = (s.size * size.width) / size.height
       return {
         x: s.x - s.size / 2,
-        y: s.y - (s.size * size.width) / size.height / 2,
+        y: s.y - h / 2,
         width: s.size,
-        height: (s.size * size.width) / size.height,
+        height: h,
         rotation: s.rotation,
       }
+    }
     const t = composition.texts.find((t) => t.id === id)
     if (t)
       return {
@@ -722,9 +735,72 @@ export default function Studio({
       s = base.stickers.find((s) => s.id === id),
       t = base.texts.find((t) => t.id === id),
       operation = gesture.current?.operation
+
+    if (id === "frame" && base.frameId) {
+      const ft = base.frameTransform ?? {
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+      }
+      const rotated = operation === "rotate"
+      const resized = operation === "resize"
+      if (rotated) {
+        return {
+          ...base,
+          frameTransform: {
+            ...ft,
+            rotation: Math.round(ft.rotation + rotationDelta),
+          },
+        }
+      }
+      if (resized) {
+        const newWidth = Math.max(10, Math.min(250, Number((ft.width * scale).toFixed(2))))
+        const newHeight = Math.max(10, Math.min(250, Number((ft.height * scale).toFixed(2))))
+        const newX = Number(((ft.x + ft.width / 2) - newWidth / 2).toFixed(2))
+        const newY = Number(((ft.y + ft.height / 2) - newHeight / 2).toFixed(2))
+        return {
+          ...base,
+          frameTransform: {
+            ...ft,
+            x: newX,
+            y: newY,
+            width: newWidth,
+            height: newHeight,
+          },
+        }
+      }
+      return {
+        ...base,
+        frameTransform: {
+          ...ft,
+          x: Number((ft.x + dx).toFixed(2)),
+          y: Number((ft.y + dy).toFixed(2)),
+        },
+      }
+    }
+
     if (index >= 0) {
       const p = base.photos[index]
       if (base.mode !== "freeform") {
+        if (operation === "rotate") {
+          const curRot = p.adjustments?.rotation || 0
+          return {
+            ...base,
+            photos: base.photos.map((x) =>
+              x.id === id
+                ? {
+                    ...x,
+                    adjustments: {
+                      ...x.adjustments,
+                      rotation: Math.round(curRot + rotationDelta),
+                    },
+                  }
+                : x,
+            ),
+          }
+        }
         const curZoom = p.adjustments?.zoom || 1
         const curX = p.adjustments?.offsetX || 0
         const curY = p.adjustments?.offsetY || 0
@@ -753,6 +829,46 @@ export default function Studio({
         }
       }
       const rotated = operation === "rotate"
+      const resized = operation === "resize"
+      if (rotated) {
+        return {
+          ...base,
+          photos: base.photos.map((x) =>
+            x.id === id
+              ? {
+                  ...x,
+                  transform: {
+                    ...b,
+                    rotation: Math.round(b.rotation + rotationDelta),
+                  },
+                }
+              : x,
+          ),
+        }
+      }
+      if (resized) {
+        const newWidth = Math.max(5, Math.min(250, Number((b.width * scale).toFixed(2))))
+        const newHeight = Math.max(5, Math.min(250, Number((b.height * scale).toFixed(2))))
+        const newX = Number(((b.x + b.width / 2) - newWidth / 2).toFixed(2))
+        const newY = Number(((b.y + b.height / 2) - newHeight / 2).toFixed(2))
+        return {
+          ...base,
+          photos: base.photos.map((x) =>
+            x.id === id
+              ? {
+                  ...x,
+                  transform: {
+                    ...b,
+                    x: newX,
+                    y: newY,
+                    width: newWidth,
+                    height: newHeight,
+                  },
+                }
+              : x,
+          ),
+        }
+      }
       return {
         ...base,
         photos: base.photos.map((x) =>
@@ -761,51 +877,98 @@ export default function Studio({
                 ...x,
                 transform: {
                   ...b,
-                  x: rotated ? b.x : b.x + dx,
-                  y: rotated ? b.y : b.y + dy,
-                  width: Math.max(3, Math.min(180, b.width * scale)),
-                  height: Math.max(3, Math.min(180, b.height * scale)),
-                  rotation: b.rotation + (rotated ? dx * 3 : rotationDelta),
+                  x: Number((b.x + dx).toFixed(2)),
+                  y: Number((b.y + dy).toFixed(2)),
                 },
               }
             : x,
         ),
       }
     }
-    if (s)
+    if (s) {
+      const rotated = operation === "rotate"
+      const resized = operation === "resize"
+      if (rotated) {
+        return {
+          ...base,
+          stickers: base.stickers.map((x) =>
+            x.id === id
+              ? {
+                  ...x,
+                  rotation: Math.round(x.rotation + rotationDelta),
+                }
+              : x,
+          ),
+        }
+      }
+      if (resized) {
+        return {
+          ...base,
+          stickers: base.stickers.map((x) =>
+            x.id === id
+              ? {
+                  ...x,
+                  size: Math.max(2, Math.min(120, Math.round(x.size * scale))),
+                }
+              : x,
+          ),
+        }
+      }
       return {
         ...base,
         stickers: base.stickers.map((x) =>
           x.id === id
             ? {
                 ...x,
-                x: x.x + (operation === "rotate" ? 0 : dx),
-                y: x.y + (operation === "rotate" ? 0 : dy),
-                size: Math.max(2, Math.min(100, x.size * scale)),
-                rotation:
-                  x.rotation +
-                  (operation === "rotate" ? dx * 3 : rotationDelta),
+                x: Number((x.x + dx).toFixed(2)),
+                y: Number((x.y + dy).toFixed(2)),
               }
             : x,
         ),
       }
-    if (t)
+    }
+    if (t) {
+      const rotated = operation === "rotate"
+      const resized = operation === "resize"
+      if (rotated) {
+        return {
+          ...base,
+          texts: base.texts.map((x) =>
+            x.id === id
+              ? {
+                  ...x,
+                  rotation: Math.round(x.rotation + rotationDelta),
+                }
+              : x,
+          ),
+        }
+      }
+      if (resized) {
+        return {
+          ...base,
+          texts: base.texts.map((x) =>
+            x.id === id
+              ? {
+                  ...x,
+                  size: Math.max(6, Math.min(120, Math.round(x.size * scale))),
+                }
+              : x,
+          ),
+        }
+      }
       return {
         ...base,
         texts: base.texts.map((x) =>
           x.id === id
             ? {
                 ...x,
-                x: x.x + (operation === "rotate" ? 0 : dx),
-                y: x.y + (operation === "rotate" ? 0 : dy),
-                size: Math.max(6, Math.min(120, x.size * scale)),
-                rotation:
-                  x.rotation +
-                  (operation === "rotate" ? dx * 3 : rotationDelta),
+                x: Number((x.x + dx).toFixed(2)),
+                y: Number((x.y + dy).toFixed(2)),
               }
             : x,
         ),
       }
+    }
     return base
   }
   const pointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -850,10 +1013,29 @@ export default function Studio({
     }
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
 
+    let currentComposition = c
+    if (id) {
+      setSelected(id)
+      if (id === "frame") {
+        if (!currentComposition.frameTransform) {
+          currentComposition = {
+            ...currentComposition,
+            frameTransform: { x: 0, y: 0, width: 100, height: 100, rotation: 0 },
+          }
+          commit(currentComposition)
+        }
+      } else if (c.photos.some((p) => p.id === id)) {
+        if ((operation === "resize" || operation === "rotate") && currentComposition.mode !== "freeform") {
+          currentComposition = enterFreeform(currentComposition, template)
+          commit(currentComposition)
+          showHud("Switched to Freeform", "Rotate & resize photos freely")
+        }
+      }
+    }
+
     if (pointers.current.size === 1) {
-      if (id) setSelected(id)
       gesture.current = {
-        before: c,
+        before: currentComposition,
         id,
         operation,
         startX: e.clientX,
@@ -866,7 +1048,7 @@ export default function Studio({
       const [a, b] = [...pointers.current.values()]
       gesture.current = {
         ...gesture.current,
-        before: c,
+        before: currentComposition,
         distance: Math.hypot(a.x - b.x, a.y - b.y),
         startX: (a.x + b.x) / 2,
         startY: (a.y + b.y) / 2,
@@ -909,13 +1091,35 @@ export default function Studio({
       return
     }
 
-    // 2. Editing photo, sticker, or text layer:
+    // 2. Editing photo, sticker, frame, or text layer:
     const props = orderedLayers(g.before).find((l) => l.id === g.id)?.properties
     if (props?.locked) return
-    if (g.operation === "resize") scale = Math.max(0.2, 1 + dx / 40)
+
+    let rotationDelta = 0
+    const bounds = layerBounds(g.id, g.before)
+    const centerScreenX = rect.left + ((bounds.x + bounds.width / 2) / 100) * rect.width
+    const centerScreenY = rect.top + ((bounds.y + bounds.height / 2) / 100) * rect.height
+
+    if (g.operation === "rotate") {
+      const startAngle = Math.atan2(g.startY - centerScreenY, g.startX - centerScreenX) * (180 / Math.PI)
+      const currentAngle = Math.atan2(e.clientY - centerScreenY, e.clientX - centerScreenX) * (180 / Math.PI)
+      rotationDelta = currentAngle - startAngle
+      if (e.shiftKey) {
+        const targetRot = bounds.rotation + rotationDelta
+        const snappedRot = Math.round(targetRot / 15) * 15
+        rotationDelta = snappedRot - bounds.rotation
+      }
+      const newRot = Math.round(bounds.rotation + rotationDelta)
+      showHud(`Rotation: ${newRot}°`, "Drag around center · Shift for 15° steps")
+    } else if (g.operation === "resize") {
+      const startDist = Math.hypot(g.startX - centerScreenX, g.startY - centerScreenY)
+      const currentDist = Math.hypot(e.clientX - centerScreenX, e.clientY - centerScreenY)
+      scale = Math.max(0.08, currentDist / Math.max(8, startDist))
+      showHud(`Scale: ${Math.round(scale * 100)}%`, "Drag corner away to expand")
+    }
 
     const isTargetPhoto = g.before.photos.some((p) => p.id === g.id)
-    if (isTargetPhoto) {
+    if (isTargetPhoto && g.operation === "move") {
       if (pointers.current.size === 2) {
         const origP = g.before.photos.find((p) => p.id === g.id)
         const targetZoom = Math.max(1, Math.min(4, Number(((origP?.adjustments?.zoom || 1) * scale).toFixed(2))))
@@ -925,8 +1129,7 @@ export default function Studio({
       }
     }
 
-    const bounds = layerBounds(g.id, g.before),
-      centerX = bounds.x + bounds.width / 2 + dx,
+    const centerX = bounds.x + bounds.width / 2 + dx,
       centerY = bounds.y + bounds.height / 2 + dy,
       snapX = Math.abs(centerX - 50) < 1.2,
       snapY = Math.abs(centerY - 50) < 1.2
@@ -948,9 +1151,10 @@ export default function Studio({
       next = transformGesture(
         next,
         id,
-        g.operation === "resize" ? 0 : dx,
-        g.operation === "resize" ? 0 : dy,
+        g.operation === "resize" || g.operation === "rotate" ? 0 : dx,
+        g.operation === "resize" || g.operation === "rotate" ? 0 : dy,
         scale,
+        rotationDelta,
       )
     onTransient(next)
   }
@@ -1151,15 +1355,16 @@ export default function Studio({
               >
                 <StudioPreview composition={visible} />
                 {layers
-                  .filter((l) => l.kind !== "frame" && !l.properties.hidden)
+                  .filter((l) => (l.kind !== "frame" || (c.frameId && (selected === "frame" || tool === "Frames"))) && !l.properties.hidden)
                   .map((l) => {
                     const b = layerBounds(l.id)
+                    const isSelected = selected === l.id && !compare
                     return (
                       <div
                         key={l.id}
                         data-layer={l.id}
                         className={`canvas-hit ${
-                          selected === l.id && !compare ? "selected" : ""
+                          isSelected ? "selected" : ""
                         } ${l.properties.locked ? "locked" : ""}`}
                         style={{
                           left: `${b.x}%`,
@@ -1167,31 +1372,55 @@ export default function Studio({
                           width: `${b.width}%`,
                           height: `${b.height}%`,
                           transform: `rotate(${b.rotation}deg)`,
-                          zIndex: layers.indexOf(l) + 1,
+                          zIndex: isSelected ? 50 : layers.indexOf(l) + 1,
+                          pointerEvents: l.kind === "frame" && !isSelected ? "none" : "auto",
                         }}
                       >
-                        {selected === l.id && !compare && (
+                        {isSelected && (
                           <>
                             <span className="selection-tag">
                               {l.properties.locked
                                 ? "Locked"
                                 : l.kind === "photo"
                                   ? `Photo ${c.photos.findIndex((p) => p.id === l.id) + 1}`
-                                  : l.label.slice(0, 22)}
+                                  : l.kind === "frame"
+                                    ? "Decorative Frame"
+                                    : l.label.slice(0, 22)}
                             </span>
                             {!l.properties.locked && (
                               <>
                                 <button
                                   data-operation="resize"
+                                  data-handle="se"
                                   aria-label="Drag to resize selected layer"
-                                  className="selection-resize"
+                                  className="selection-resize handle-se"
                                 />
+                                <button
+                                  data-operation="resize"
+                                  data-handle="ne"
+                                  aria-label="Drag to resize selected layer"
+                                  className="selection-resize handle-ne"
+                                />
+                                <button
+                                  data-operation="resize"
+                                  data-handle="sw"
+                                  aria-label="Drag to resize selected layer"
+                                  className="selection-resize handle-sw"
+                                />
+                                <button
+                                  data-operation="resize"
+                                  data-handle="nw"
+                                  aria-label="Drag to resize selected layer"
+                                  className="selection-resize handle-nw"
+                                />
+                                <div className="selection-rotate-stem" />
                                 <button
                                   data-operation="rotate"
                                   aria-label="Drag to rotate selected layer"
                                   className="selection-rotate"
+                                  title="Drag to rotate layer"
                                 >
-                                  <RotateCcw size={10} />
+                                  <RotateCcw size={11} />
                                 </button>
                               </>
                             )}
@@ -1757,10 +1986,91 @@ export default function Studio({
                     max={35}
                     onChange={(v) => commit({ ...c, radius: v })}
                   />
+                  {c.frameId && (
+                    <div className="pt-2 border-t border-stone-200 mt-2 space-y-2">
+                      <span className="mini-label">FRAME ROTATION & SCALE</span>
+                      <Range
+                        label="Frame scale"
+                        value={Math.round(c.frameTransform?.width ?? 100)}
+                        min={20}
+                        max={200}
+                        onChange={(v) => {
+                          const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                          const scale = v / 100
+                          const newW = Number((100 * scale).toFixed(2))
+                          const newH = Number((100 * scale).toFixed(2))
+                          commit({
+                            ...c,
+                            frameTransform: {
+                              ...ft,
+                              x: Number((50 - newW / 2).toFixed(2)),
+                              y: Number((50 - newH / 2).toFixed(2)),
+                              width: newW,
+                              height: newH,
+                            },
+                          })
+                        }}
+                        onReset={() => {
+                          const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                          commit({ ...c, frameTransform: { ...ft, x: 0, y: 0, width: 100, height: 100 } })
+                        }}
+                      />
+                      <Range
+                        label="Frame rotation"
+                        value={c.frameTransform?.rotation ?? 0}
+                        min={-180}
+                        max={180}
+                        onChange={(v) => {
+                          const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                          commit({ ...c, frameTransform: { ...ft, rotation: v } })
+                        }}
+                        onReset={() => {
+                          const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                          commit({ ...c, frameTransform: { ...ft, rotation: 0 } })
+                        }}
+                      />
+                      <div className="choices">
+                        <button
+                          type="button"
+                          className="chip"
+                          onClick={() => {
+                            const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                            commit({ ...c, frameTransform: { ...ft, rotation: ((ft.rotation - 15) % 360) } })
+                          }}
+                        >
+                          -15°
+                        </button>
+                        <button
+                          type="button"
+                          className="chip"
+                          onClick={() => {
+                            const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                            commit({ ...c, frameTransform: { ...ft, rotation: ((ft.rotation + 15) % 360) } })
+                          }}
+                        >
+                          +15°
+                        </button>
+                        <button
+                          type="button"
+                          className={`chip ${selected === "frame" ? "selected" : ""}`}
+                          onClick={() => setSelected("frame")}
+                        >
+                          Select on Canvas
+                        </button>
+                        <button
+                          type="button"
+                          className="chip"
+                          onClick={() => commit({ ...c, frameTransform: { x: 0, y: 0, width: 100, height: 100, rotation: 0 } })}
+                        >
+                          Reset Frame
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <button
                     className="text-button"
                     disabled={!c.frameId}
-                    onClick={() => commit({ ...c, frameId: undefined })}
+                    onClick={() => commit({ ...c, frameId: undefined, frameTransform: undefined })}
                   >
                     Remove decorative frame
                   </button>
@@ -2983,41 +3293,216 @@ export default function Studio({
                         </label>
                       </>
                     )}
+                    {layer.kind === "frame" && c.frameId && (
+                      <div className="space-y-2 mt-2 pt-2 border-t border-stone-200">
+                        <Range
+                          label="Frame width"
+                          value={Math.round(c.frameTransform?.width ?? 100)}
+                          min={10}
+                          max={250}
+                          onChange={(v) => {
+                            const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                            commit({ ...c, frameTransform: { ...ft, width: v } })
+                          }}
+                        />
+                        <Range
+                          label="Frame height"
+                          value={Math.round(c.frameTransform?.height ?? 100)}
+                          min={10}
+                          max={250}
+                          onChange={(v) => {
+                            const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                            commit({ ...c, frameTransform: { ...ft, height: v } })
+                          }}
+                        />
+                        <Range
+                          label="Frame rotation"
+                          value={c.frameTransform?.rotation ?? 0}
+                          min={-180}
+                          max={180}
+                          onChange={(v) => {
+                            const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                            commit({ ...c, frameTransform: { ...ft, rotation: v } })
+                          }}
+                        />
+                        <div className="choices">
+                          <button
+                            type="button"
+                            className="chip"
+                            onClick={() => {
+                              const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                              commit({ ...c, frameTransform: { ...ft, rotation: (ft.rotation - 15) } })
+                            }}
+                          >
+                            -15°
+                          </button>
+                          <button
+                            type="button"
+                            className="chip"
+                            onClick={() => {
+                              const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                              commit({ ...c, frameTransform: { ...ft, rotation: (ft.rotation + 15) } })
+                            }}
+                          >
+                            +15°
+                          </button>
+                          <button
+                            type="button"
+                            className="chip"
+                            onClick={() => {
+                              const ft = c.frameTransform ?? { x: 0, y: 0, width: 100, height: 100, rotation: 0 }
+                              commit({ ...c, frameTransform: { ...ft, rotation: 0 } })
+                            }}
+                          >
+                            Reset 0°
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {photo && c.mode !== "freeform" && (
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          className="button secondary wide"
+                          onClick={() => commit(enterFreeform(c, template))}
+                        >
+                          <Sparkles size={12} />
+                          Unlock to Freeform (Rotate & Resize)
+                        </button>
+                      </div>
+                    )}
                     {photo &&
-                      c.mode === "freeform" &&
-                      (["x", "y", "width", "height", "rotation"] as const).map(
-                        (key) => (
-                          <Range
-                            key={key}
-                            label={`Photo ${key}`}
-                            value={photoBounds(c, template, photoIndex)[key]}
-                            min={
-                              key === "rotation"
-                                ? -180
-                                : key === "width" || key === "height"
-                                  ? 3
-                                  : -50
-                            }
-                            max={key === "rotation" ? 180 : 150}
-                            onChange={(v) =>
-                              commit({
-                                ...c,
-                                photos: c.photos.map((p, i) =>
-                                  i === photoIndex
-                                    ? {
-                                        ...p,
-                                        transform: {
-                                          ...photoBounds(c, template, i),
-                                          [key]: v,
-                                        },
-                                      }
-                                    : p,
-                                ),
-                              })
-                            }
-                          />
-                        ),
+                      c.mode === "freeform" && (
+                        <>
+                          {(["x", "y", "width", "height", "rotation"] as const).map(
+                            (key) => (
+                              <Range
+                                key={key}
+                                label={`Photo ${key}`}
+                                value={photoBounds(c, template, photoIndex)[key]}
+                                min={
+                                  key === "rotation"
+                                    ? -180
+                                    : key === "width" || key === "height"
+                                      ? 3
+                                      : -50
+                                }
+                                max={key === "rotation" ? 180 : 150}
+                                onChange={(v) =>
+                                  commit({
+                                    ...c,
+                                    photos: c.photos.map((p, i) =>
+                                      i === photoIndex
+                                        ? {
+                                            ...p,
+                                            transform: {
+                                              ...photoBounds(c, template, i),
+                                              [key]: v,
+                                            },
+                                          }
+                                        : p,
+                                    ),
+                                  })
+                                }
+                              />
+                            ),
+                          )}
+                          <div className="choices mt-1">
+                            <button
+                              type="button"
+                              className="chip"
+                              onClick={() => {
+                                const b = photoBounds(c, template, photoIndex)
+                                commit({
+                                  ...c,
+                                  photos: c.photos.map((p, i) =>
+                                    i === photoIndex
+                                      ? { ...p, transform: { ...b, rotation: (b.rotation - 90) } }
+                                      : p,
+                                  ),
+                                })
+                              }}
+                            >
+                              -90°
+                            </button>
+                            <button
+                              type="button"
+                              className="chip"
+                              onClick={() => {
+                                const b = photoBounds(c, template, photoIndex)
+                                commit({
+                                  ...c,
+                                  photos: c.photos.map((p, i) =>
+                                    i === photoIndex
+                                      ? { ...p, transform: { ...b, rotation: (b.rotation + 90) } }
+                                      : p,
+                                  ),
+                                })
+                              }}
+                            >
+                              +90°
+                            </button>
+                            <button
+                              type="button"
+                              className="chip"
+                              onClick={() => {
+                                const b = photoBounds(c, template, photoIndex)
+                                commit({
+                                  ...c,
+                                  photos: c.photos.map((p, i) =>
+                                    i === photoIndex
+                                      ? { ...p, transform: { ...b, rotation: 0 } }
+                                      : p,
+                                  ),
+                                })
+                              }}
+                            >
+                              Reset 0°
+                            </button>
+                          </div>
+                        </>
                       )}
+                    {sticker && (
+                      <>
+                        <Range
+                          label="Sticker size"
+                          value={sticker.size}
+                          min={2}
+                          max={120}
+                          onChange={(size) => updateSticker({ size })}
+                        />
+                        <Range
+                          label="Sticker rotation"
+                          value={sticker.rotation}
+                          min={-180}
+                          max={180}
+                          onChange={(rotation) => updateSticker({ rotation })}
+                        />
+                        <div className="choices mb-2">
+                          <button
+                            type="button"
+                            className="chip"
+                            onClick={() => updateSticker({ rotation: sticker.rotation - 15 })}
+                          >
+                            -15°
+                          </button>
+                          <button
+                            type="button"
+                            className="chip"
+                            onClick={() => updateSticker({ rotation: sticker.rotation + 15 })}
+                          >
+                            +15°
+                          </button>
+                          <button
+                            type="button"
+                            className="chip"
+                            onClick={() => updateSticker({ rotation: 0 })}
+                          >
+                            Reset 0°
+                          </button>
+                        </div>
+                      </>
+                    )}
                     {(sticker || text) &&
                       (["x", "y"] as const).map((key) => (
                         <Range

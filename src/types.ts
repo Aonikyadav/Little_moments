@@ -139,6 +139,7 @@ export type Composition = {
   frameId?: string
   frameColor?: string
   frameOpacity?: number
+  frameTransform?: PhotoTransform
   backgroundPattern?: string
   backgroundOpacity?: number
   layerOrder?: string[]

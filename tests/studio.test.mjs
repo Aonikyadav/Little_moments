@@ -96,6 +96,7 @@ const {
   moveLayer,
   duplicateLayer,
   deleteLayer,
+  patchLayer,
   historyStep,
   dimensions,
 } = await loadModule("../src/studio/model.ts")
@@ -245,3 +246,90 @@ test("social output sizes preserve the selected canvas ratio", () => {
     height: 1800,
   })
 })
+
+test("allows rotating and resizing photos, stickers, and frames placed on the composition", () => {
+  const base = fixture()
+
+  // 1. Photo rotation and resizing in freeform mode
+  const free = enterFreeform(base, getTemplate(base.templateId))
+  const resizedPhoto = patchLayer(free, "p0", {
+    transform: {
+      x: 10,
+      y: 10,
+      width: 45,
+      height: 45,
+      rotation: 45,
+      scale: 1.2,
+      opacity: 1,
+    },
+  })
+  const p0 = resizedPhoto.photos.find((p) => p.id === "p0")
+  assert.ok(p0 && p0.transform)
+  assert.equal(p0.transform.width, 45)
+  assert.equal(p0.transform.height, 45)
+  assert.equal(p0.transform.rotation, 45)
+
+  // 2. Sticker rotation and resizing
+  const withSticker = {
+    ...resizedPhoto,
+    stickers: [
+      {
+        id: "s1",
+        kind: "heart",
+        x: 50,
+        y: 50,
+        size: 15,
+        rotation: 0,
+        opacity: 1,
+      },
+    ],
+  }
+  const transformedSticker = patchLayer(withSticker, "s1", {
+    size: 28,
+    rotation: -30,
+    x: 55,
+    y: 52,
+  })
+  const s1 = transformedSticker.stickers.find((s) => s.id === "s1")
+  assert.ok(s1)
+  assert.equal(s1.size, 28)
+  assert.equal(s1.rotation, -30)
+  assert.equal(s1.x, 55)
+
+  // 3. Frame rotation and scaling
+  const withFrame = {
+    ...transformedSticker,
+    frameId: "vintage-1",
+    frameOpacity: 0.9,
+    frameTransform: {
+      x: 50,
+      y: 50,
+      width: 100,
+      height: 100,
+      rotation: 0,
+    },
+  }
+  const transformedFrame = patchLayer(withFrame, "frame", {
+    transform: {
+      x: 50,
+      y: 50,
+      width: 80,
+      height: 80,
+      rotation: 15,
+    },
+    opacity: 0.85,
+  })
+  assert.ok(transformedFrame.frameTransform)
+  assert.equal(transformedFrame.frameTransform.width, 80)
+  assert.equal(transformedFrame.frameTransform.height, 80)
+  assert.equal(transformedFrame.frameTransform.rotation, 15)
+  assert.equal(transformedFrame.frameOpacity, 0.85)
+
+  // Check ordered layers reflects frame transform
+  const layers = orderedLayers(transformedFrame)
+  const frameLayer = layers.find((l) => l.id === "frame")
+  assert.ok(frameLayer)
+  assert.equal(frameLayer.properties.transform.rotation, 15)
+  assert.equal(frameLayer.properties.transform.width, 80)
+})
+

@@ -26,6 +26,7 @@ export interface PageCustomization {
   washiStyle?: string
   stickyNotes?: StickyNoteItem[]
   decoStamps?: PlacedDecoStamp[]
+  stripRotation?: number
 }
 
 export interface ScrapbookGlobalSettings {
