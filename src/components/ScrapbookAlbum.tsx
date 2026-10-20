@@ -20,6 +20,9 @@ import {
   Trash2,
   Check,
   Edit3,
+  Copy,
+  Search,
+  Smile,
 } from "lucide-react"
 import type { Composition } from "../types"
 import { getTemplate } from "../templates"
@@ -39,7 +42,13 @@ import {
   resetPageCustomization,
   StickyNoteItem,
   PlacedDecoStamp,
+  PlacedStickerItem,
 } from "../studio/scrapbookStore"
+import {
+  PNG_STICKER_PACKS,
+  PNG_STICKERS,
+  PngStickerItem,
+} from "../data/pngStickers"
 
 export interface ScrapbookItem {
   id: string
@@ -108,25 +117,31 @@ export function ScrapbookAlbum({
   const [memoDraftFont, setMemoDraftFont] = useState<"caveat" | "gochi">("caveat")
 
   // Floating toolbar modal trays & target page side ("left" or "right")
-  const [activeToolTray, setActiveToolTray] = useState<"themes" | "sticky" | "stamps" | null>(null)
+  const [activeToolTray, setActiveToolTray] = useState<"themes" | "sticky" | "stamps" | "stickers" | null>(null)
   const [targetSide, setTargetSide] = useState<"left" | "right">("left")
   const [washiToast, setWashiToast] = useState<string | null>(null)
 
   // Placement rotation angles
   const [stickyPlacementAngle, setStickyPlacementAngle] = useState<number | "random">("random")
   const [stampPlacementAngle, setStampPlacementAngle] = useState<number | "random">("random")
+  const [stickerPlacementAngle, setStickerPlacementAngle] = useState<number | "random">("random")
+
+  // Sticker browser controls
+  const [selectedStickerPack, setSelectedStickerPack] = useState<string>("all")
+  const [stickerSearch, setStickerSearch] = useState<string>("")
+  const [stickerPreviewMode, setStickerPreviewMode] = useState<"checkered" | "light" | "dark">("checkered")
 
   // Selected decoration (for rotation badge & controls)
   const [selectedDecoration, setSelectedDecoration] = useState<{
-    type: "sticky" | "stamp"
+    type: "sticky" | "stamp" | "sticker"
     side: "left" | "right"
     itemId: string
     elemId: string
   } | null>(null)
 
-  // Dragging support for sticky notes & stamps
+  // Dragging support for sticky notes, stamps & stickers
   const draggingItemRef = useRef<{
-    type: "sticky" | "stamp"
+    type: "sticky" | "stamp" | "sticker"
     side: "left" | "right"
     itemId: string
     elemId: string
@@ -138,9 +153,9 @@ export function ScrapbookAlbum({
     pageHeight: number
   } | null>(null)
 
-  // Rotating support for sticky notes & stamps
+  // Rotating support for sticky notes, stamps & stickers
   const rotatingItemRef = useRef<{
-    type: "sticky" | "stamp"
+    type: "sticky" | "stamp" | "sticker"
     side: "left" | "right"
     itemId: string
     elemId: string
@@ -487,7 +502,7 @@ export function ScrapbookAlbum({
 
   // Start rotating gesture via rotate handle
   const startRotating = (
-    type: "sticky" | "stamp",
+    type: "sticky" | "stamp" | "sticker",
     side: "left" | "right",
     itemId: string,
     elemId: string,
@@ -513,6 +528,133 @@ export function ScrapbookAlbum({
     }
     setSelectedDecoration({ type, side, itemId, elemId })
   }
+
+  // Add Placed Sticker to active spread side
+  const addPlacedSticker = (side: "left" | "right", sticker: PngStickerItem) => {
+    const item = side === "left" ? leftItem : rightItem
+    if (!item) return
+
+    const initialRot =
+      stickerPlacementAngle === "random"
+        ? Math.round((Math.random() * 20 - 10) * 10) / 10
+        : Number(stickerPlacementAngle)
+
+    const newSticker: PlacedStickerItem = {
+      id: `sticker_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      stickerId: sticker.id,
+      src: sticker.src,
+      name: sticker.name,
+      pack: sticker.pack,
+      x: side === "left" ? 22 : 66,
+      y: 35,
+      rotation: initialRot,
+      scale: 1,
+    }
+
+    const currentStickers = (customizations[item.id]?.placedStickers || [])
+    const nextStickers = [...currentStickers, newSticker]
+    savePageCustomization(item.id, { placedStickers: nextStickers })
+    setCustomizations((prev) => ({
+      ...prev,
+      [item.id]: { ...prev[item.id], placedStickers: nextStickers },
+    }))
+  }
+
+  // Delete Placed Sticker
+  const deletePlacedSticker = (itemId: string, stickerElemId: string) => {
+    const currentStickers = (customizations[itemId]?.placedStickers || [])
+    const nextStickers = currentStickers.filter((s) => s.id !== stickerElemId)
+    savePageCustomization(itemId, { placedStickers: nextStickers })
+    setCustomizations((prev) => ({
+      ...prev,
+      [itemId]: { ...prev[itemId], placedStickers: nextStickers },
+    }))
+  }
+
+  // Duplicate Placed Sticker
+  const duplicatePlacedSticker = (itemId: string, stickerElemId: string) => {
+    const currentStickers = (customizations[itemId]?.placedStickers || [])
+    const target = currentStickers.find((s) => s.id === stickerElemId)
+    if (!target) return
+
+    const duplicated: PlacedStickerItem = {
+      ...target,
+      id: `sticker_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      x: Math.min(86, target.x + 4),
+      y: Math.min(86, target.y + 4),
+      rotation: Math.round(((target.rotation + 6 + 180) % 360) - 180),
+    }
+
+    const nextStickers = [...currentStickers, duplicated]
+    savePageCustomization(itemId, { placedStickers: nextStickers })
+    setCustomizations((prev) => ({
+      ...prev,
+      [itemId]: { ...prev[itemId], placedStickers: nextStickers },
+    }))
+  }
+
+  // Rotate Placed Sticker
+  const rotatePlacedSticker = (
+    itemId: string,
+    stickerElemId: string,
+    deltaOrExact: number,
+    isExact = false,
+    persist = true,
+  ) => {
+    let nextStickers: PlacedStickerItem[] = []
+    setCustomizations((prev) => {
+      const currentStickers = prev[itemId]?.placedStickers || []
+      nextStickers = currentStickers.map((s) => {
+        if (s.id !== stickerElemId) return s
+        const newRotation = isExact
+          ? Math.round(deltaOrExact)
+          : Math.round(((s.rotation + deltaOrExact + 180) % 360) - 180)
+        return { ...s, rotation: newRotation }
+      })
+      return {
+        ...prev,
+        [itemId]: { ...prev[itemId], placedStickers: nextStickers },
+      }
+    })
+    if (persist) {
+      savePageCustomization(itemId, { placedStickers: nextStickers })
+    }
+  }
+
+  // Scale Placed Sticker
+  const scalePlacedSticker = (
+    itemId: string,
+    stickerElemId: string,
+    deltaOrExact: number,
+    isExact = false,
+  ) => {
+    const currentStickers = customizations[itemId]?.placedStickers || []
+    const nextStickers = currentStickers.map((s) => {
+      if (s.id !== stickerElemId) return s
+      const newScale = isExact
+        ? Math.max(0.3, Math.min(3.0, deltaOrExact))
+        : Math.max(0.3, Math.min(3.0, (s.scale || 1) + deltaOrExact))
+      return { ...s, scale: Math.round(newScale * 100) / 100 }
+    })
+    savePageCustomization(itemId, { placedStickers: nextStickers })
+    setCustomizations((prev) => ({
+      ...prev,
+      [itemId]: { ...prev[itemId], placedStickers: nextStickers },
+    }))
+  }
+
+  // Filter PNG stickers for browsing
+  const filteredPngStickers = useMemo(() => {
+    return PNG_STICKERS.filter((s) => {
+      const matchesPack = selectedStickerPack === "all" || s.packSlug === selectedStickerPack
+      const matchesSearch =
+        !stickerSearch ||
+        s.name.toLowerCase().includes(stickerSearch.toLowerCase()) ||
+        s.pack.toLowerCase().includes(stickerSearch.toLowerCase()) ||
+        s.tags.some((t) => t.toLowerCase().includes(stickerSearch.toLowerCase()))
+      return matchesPack && matchesSearch
+    })
+  }, [selectedStickerPack, stickerSearch])
 
   // Delete Deco Stamp
   const deleteDecoStamp = (itemId: string, stampElemId: string) => {
@@ -557,8 +699,10 @@ export function ScrapbookAlbum({
 
         if (rot.type === "sticky") {
           rotateStickyNote(rot.itemId, rot.elemId, newRot, true, false)
-        } else {
+        } else if (rot.type === "stamp") {
           rotateDecoStamp(rot.itemId, rot.elemId, newRot, true, false)
+        } else {
+          rotatePlacedSticker(rot.itemId, rot.elemId, newRot, true, false)
         }
         return
       }
@@ -587,7 +731,7 @@ export function ScrapbookAlbum({
             },
           }
         })
-      } else {
+      } else if (drag.type === "stamp") {
         setCustomizations((prev) => {
           const stamps = prev[drag.itemId]?.decoStamps || []
           return {
@@ -595,6 +739,17 @@ export function ScrapbookAlbum({
             [drag.itemId]: {
               ...prev[drag.itemId],
               decoStamps: stamps.map((s) => (s.id === drag.elemId ? { ...s, x: newX, y: newY } : s)),
+            },
+          }
+        })
+      } else {
+        setCustomizations((prev) => {
+          const stickers = prev[drag.itemId]?.placedStickers || []
+          return {
+            ...prev,
+            [drag.itemId]: {
+              ...prev[drag.itemId],
+              placedStickers: stickers.map((s) => (s.id === drag.elemId ? { ...s, x: newX, y: newY } : s)),
             },
           }
         })
@@ -1045,6 +1200,223 @@ export function ScrapbookAlbum({
                         </span>
                       </button>
                     ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* + Stickers Trigger & Browser Tray */}
+            <div className="relative">
+              <button
+                type="button"
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium flex items-center gap-1.5 transition-all ${
+                  activeToolTray === "stickers"
+                    ? "bg-amber-400 text-stone-950 font-bold"
+                    : "bg-stone-800 hover:bg-stone-700 text-stone-200"
+                }`}
+                onClick={() => setActiveToolTray((t) => (t === "stickers" ? null : "stickers"))}
+                title="Browse and place stickers on scrapbook pages"
+              >
+                <Smile size={13} />
+                <span>+ Stickers</span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1 py-0.2 rounded font-mono font-bold">
+                  {PNG_STICKERS.length}
+                </span>
+              </button>
+
+              {activeToolTray === "stickers" && (
+                <div className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-50 p-3 bg-stone-950 border border-stone-700 rounded-xl shadow-2xl w-96 max-w-[calc(100vw-32px)] max-h-[80vh] flex flex-col text-xs font-mono space-y-2.5 animate-in fade-in slide-in-from-top-2">
+                  {/* Top Header: Target Page & Preview Mode */}
+                  <div className="flex items-center justify-between pb-1.5 border-b border-stone-800 gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-amber-400 text-[10px] uppercase font-bold">
+                        Target Page:
+                      </span>
+                      <div className="flex items-center gap-1 bg-stone-900 p-0.5 rounded border border-stone-800">
+                        <button
+                          type="button"
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            targetSide === "left"
+                              ? "bg-amber-400 text-stone-950"
+                              : "text-stone-400 hover:text-stone-200"
+                          }`}
+                          onClick={() => setTargetSide("left")}
+                        >
+                          Left Page
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            targetSide === "right"
+                              ? "bg-amber-400 text-stone-950"
+                              : "text-stone-400 hover:text-stone-200"
+                          }`}
+                          onClick={() => setTargetSide("right")}
+                        >
+                          Right Page
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Preview Background Toggle: Checkered / Light / Dark */}
+                    <div className="flex items-center gap-1 bg-stone-900 p-0.5 rounded border border-stone-800" title="Toggle background to verify sticker transparency on light & dark surfaces">
+                      <button
+                        type="button"
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                          stickerPreviewMode === "checkered"
+                            ? "bg-amber-400 text-stone-950"
+                            : "text-stone-400 hover:text-stone-200"
+                        }`}
+                        onClick={() => setStickerPreviewMode("checkered")}
+                        title="Checkered grid preview"
+                      >
+                        Grid
+                      </button>
+                      <button
+                        type="button"
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                          stickerPreviewMode === "light"
+                            ? "bg-white text-stone-950"
+                            : "text-stone-400 hover:text-stone-200"
+                        }`}
+                        onClick={() => setStickerPreviewMode("light")}
+                        title="Light background preview"
+                      >
+                        Light
+                      </button>
+                      <button
+                        type="button"
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                          stickerPreviewMode === "dark"
+                            ? "bg-stone-800 text-stone-100"
+                            : "text-stone-400 hover:text-stone-200"
+                        }`}
+                        onClick={() => setStickerPreviewMode("dark")}
+                        title="Dark background preview"
+                      >
+                        Dark
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Pre-placement Rotation Selector */}
+                  <div className="flex items-center justify-between pb-1.5 border-b border-stone-800">
+                    <span className="text-stone-300 text-[10px] uppercase font-bold flex items-center gap-1">
+                      <RotateCw size={11} className="text-amber-400" />
+                      Tilt / Rotation:
+                    </span>
+                    <div className="flex items-center gap-1 bg-stone-900 p-0.5 rounded border border-stone-800">
+                      {[
+                        { label: "-12°", val: -12 },
+                        { label: "-6°", val: -6 },
+                        { label: "0°", val: 0 },
+                        { label: "+6°", val: 6 },
+                        { label: "+12°", val: 12 },
+                        { label: "🎲", val: "random" },
+                      ].map((p) => (
+                        <button
+                          key={String(p.val)}
+                          type="button"
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
+                            stickerPlacementAngle === p.val
+                              ? "bg-amber-400 text-stone-950 shadow-sm"
+                              : "text-stone-400 hover:text-stone-200"
+                          }`}
+                          onClick={() => setStickerPlacementAngle(p.val as any)}
+                          title={`Place sticker with ${p.label} rotation`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search size={12} className="absolute left-2.5 top-2 text-stone-400" />
+                    <input
+                      type="text"
+                      value={stickerSearch}
+                      onChange={(e) => setStickerSearch(e.target.value)}
+                      placeholder="Search stickers by name or keyword..."
+                      className="w-full pl-7 pr-3 py-1.5 rounded-lg bg-stone-900 border border-stone-800 text-stone-200 text-xs font-mono placeholder:text-stone-500 focus:outline-none focus:border-amber-400"
+                    />
+                    {stickerSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setStickerSearch("")}
+                        className="absolute right-2.5 top-2 text-stone-400 hover:text-stone-200 text-xs"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Pack Selector Chips */}
+                  <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1">
+                    <button
+                      type="button"
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${
+                        selectedStickerPack === "all"
+                          ? "bg-amber-400 text-stone-950"
+                          : "bg-stone-900 text-stone-400 hover:text-stone-200 border border-stone-800"
+                      }`}
+                      onClick={() => setSelectedStickerPack("all")}
+                    >
+                      All ({PNG_STICKERS.length})
+                    </button>
+                    {PNG_STICKER_PACKS.map((pack) => (
+                      <button
+                        key={pack.slug}
+                        type="button"
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${
+                          selectedStickerPack === pack.slug
+                            ? "bg-amber-400 text-stone-950"
+                            : "bg-stone-900 text-stone-400 hover:text-stone-200 border border-stone-800"
+                        }`}
+                        onClick={() => setSelectedStickerPack(pack.slug)}
+                      >
+                        {pack.title} ({pack.count})
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Grid of PNG Stickers */}
+                  <div className="overflow-y-auto max-h-64 pr-1 grid grid-cols-4 gap-2">
+                    {filteredPngStickers.map((sticker) => (
+                      <button
+                        key={sticker.id}
+                        type="button"
+                        className={`group relative p-1.5 rounded-lg border border-stone-800 hover:border-amber-400 flex flex-col items-center justify-between hover:scale-105 active:scale-95 transition-all ${
+                          stickerPreviewMode === "light"
+                            ? "bg-white"
+                            : stickerPreviewMode === "dark"
+                            ? "bg-stone-900"
+                            : "bg-[radial-gradient(#444_1px,transparent_1px)] [background-size:8px_8px] bg-stone-900"
+                        }`}
+                        onClick={() => addPlacedSticker(targetSide, sticker)}
+                        title={`Click to place ${sticker.name} onto ${targetSide} page`}
+                      >
+                        <div className="w-14 h-14 flex items-center justify-center overflow-hidden">
+                          <img
+                            src={sticker.src}
+                            alt={sticker.name}
+                            className="max-w-full max-h-full object-contain pointer-events-none drop-shadow"
+                            loading="lazy"
+                          />
+                        </div>
+                        <span className={`text-[9px] font-mono truncate max-w-full mt-1 ${
+                          stickerPreviewMode === "light" ? "text-stone-800" : "text-stone-300"
+                        }`}>
+                          {sticker.name}
+                        </span>
+                      </button>
+                    ))}
+                    {filteredPngStickers.length === 0 && (
+                      <div className="col-span-4 py-8 text-center text-stone-400 text-xs">
+                        No stickers found matching "{stickerSearch}"
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1643,6 +2015,134 @@ export function ScrapbookAlbum({
                       </div>
                     )
                   })}
+
+                  {/* Render Draggable PNG Stickers on Left Page */}
+                  {(leftCustom.placedStickers || []).map((sticker) => {
+                    const isSelected = selectedDecoration?.elemId === sticker.id
+
+                    return (
+                      <div
+                        key={sticker.id}
+                        data-deco-item="true"
+                        className={`absolute z-30 cursor-grab active:cursor-grabbing group hover:scale-105 transition-transform ${
+                          isSelected ? "ring-2 ring-amber-400 shadow-2xl rounded-lg" : ""
+                        }`}
+                        style={{
+                          left: `${sticker.x}%`,
+                          top: `${sticker.y}%`,
+                          transform: `rotate(${sticker.rotation}deg) scale(${sticker.scale || 1})`,
+                          width: "90px",
+                          touchAction: "none",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedDecoration({ type: "sticker", side: "left", itemId: leftItem.id, elemId: sticker.id })
+                        }}
+                        onPointerDown={(e) => {
+                          const rect = leftPageRef.current?.getBoundingClientRect()
+                          if (!rect) return
+                          draggingItemRef.current = {
+                            type: "sticker",
+                            side: "left",
+                            itemId: leftItem.id,
+                            elemId: sticker.id,
+                            startX: e.clientX,
+                            startY: e.clientY,
+                            startElemX: sticker.x,
+                            startElemY: sticker.y,
+                            pageWidth: rect.width,
+                            pageHeight: rect.height,
+                          }
+                          setSelectedDecoration({ type: "sticker", side: "left", itemId: leftItem.id, elemId: sticker.id })
+                        }}
+                      >
+                        {/* Single Rotator Circle Handle (Mobile-style drag to rotate 360° freely in any direction) */}
+                        <div
+                          className={`absolute -top-7 left-1/2 -translate-x-1/2 flex flex-col items-center z-40 cursor-grab active:cursor-grabbing select-none transition-transform ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90 hover:scale-110"
+                          }`}
+                          onPointerDown={(e) => {
+                            e.stopPropagation()
+                            startRotating("sticker", "left", leftItem.id, sticker.id, sticker.rotation, e)
+                          }}
+                          title="Drag circle to rotate freely in any direction"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-stone-900 border-2 border-amber-400 text-amber-300 flex items-center justify-center shadow-lg hover:bg-stone-800 hover:border-amber-300 transition-colors">
+                            <RotateCw size={12} className="pointer-events-none" />
+                          </div>
+                          <div className="w-0.5 h-2 bg-amber-400" />
+                        </div>
+
+                        {/* Top-Right: Delete button */}
+                        <button
+                          type="button"
+                          className={`absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full bg-stone-900 text-stone-300 hover:text-white hover:bg-rose-600 shadow-md flex items-center justify-center transition-all z-40 active:scale-90 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deletePlacedSticker(leftItem.id, sticker.id)
+                            if (selectedDecoration?.elemId === sticker.id) setSelectedDecoration(null)
+                          }}
+                          title="Remove sticker"
+                        >
+                          <Trash2 size={10} />
+                        </button>
+
+                        {/* Bottom-Left: Duplicate button */}
+                        <button
+                          type="button"
+                          className={`absolute -bottom-2.5 -left-2.5 w-5 h-5 rounded-full bg-stone-900 text-stone-300 hover:text-amber-300 hover:bg-stone-800 shadow-md flex items-center justify-center transition-all z-40 active:scale-90 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            duplicatePlacedSticker(leftItem.id, sticker.id)
+                          }}
+                          title="Duplicate sticker"
+                        >
+                          <Copy size={10} />
+                        </button>
+
+                        {/* Bottom-Right: Subtle scale buttons */}
+                        <div
+                          className={`absolute -bottom-2.5 -right-2.5 flex items-center gap-0.5 transition-all z-40 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            className="w-4 h-4 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-200 shadow-md flex items-center justify-center transition-transform active:scale-90"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              scalePlacedSticker(leftItem.id, sticker.id, -0.15)
+                            }}
+                            title="Scale smaller"
+                          >
+                            <ZoomOut size={9} />
+                          </button>
+                          <button
+                            type="button"
+                            className="w-4 h-4 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-200 shadow-md flex items-center justify-center transition-transform active:scale-90"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              scalePlacedSticker(leftItem.id, sticker.id, 0.15)
+                            }}
+                            title="Scale larger"
+                          >
+                            <ZoomIn size={9} />
+                          </button>
+                        </div>
+
+                        <img
+                          src={sticker.src}
+                          alt={sticker.name}
+                          className="w-full h-auto object-contain pointer-events-none drop-shadow-md select-none"
+                          draggable={false}
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-stone-300 rounded-lg">
@@ -2116,6 +2616,134 @@ export function ScrapbookAlbum({
                           viewBox={def.viewBox || "0 0 54 54"}
                           className="w-full h-auto pointer-events-none"
                           dangerouslySetInnerHTML={{ __html: def.svg }}
+                        />
+                      </div>
+                    )
+                  })}
+
+                  {/* Render Draggable PNG Stickers on Right Page */}
+                  {(rightCustom.placedStickers || []).map((sticker) => {
+                    const isSelected = selectedDecoration?.elemId === sticker.id
+
+                    return (
+                      <div
+                        key={sticker.id}
+                        data-deco-item="true"
+                        className={`absolute z-30 cursor-grab active:cursor-grabbing group hover:scale-105 transition-transform ${
+                          isSelected ? "ring-2 ring-amber-400 shadow-2xl rounded-lg" : ""
+                        }`}
+                        style={{
+                          left: `${sticker.x}%`,
+                          top: `${sticker.y}%`,
+                          transform: `rotate(${sticker.rotation}deg) scale(${sticker.scale || 1})`,
+                          width: "90px",
+                          touchAction: "none",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedDecoration({ type: "sticker", side: "right", itemId: rightItem.id, elemId: sticker.id })
+                        }}
+                        onPointerDown={(e) => {
+                          const rect = rightPageRef.current?.getBoundingClientRect()
+                          if (!rect) return
+                          draggingItemRef.current = {
+                            type: "sticker",
+                            side: "right",
+                            itemId: rightItem.id,
+                            elemId: sticker.id,
+                            startX: e.clientX,
+                            startY: e.clientY,
+                            startElemX: sticker.x,
+                            startElemY: sticker.y,
+                            pageWidth: rect.width,
+                            pageHeight: rect.height,
+                          }
+                          setSelectedDecoration({ type: "sticker", side: "right", itemId: rightItem.id, elemId: sticker.id })
+                        }}
+                      >
+                        {/* Single Rotator Circle Handle (Mobile-style drag to rotate 360° freely in any direction) */}
+                        <div
+                          className={`absolute -top-7 left-1/2 -translate-x-1/2 flex flex-col items-center z-40 cursor-grab active:cursor-grabbing select-none transition-transform ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90 hover:scale-110"
+                          }`}
+                          onPointerDown={(e) => {
+                            e.stopPropagation()
+                            startRotating("sticker", "right", rightItem.id, sticker.id, sticker.rotation, e)
+                          }}
+                          title="Drag circle to rotate freely in any direction"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-stone-900 border-2 border-amber-400 text-amber-300 flex items-center justify-center shadow-lg hover:bg-stone-800 hover:border-amber-300 transition-colors">
+                            <RotateCw size={12} className="pointer-events-none" />
+                          </div>
+                          <div className="w-0.5 h-2 bg-amber-400" />
+                        </div>
+
+                        {/* Top-Right: Delete button */}
+                        <button
+                          type="button"
+                          className={`absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full bg-stone-900 text-stone-300 hover:text-white hover:bg-rose-600 shadow-md flex items-center justify-center transition-all z-40 active:scale-90 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deletePlacedSticker(rightItem.id, sticker.id)
+                            if (selectedDecoration?.elemId === sticker.id) setSelectedDecoration(null)
+                          }}
+                          title="Remove sticker"
+                        >
+                          <Trash2 size={10} />
+                        </button>
+
+                        {/* Bottom-Left: Duplicate button */}
+                        <button
+                          type="button"
+                          className={`absolute -bottom-2.5 -left-2.5 w-5 h-5 rounded-full bg-stone-900 text-stone-300 hover:text-amber-300 hover:bg-stone-800 shadow-md flex items-center justify-center transition-all z-40 active:scale-90 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            duplicatePlacedSticker(rightItem.id, sticker.id)
+                          }}
+                          title="Duplicate sticker"
+                        >
+                          <Copy size={10} />
+                        </button>
+
+                        {/* Bottom-Right: Subtle scale buttons */}
+                        <div
+                          className={`absolute -bottom-2.5 -right-2.5 flex items-center gap-0.5 transition-all z-40 ${
+                            isSelected ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-90"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            className="w-4 h-4 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-200 shadow-md flex items-center justify-center transition-transform active:scale-90"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              scalePlacedSticker(rightItem.id, sticker.id, -0.15)
+                            }}
+                            title="Scale smaller"
+                          >
+                            <ZoomOut size={9} />
+                          </button>
+                          <button
+                            type="button"
+                            className="w-4 h-4 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-200 shadow-md flex items-center justify-center transition-transform active:scale-90"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              scalePlacedSticker(rightItem.id, sticker.id, 0.15)
+                            }}
+                            title="Scale larger"
+                          >
+                            <ZoomIn size={9} />
+                          </button>
+                        </div>
+
+                        <img
+                          src={sticker.src}
+                          alt={sticker.name}
+                          className="w-full h-auto object-contain pointer-events-none drop-shadow-md select-none"
+                          draggable={false}
                         />
                       </div>
                     )

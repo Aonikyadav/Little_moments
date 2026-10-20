@@ -188,8 +188,26 @@ function Preview({ composition }: { composition: Composition }) {
 
 
 
+function getInitialPage(): Page {
+  if (typeof window === "undefined") return "home"
+  const cleanPath = window.location.pathname.toLowerCase().replace(/\/+$/, "")
+  const hash = window.location.hash.toLowerCase().replace(/^#\/?/, "")
+  const target = cleanPath.split("/").pop() || hash
+
+  if (target === "studio" || target === "editor") return "editor"
+  if (target === "kbooth" || target === "booth") return "kbooth"
+  if (target === "templates" || target === "template") return "templates"
+  if (target === "creations" || target === "album" || target === "keepsakes") return "creations"
+  if (target === "settings") return "settings"
+  if (target === "camera") return "camera"
+  if (target === "setup") return "setup"
+  if (target === "review") return "review"
+  if (target === "export") return "export"
+  return "home"
+}
+
 export default function App() {
-  const [page, setPage] = useState<Page>("home")
+  const [page, setPage] = useState<Page>(() => getInitialPage())
   const [settings, setSettings] = useState<BoothSettings>(() =>
     readLocal("little-settings", defaultSettings),
   )
@@ -301,6 +319,27 @@ export default function App() {
       return () => clearTimeout(t)
     }
   }, [toast])
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setPage(getInitialPage())
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || window.location.search.includes("view=mobile")) return
+    const route = page === "home" ? "/" : `/${page === "editor" ? "studio" : page}`
+    const current = window.location.pathname
+    if (current !== route && current !== `/${page}`) {
+      try {
+        window.history.pushState(null, "", route + window.location.search + window.location.hash)
+      } catch {
+        // Safe fallback in restricted environments
+      }
+    }
+  }, [page])
 
   useEffect(() => {
     try {

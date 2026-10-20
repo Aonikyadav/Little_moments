@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react"
 import {
   ArrowRight,
@@ -24,8 +24,10 @@ import {
   Paintbrush,
   Plus,
   RotateCcw,
+  RotateCw,
   Search,
   SlidersHorizontal,
+  Smile,
   Sparkles,
   Sticker,
   Trash2,
@@ -51,6 +53,10 @@ import {
   frames,
   frameCategories,
   stickers,
+  allStickers,
+  allStickerPacks,
+  pngStickers,
+  findSticker,
   stickerPacks,
   stickerUrl,
 } from "./assets"
@@ -276,9 +282,11 @@ type GesturePoint = {
 function LayerThumb({ c, id }: LayerThumbProps) {
   const photo = c.photos.find((p) => p.id === id),
     sticker = c.stickers.find((s) => s.id === id),
-    asset = stickers.find((a) => a.id === sticker?.assetId)
+    asset = findSticker(sticker?.assetId || "") ?? stickers.find((a) => a.id === sticker?.assetId)
   return photo ? (
     <img src={photo.src} alt="" />
+  ) : sticker?.src ? (
+    <img src={sticker.src} alt="" />
   ) : asset ? (
     <img src={stickerUrl(asset, sticker!.color)} alt="" />
   ) : id === "frame" ? (
@@ -321,6 +329,7 @@ export default function Studio({
     [recentStickers, setRecentStickers] = useState(() =>
       initialPreferences("studio-recent-stickers"),
     ),
+    [stickerPreviewBg, setStickerPreviewBg] = useState<"checkered" | "light" | "dark">("checkered"),
     [sort, setSort] = useState("Collection"),
     [colorFilter, setColorFilter] = useState("Any color"),
     [showFavorites, setShowFavorites] = useState(false),
@@ -335,7 +344,11 @@ export default function Studio({
     [confirmDelete, setConfirmDelete] = useState(false),
     [replacing, setReplacing] = useState(false),
     [touchMode, setTouchMode] = useState<"photo" | "canvas">("photo"),
-    [gestureHud, setGestureHud] = useState<{ text: string; sub?: string } | null>(null)
+    [gestureHud, setGestureHud] = useState<{ text: string; sub?: string } | null>(null),
+    [stickerPlacementAngle, setStickerPlacementAngle] = useState<number | "random">(0),
+    [templateSearch, setTemplateSearch] = useState(""),
+    [templateCutFilter, setTemplateCutFilter] = useState<number | "all">("all"),
+    [filterSearch, setFilterSearch] = useState("")
   const stage = useRef<HTMLDivElement>(null),
     importInput = useRef<HTMLInputElement>(null),
     stickerInput = useRef<HTMLInputElement>(null),
@@ -1172,8 +1185,9 @@ export default function Studio({
   }
 
   const addSticker = (id: string) => {
-    const asset = stickers.find((s) => s.id === id)!
+    const asset = findSticker(id) ?? allStickers.find((s) => s.id === id) ?? stickers.find((s) => s.id === id)!
     const newId = crypto.randomUUID()
+    const rot = stickerPlacementAngle === "random" ? Math.floor(Math.random() * 25) - 12 : stickerPlacementAngle
     commit({
       ...c,
       stickers: [
@@ -1181,12 +1195,13 @@ export default function Studio({
         {
           id: newId,
           assetId: id,
+          src: asset?.src,
           kind: "star",
-          name: asset.name,
+          name: asset?.name || "Sticker",
           x: 50,
           y: 50,
           size: 20,
-          rotation: 0,
+          rotation: rot,
           color: "#a45f59",
         },
       ],
@@ -1194,6 +1209,120 @@ export default function Studio({
     setSelected(newId)
     setRecentStickers((r) => [id, ...r.filter((x) => x !== id)].slice(0, 20))
   }
+
+  const frameCategoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { "All collections": frames.length }
+    for (const f of frames) {
+      counts[f.category] = (counts[f.category] || 0) + 1
+    }
+    return counts
+  }, [])
+
+  const stickerPackCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      "All packs": allStickers.length,
+      Favorites: stickerFavorites.length,
+      Recent: recentStickers.length,
+    }
+    for (const s of allStickers) {
+      counts[s.pack] = (counts[s.pack] || 0) + 1
+    }
+    return counts
+  }, [stickerFavorites, recentStickers])
+
+  const filterCategoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { "All looks": filterPresets.length }
+    for (const p of filterPresets) {
+      counts[p.category] = (counts[p.category] || 0) + 1
+    }
+    return counts
+  }, [])
+
+  const templateCategoryCounts = useMemo(() => {
+    const list = [
+      "All styles",
+      "Korean Photo Booth 4-Cut",
+      "Scrapbook & Summer Grass 🌿",
+      "Romantic Kiss Pose Aesthetic ♡",
+      "Propose & Birthday Keepsakes 🎂",
+      "Cool & Spider Animated 🕸️",
+    ]
+    const counts: Record<string, number> = {}
+    for (const cat of list) {
+      if (cat === "All styles") {
+        counts[cat] = templates.length
+      } else if (cat === "Scrapbook & Summer Grass 🌿") {
+        counts[cat] = templates.filter(
+          (t) =>
+            t.id.includes("piccollage") ||
+            t.tags?.includes("scrapbook") ||
+            t.tags?.includes("piccollage") ||
+            t.name.toLowerCase().includes("scrapbook"),
+        ).length
+      } else if (cat === "Korean Photo Booth 4-Cut") {
+        counts[cat] = templates.filter(
+          (t) =>
+            t.category.toLowerCase().includes("korean") ||
+            t.category.toLowerCase().includes("booth") ||
+            t.tags?.some((tg) => tg.toLowerCase().includes("korean") || tg.toLowerCase().includes("four-cut")),
+        ).length
+      } else {
+        const word = cat.toLowerCase().split(" ")[0]
+        counts[cat] = templates.filter(
+          (t) =>
+            t.category.toLowerCase().includes(word) ||
+            t.tags?.some((tg) => tg.toLowerCase().includes(word)),
+        ).length
+      }
+    }
+    return counts
+  }, [])
+
+  const matchingTemplates = useMemo(() => {
+    return templates.filter((t) => {
+      if (templateCutFilter !== "all" && t.count !== templateCutFilter) return false
+      if (templateSearch.trim()) {
+        const q = templateSearch.toLowerCase()
+        const match = `${t.name} ${t.category} ${t.tags?.join(" ") ?? ""}`.toLowerCase().includes(q)
+        if (!match) return false
+      }
+      if (templateCategoryFilter === "Scrapbook & Summer Grass 🌿") {
+        return (
+          t.id.includes("piccollage") ||
+          t.tags?.includes("scrapbook") ||
+          t.tags?.includes("piccollage") ||
+          t.name.toLowerCase().includes("scrapbook")
+        )
+      }
+      if (templateCategoryFilter === "Korean Photo Booth 4-Cut") {
+        return (
+          t.category.toLowerCase().includes("korean") ||
+          t.category.toLowerCase().includes("booth") ||
+          t.tags?.some((tg) => tg.toLowerCase().includes("korean") || tg.toLowerCase().includes("four-cut"))
+        )
+      }
+      if (templateCategoryFilter !== "All styles") {
+        const filterWord = templateCategoryFilter.toLowerCase().split(" ")[0]
+        return (
+          t.category.toLowerCase().includes(filterWord) ||
+          t.tags?.some((tg) => tg.toLowerCase().includes(filterWord))
+        )
+      }
+      return true
+    })
+  }, [templateCutFilter, templateSearch, templateCategoryFilter])
+
+  const matchingFilters = useMemo(() => {
+    return filterPresets.filter((p) => {
+      if (filterCategory !== "All looks" && p.category !== filterCategory) return false
+      if (filterSearch.trim()) {
+        const q = filterSearch.toLowerCase()
+        return `${p.name} ${p.category} ${p.description}`.toLowerCase().includes(q)
+      }
+      return true
+    })
+  }, [filterCategory, filterSearch])
+
   const matchingFrames = frames
     .filter(
       (f) =>
@@ -1217,7 +1346,7 @@ export default function Studio({
             (recent.includes(b.id) ? recent.indexOf(b.id) : 999)
           : 0,
     )
-  const matchingStickers = stickers.filter(
+  const matchingStickers = allStickers.filter(
     (s) =>
       (pack === "All packs" ||
         (pack === "Favorites" && stickerFavorites.includes(s.id)) ||
@@ -1796,88 +1925,99 @@ export default function Studio({
             <span className="hand">make it yours</span>
           </div>
           <div className="inspector-body">
-            {["Frames", "Stickers"].includes(tool) && (
-              <label className="studio-search">
-                <Search size={15} />
-                <input
-                  aria-label={`Search ${tool.toLowerCase()}`}
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value)
-                    setLibraryPage(0)
-                  }}
-                  placeholder={
-                    tool === "Frames"
-                      ? "Search lace, film, notebook…"
-                      : "Search bows, stars, memories…"
-                  }
-                />
-                {search && (
-                  <button
-                    aria-label="Clear search"
-                    onClick={() => setSearch("")}
-                  >
-                    <X size={13} />
-                  </button>
-                )}
-              </label>
-            )}
             {tool === "Frames" && (
               <>
-                <div className="library-summary">
-                  <span>{frames.length} original vector frame recipes</span>
-                  <span>{c.photos.length} photos · compatible</span>
-                </div>
-                <div className="library-chips">
-                  {["All collections", ...frameCategories].map((cat) => (
+                <div className="flex items-center justify-between pb-1.5 border-b border-stone-800 gap-2 flex-wrap text-xs font-mono">
+                  <span className="text-amber-400 text-[10px] uppercase font-bold tracking-wider">
+                    {frames.length} Frame Recipes · {matchingFrames.length} Matching
+                  </span>
+                  <div className="preview-mode-group">
                     <button
-                      className={category === cat ? "active" : ""}
-                      key={cat}
-                      onClick={() => {
-                        setCategory(cat)
-                        setLibraryPage(0)
-                      }}
+                      type="button"
+                      className={`preview-mode-btn ${colorFilter === "Any color" ? "active-grid" : ""}`}
+                      onClick={() => setColorFilter("Any color")}
                     >
-                      {cat === "All collections"
-                        ? "All styles"
-                        : cat.split(" and ")[0]}
+                      All
                     </button>
-                  ))}
+                    <button
+                      type="button"
+                      className={`preview-mode-btn ${colorFilter === "Light" ? "active-light" : ""}`}
+                      onClick={() => setColorFilter("Light")}
+                    >
+                      Light
+                    </button>
+                    <button
+                      type="button"
+                      className={`preview-mode-btn ${colorFilter === "Dark" ? "active-dark" : ""}`}
+                      onClick={() => setColorFilter("Dark")}
+                    >
+                      Dark
+                    </button>
+                  </div>
                 </div>
-                <div className="library-filterbar">
-                  <button
-                    className={showFavorites ? "on" : ""}
-                    onClick={() => {
-                      setShowFavorites(!showFavorites)
-                      setLibraryPage(0)
-                    }}
-                  >
-                    <Heart size={13} />
-                    Saved
-                  </button>
-                  <button
-                    className={showRecent ? "on" : ""}
-                    onClick={() => {
-                      setShowRecent(!showRecent)
-                      setLibraryPage(0)
-                    }}
-                  >
-                    Recent
-                  </button>
-                  <select
-                    aria-label="Frame color filter"
-                    value={colorFilter}
-                    onChange={(e) => {
-                      setColorFilter(e.target.value)
-                      setLibraryPage(0)
-                    }}
-                  >
-                    <option>Any color</option>
-                    <option>Light</option>
-                    <option>Dark</option>
-                  </select>
+
+                {/* Search Bar */}
+                <div className="studio-search-bar">
+                  <Search size={14} className="search-icon" />
+                  <input
+                    aria-label="Search frames"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search lace, film, notebook, arcade, frames..."
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      className="clear-btn"
+                      aria-label="Clear search"
+                      onClick={() => setSearch("")}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Pill Chips Scroller */}
+                <div className="studio-chip-scroller">
+                  {["All collections", ...frameCategories].map((cat) => {
+                    const count = frameCategoryCounts[cat] ?? 50
+                    const label = cat === "All collections" ? "All styles" : cat.split(" and ")[0]
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        className={`studio-pill-chip ${category === cat ? "active" : ""}`}
+                        onClick={() => setCategory(cat)}
+                      >
+                        <span>{label}</span>
+                        <span className="studio-pill-badge">({count})</span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Filter / Sort bar */}
+                <div className="flex items-center justify-between gap-1.5 text-xs font-mono">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      className={`studio-pill-chip ${showFavorites ? "active" : ""}`}
+                      onClick={() => setShowFavorites(!showFavorites)}
+                    >
+                      <Heart size={11} fill={showFavorites ? "currentColor" : "none"} />
+                      Saved ({favorites.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={`studio-pill-chip ${showRecent ? "active" : ""}`}
+                      onClick={() => setShowRecent(!showRecent)}
+                    >
+                      Recent ({recent.length})
+                    </button>
+                  </div>
                   <select
                     aria-label="Sort frames"
+                    className="bg-stone-900 border border-stone-800 text-stone-300 text-[11px] rounded px-2 py-1 outline-none font-mono focus:border-amber-400"
                     value={sort}
                     onChange={(e) => setSort(e.target.value)}
                   >
@@ -1886,75 +2026,77 @@ export default function Studio({
                     <option>Recently used</option>
                   </select>
                 </div>
-                <div className="studio-frame-grid">
-                  {matchingFrames
-                    .slice(libraryPage * 12, libraryPage * 12 + 12)
-                    .map((f) => (
-                      <article
-                        className={
-                          (frameCandidate?.id ?? c.frameId) === f.id
-                            ? "active"
-                            : ""
-                        }
-                        key={f.id}
+
+                {/* Continuous Scrollable 2-Column Grid (NO PAGINATION ARROWS!) */}
+                <div className="studio-continuous-grid cols-2">
+                  {matchingFrames.map((f) => (
+                    <article
+                      className={`studio-dark-frame-card ${
+                        (frameCandidate?.id ?? c.frameId) === f.id ? "active" : ""
+                      }`}
+                      key={f.id}
+                    >
+                      <button
+                        type="button"
+                        className="frame-card-trigger"
+                        onClick={() => setFrameCandidate(f)}
                       >
-                        <button
-                          className="frame-pick"
-                          onClick={() => setFrameCandidate(f)}
+                        <div
+                          className="frame-card-preview"
+                          style={{ background: f.background }}
                         >
-                          <div
-                            className="frame-mini"
-                            style={{ background: f.background }}
-                          >
-                            <div className="frame-mini-photos">
-                              {c.photos.slice(0, 4).map((p) => (
-                                <img src={p.src} key={p.id} alt="" />
-                              ))}
-                            </div>
-                            <img
-                              className="frame-vector"
-                              src={f.preview}
-                              alt=""
-                            />
+                          <div className="frame-photos">
+                            {c.photos.slice(0, 4).map((p) => (
+                              <img src={p.src} key={p.id} alt="" loading="lazy" />
+                            ))}
                           </div>
+                          <img
+                            className="frame-svg"
+                            src={f.preview}
+                            alt=""
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="frame-card-info">
                           <strong>{f.name.split(" · ")[0]}</strong>
                           <span>{f.name.split(" · ")[1]}</span>
-                        </button>
-                        <button
-                          className={`frame-fav ${
-                            favorites.includes(f.id) ? "active" : ""
-                          }`}
-                          aria-label={`Favorite ${f.name}`}
-                          onClick={() =>
-                            setFavorites((x) =>
-                              x.includes(f.id)
-                                ? x.filter((id) => id !== f.id)
-                                : [...x, f.id],
-                            )
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className={`frame-card-fav ${
+                          favorites.includes(f.id) ? "active" : ""
+                        }`}
+                        aria-label={`Favorite ${f.name}`}
+                        onClick={() =>
+                          setFavorites((x) =>
+                            x.includes(f.id)
+                              ? x.filter((id) => id !== f.id)
+                              : [...x, f.id],
+                          )
+                        }
+                      >
+                        <Heart
+                          size={12}
+                          fill={
+                            favorites.includes(f.id) ? "currentColor" : "none"
                           }
-                        >
-                          <Heart
-                            size={12}
-                            fill={
-                              favorites.includes(f.id) ? "currentColor" : "none"
-                            }
-                          />
-                        </button>
-                      </article>
-                    ))}
+                        />
+                      </button>
+                    </article>
+                  ))}
+                  {!matchingFrames.length && (
+                    <div className="col-span-2 py-8 text-center text-stone-400 text-xs font-mono">
+                      No frames match "{search}". Try another collection or clear search.
+                    </div>
+                  )}
                 </div>
-                <Pagination
-                  page={libraryPage}
-                  count={matchingFrames.length}
-                  setPage={setLibraryPage}
-                />
-                {!matchingFrames.length && (
-                  <p className="library-empty">
-                    No frames match. Try another collection or search.
-                  </p>
-                )}
-                <div className="frame-customize">
-                  <span className="mini-label">INK COLOR</span>
+
+                {/* Frame Customization Controls */}
+                <div className="studio-dark-section mt-1">
+                  <span className="text-[10px] uppercase font-bold text-amber-400 font-mono tracking-wider">
+                    INK COLOR & PALETTE
+                  </span>
                   <Swatches
                     value={frameCandidate?.color ?? c.frameColor ?? "#a45f59"}
                     onChange={(v) =>
@@ -1967,28 +2109,34 @@ export default function Studio({
                     label="Frame opacity"
                     value={(c.frameOpacity ?? 1) * 100}
                     onChange={(v) => commit({ ...c, frameOpacity: v / 100 })}
+                    onReset={() => commit({ ...c, frameOpacity: 1 })}
                   />
                   <Range
                     label="Border width"
                     value={c.borderWidth}
                     max={30}
                     onChange={(v) => commit({ ...c, borderWidth: v })}
+                    onReset={() => commit({ ...c, borderWidth: 10 })}
                   />
                   <Range
                     label="Photo spacing"
                     value={c.spacing}
                     max={20}
                     onChange={(v) => commit({ ...c, spacing: v })}
+                    onReset={() => commit({ ...c, spacing: 3 })}
                   />
                   <Range
                     label="Corner radius"
                     value={c.radius}
                     max={35}
                     onChange={(v) => commit({ ...c, radius: v })}
+                    onReset={() => commit({ ...c, radius: 0 })}
                   />
                   {c.frameId && (
-                    <div className="pt-2 border-t border-stone-200 mt-2 space-y-2">
-                      <span className="mini-label">FRAME ROTATION & SCALE</span>
+                    <div className="pt-2 border-t border-stone-800 mt-2 space-y-2">
+                      <span className="text-[10px] uppercase font-bold text-amber-400 font-mono tracking-wider">
+                        FRAME ROTATION & SCALE
+                      </span>
                       <Range
                         label="Frame scale"
                         value={Math.round(c.frameTransform?.width ?? 100)}
@@ -2068,7 +2216,8 @@ export default function Studio({
                     </div>
                   )}
                   <button
-                    className="text-button"
+                    type="button"
+                    className="text-button text-rose-400 hover:text-rose-300"
                     disabled={!c.frameId}
                     onClick={() => commit({ ...c, frameId: undefined, frameTransform: undefined })}
                   >
@@ -2088,7 +2237,7 @@ export default function Studio({
                       setTool("Grid")
                     }}
                   >
-                    Grid
+                    Grid ({GRID_LAYOUTS.length})
                   </button>
                   <button
                     type="button"
@@ -2098,13 +2247,13 @@ export default function Studio({
                       setTool("Templates")
                     }}
                   >
-                    Templates
+                    Templates ({templates.length})
                   </button>
                 </div>
 
                 {studioTab === "grid" ? (
                   <>
-                    <p className="inspector-intro">
+                    <p className="inspector-intro text-xs text-stone-400 font-mono">
                       Pick an aspect ratio and dynamic grid wireframe. Adjust borders, spacing, and surface finishes.
                     </p>
 
@@ -2127,27 +2276,27 @@ export default function Studio({
                       })}
                     </div>
 
-                    {/* Cut filter chips */}
-                    <div className="piccollage-filter-row">
-                      <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Cuts:</span>
-                      {(["all", 2, 3, 4, 5, 6, 8, 9] as const).map((cnt) => (
-                        <button
-                          type="button"
-                          key={cnt}
-                          className={`px-2.5 py-0.5 text-xs rounded-full border transition-all ${
-                            gridCountFilter === cnt
-                              ? "bg-stone-900 text-white border-stone-900"
-                              : "bg-white text-stone-700 border-stone-200 hover:border-stone-400"
-                          }`}
-                          onClick={() => setGridCountFilter(cnt)}
-                        >
-                          {cnt === "all" ? "All" : `${cnt}`}
-                        </button>
-                      ))}
+                    {/* Cut filter chips with counts */}
+                    <div className="studio-chip-scroller mt-1">
+                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider font-mono mr-1">Cuts:</span>
+                      {(["all", 2, 3, 4, 5, 6, 8, 9] as const).map((cnt) => {
+                        const count = cnt === "all" ? GRID_LAYOUTS.length : GRID_LAYOUTS.filter(g => g.count === cnt).length
+                        return (
+                          <button
+                            type="button"
+                            key={cnt}
+                            className={`studio-pill-chip ${gridCountFilter === cnt ? "active" : ""}`}
+                            onClick={() => setGridCountFilter(cnt)}
+                          >
+                            <span>{cnt === "all" ? "All" : `${cnt} Cuts`}</span>
+                            <span className="studio-pill-badge">({count})</span>
+                          </button>
+                        )
+                      })}
                     </div>
 
-                    {/* Wireframe Grid Cards */}
-                    <div className="piccollage-grid-cards">
+                    {/* Wireframe Grid Cards in Continuous Scroll (NO PAGINATION) */}
+                    <div className="studio-continuous-grid cols-2 mt-2">
                       {GRID_LAYOUTS.filter((gl) =>
                         gridCountFilter === "all" ? true : gl.count === gridCountFilter,
                       ).map((gl) => {
@@ -2156,7 +2305,7 @@ export default function Studio({
                           <button
                             type="button"
                             key={gl.id}
-                            className={`piccollage-card group ${isActive ? "active" : ""}`}
+                            className={`studio-dark-wireframe-card ${isActive ? "active" : ""}`}
                             onClick={() => applyGridLayout(gl)}
                             title={`${gl.name} (${gl.count} photos)`}
                           >
@@ -2170,17 +2319,17 @@ export default function Studio({
                                     width={cell.w}
                                     height={cell.h}
                                     rx="2.5"
-                                    fill={isActive ? "#0d9488" : "#cfc6b2"}
-                                    stroke="#ffffff"
+                                    fill={isActive ? "#facc15" : "#3f3f46"}
+                                    stroke="#18181b"
                                     strokeWidth="2.5"
                                   />
                                 ))}
                               </svg>
                             </div>
-                            <span className="layout-name">
+                            <strong className="text-xs text-stone-200 truncate max-w-full font-mono">
                               {gl.name}
-                            </span>
-                            <span className="layout-meta">
+                            </strong>
+                            <span className="text-[10px] text-stone-400 font-mono">
                               {gl.count} photos
                             </span>
                           </button>
@@ -2189,9 +2338,9 @@ export default function Studio({
                     </div>
 
                     {/* Grid Spacing, Padding, and Radius Controls */}
-                    <div className="bg-stone-50 p-3 rounded-xl border border-stone-200/80 mt-3 space-y-2">
-                      <div className="flex items-center justify-between text-xs font-semibold text-stone-700">
-                        <span>Border & Spacing</span>
+                    <div className="studio-dark-section mt-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-semibold text-stone-300 font-mono">
+                        <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Border & Spacing</span>
                         <span className="text-stone-400 font-mono text-[10px]">{c.spacing}% gap</span>
                       </div>
                       <Range
@@ -2223,7 +2372,9 @@ export default function Studio({
                       />
 
                       <div className="pt-2">
-                        <span className="mini-label">BORDER & CANVAS COLOR</span>
+                        <span className="text-[10px] uppercase font-bold text-amber-400 font-mono tracking-wider block mb-1">
+                          BORDER & CANVAS COLOR
+                        </span>
                         <Swatches
                           value={c.background ?? "#ffffff"}
                           onChange={(v) => commit({ ...c, background: v })}
@@ -2231,9 +2382,11 @@ export default function Studio({
                       </div>
 
                       <div className="pt-2">
-                        <span className="mini-label">SURFACE TEXTURE</span>
+                        <span className="text-[10px] uppercase font-bold text-amber-400 font-mono tracking-wider block mb-1">
+                          SURFACE TEXTURE
+                        </span>
                         <select
-                          className="w-full text-xs py-1.5 px-2 rounded-lg border border-stone-200 bg-white"
+                          className="w-full text-xs py-1.5 px-2 rounded-lg border border-stone-800 bg-stone-900 text-stone-200 font-mono outline-none focus:border-amber-400"
                           value={c.backgroundPattern ?? "none"}
                           onChange={(e) =>
                             commit({
@@ -2265,95 +2418,115 @@ export default function Studio({
                   </>
                 ) : (
                   <>
-                    <p className="inspector-intro">
-                      Choose from signature scrapbooks, romantic kiss pose aesthetic, and keepsake templates.
+                    <p className="inspector-intro text-xs text-stone-400 font-mono">
+                      Choose from signature scrapbooks, Korean photo booth 4-cut strips, and keepsake templates.
                     </p>
 
-                    {/* Templates Tab */}
-                    <div className="library-chips">
+                    {/* Template Search Bar */}
+                    <div className="studio-search-bar">
+                      <Search size={14} className="search-icon" />
+                      <input
+                        aria-label="Search templates"
+                        value={templateSearch}
+                        onChange={(e) => setTemplateSearch(e.target.value)}
+                        placeholder="Search templates by style or keyword..."
+                      />
+                      {templateSearch && (
+                        <button
+                          type="button"
+                          className="clear-btn"
+                          aria-label="Clear template search"
+                          onClick={() => setTemplateSearch("")}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Template Cut Filter Chips */}
+                    <div className="studio-chip-scroller">
+                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider font-mono mr-1">Cuts:</span>
+                      {(["all", 1, 2, 3, 4, 6, 8, 9] as const).map((cnt) => {
+                        const count = cnt === "all" ? templates.length : templates.filter(t => t.count === cnt).length
+                        return (
+                          <button
+                            type="button"
+                            key={cnt}
+                            className={`studio-pill-chip ${templateCutFilter === cnt ? "active" : ""}`}
+                            onClick={() => setTemplateCutFilter(cnt)}
+                          >
+                            <span>{cnt === "all" ? "All" : `${cnt} Photo${cnt > 1 ? "s" : ""}`}</span>
+                            <span className="studio-pill-badge">({count})</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    {/* Template Category Chips with exact counts */}
+                    <div className="studio-chip-scroller">
                       {[
                         "All styles",
+                        "Korean Photo Booth 4-Cut",
                         "Scrapbook & Summer Grass 🌿",
                         "Romantic Kiss Pose Aesthetic ♡",
                         "Propose & Birthday Keepsakes 🎂",
                         "Cool & Spider Animated 🕸️",
-                      ].map((cat) => (
-                        <button
-                          type="button"
-                          className={templateCategoryFilter === cat ? "active" : ""}
-                          key={cat}
-                          onClick={() => {
-                            setTemplateCategoryFilter(cat)
-                            setLibraryPage(0)
-                          }}
-                        >
-                          {cat}
-                        </button>
-                      ))}
+                      ].map((cat) => {
+                        const count = templateCategoryCounts[cat] ?? 12
+                        return (
+                          <button
+                            type="button"
+                            className={`studio-pill-chip ${templateCategoryFilter === cat ? "active" : ""}`}
+                            key={cat}
+                            onClick={() => setTemplateCategoryFilter(cat)}
+                          >
+                            <span>{cat}</span>
+                            <span className="studio-pill-badge">({count})</span>
+                          </button>
+                        )
+                      })}
                     </div>
 
-                    <div className="layout-card-grid">
-                      {templates
-                        .filter((t) => {
-                          if (templateCategoryFilter === "Scrapbook & Summer Grass 🌿") {
-                            return (
-                              t.id.includes("piccollage") ||
-                              t.tags?.includes("scrapbook") ||
-                              t.tags?.includes("piccollage") ||
-                              t.name.toLowerCase().includes("scrapbook")
-                            )
-                          }
-                          if (templateCategoryFilter !== "All styles") {
-                            const filterWord = templateCategoryFilter.toLowerCase().split(" ")[0]
-                            return (
-                              t.category.toLowerCase().includes(filterWord) ||
-                              t.tags?.some((tg) => tg.toLowerCase().includes(filterWord))
-                            )
-                          }
-                          return true
-                        })
-                        .map((t) => {
-                          const isActive = c.templateId === t.id && !c.gridLayoutId
-                          return (
-                            <button
-                              type="button"
-                              className={`layout-card-btn text-left p-2 rounded-xl border transition-all ${
-                                isActive
-                                  ? "border-teal-500 bg-teal-50/50 shadow-sm ring-2 ring-teal-400"
-                                  : "border-stone-200 bg-white hover:border-stone-400"
-                              }`}
-                              key={t.id}
-                              onClick={() => applyTemplate(t)}
+                    {/* Continuous 2-Column Template Cards (NO PAGINATION) */}
+                    <div className="studio-continuous-grid cols-2">
+                      {matchingTemplates.map((t) => {
+                        const isActive = c.templateId === t.id && !c.gridLayoutId
+                        return (
+                          <button
+                            type="button"
+                            className={`studio-dark-template-card ${isActive ? "active" : ""}`}
+                            key={t.id}
+                            onClick={() => applyTemplate(t)}
+                          >
+                            <div
+                              className="template-thumb-box"
+                              style={{
+                                aspectRatio: `${t.width}/${t.height}`,
+                                minHeight: "110px",
+                              }}
                             >
-                              <div
-                                className="layout-mini overflow-hidden rounded-md border border-stone-200/60 bg-stone-100 mb-1.5"
-                                style={{
-                                  aspectRatio: `${t.width}/${t.height}`,
-                                  minHeight: "110px",
-                                }}
-                              >
-                                <TemplateThumbnail template={t} className="w-full h-full object-contain" />
-                              </div>
-                              <strong className="text-xs truncate block text-stone-900 font-medium">
-                                {t.name}
-                              </strong>
-                              <span className="text-[10px] text-stone-500 block">
-                                {t.count} photos · {t.orientation}
-                              </span>
-                            </button>
-                          )
-                        })}
+                              <TemplateThumbnail template={t} className="w-full h-full object-contain" />
+                            </div>
+                            <strong className="text-xs truncate block text-stone-200 font-mono">
+                              {t.name}
+                            </strong>
+                            <span className="template-meta">
+                              {t.count} photos · {t.orientation}
+                            </span>
+                          </button>
+                        )
+                      })}
 
                       <button
                         type="button"
-                        className={c.mode === "freeform" ? "active" : ""}
+                        className={`studio-dark-template-card ${c.mode === "freeform" ? "active" : ""}`}
                         onClick={() => commit(enterFreeform(c, template))}
                       >
-                        <div className="freeform-illustration">
+                        <div className="template-thumb-box" style={{ minHeight: "110px" }}>
                           <ImagesIllustration />
                         </div>
-                        <strong>My own arrangement</strong>
-                        <span>Drag, overlap, make it yours</span>
+                        <strong className="text-xs text-stone-200 font-mono">My own arrangement</strong>
+                        <span className="template-meta">Drag, overlap, make it yours</span>
                       </button>
                     </div>
 
@@ -2711,190 +2884,335 @@ export default function Studio({
                         <Eye size={17} />
                       </button>
                     </div>
-                    <div className="library-chips">
+
+                    {/* Filter Search Bar */}
+                    <div className="studio-search-bar">
+                      <Search size={14} className="search-icon" />
+                      <input
+                        aria-label="Search filters"
+                        value={filterSearch}
+                        onChange={(e) => setFilterSearch(e.target.value)}
+                        placeholder="Search filters by mood, film, tone..."
+                      />
+                      {filterSearch && (
+                        <button
+                          type="button"
+                          className="clear-btn"
+                          aria-label="Clear filter search"
+                          onClick={() => setFilterSearch("")}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Filter Category Chips with exact counts */}
+                    <div className="studio-chip-scroller">
                       {[
                         "All looks",
                         ...new Set(filterPresets.map((p) => p.category)),
-                      ].map((cat) => (
+                      ].map((cat) => {
+                        const count = filterCategoryCounts[cat] ?? 6
+                        return (
+                          <button
+                            type="button"
+                            className={`studio-pill-chip ${filterCategory === cat ? "active" : ""}`}
+                            key={cat}
+                            onClick={() => setFilterCategory(cat)}
+                          >
+                            <span>{cat}</span>
+                            <span className="studio-pill-badge">({count})</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    {/* Continuous 2-Column Filter Preview Cards (NO PAGINATION) */}
+                    <div className="studio-continuous-grid cols-2">
+                      {matchingFilters.map((p) => (
                         <button
-                          className={filterCategory === cat ? "active" : ""}
-                          key={cat}
-                          onClick={() => setFilterCategory(cat)}
+                          type="button"
+                          className={`studio-dark-filter-card ${
+                            currentAdjustments.filter === p.name ? "active" : ""
+                          }`}
+                          key={p.name}
+                          title={p.description}
+                          onClick={() => updatePhoto({ filter: p.name })}
                         >
-                          {cat}
+                          <div className="filter-thumb-box">
+                            <StudioPreview
+                              maxEdge={140}
+                              composition={{
+                                ...c,
+                                mode: "guided",
+                                aspectRatio: "square",
+                                templateId: "solo-polaroid",
+                                frameId: undefined,
+                                photos: [
+                                  {
+                                    ...photo,
+                                    transform: undefined,
+                                    adjustments: {
+                                      ...defaultAdjustments(),
+                                      filter: p.name,
+                                    },
+                                  },
+                                ],
+                                stickers: [],
+                                texts: [],
+                                layerOrder: undefined,
+                              }}
+                            />
+                          </div>
+                          <strong>{p.name}</strong>
+                          <span>{p.category}</span>
                         </button>
                       ))}
+                      {!matchingFilters.length && (
+                        <div className="col-span-2 py-8 text-center text-stone-400 text-xs font-mono">
+                          No filters match "{filterSearch}". Try another category or clear search.
+                        </div>
+                      )}
                     </div>
-                    <div className="studio-filter-grid">
-                      {filterPresets
-                        .filter(
-                          (p) =>
-                            !filterPresets.some(
-                              (x) => x.category === filterCategory,
-                            ) || p.category === filterCategory,
-                        )
-                        .map((p) => (
-                          <button
-                            className={
-                              currentAdjustments.filter === p.name
-                                ? "active"
-                                : ""
-                            }
-                            key={p.name}
-                            title={p.description}
-                            onClick={() => updatePhoto({ filter: p.name })}
-                          >
-                            <div>
-                              <StudioPreview
-                                maxEdge={140}
-                                composition={{
-                                  ...c,
-                                  mode: "guided",
-                                  aspectRatio: "square",
-                                  templateId: "solo-polaroid",
-                                  frameId: undefined,
-                                  photos: [
-                                    {
-                                      ...photo,
-                                      transform: undefined,
-                                      adjustments: {
-                                        ...defaultAdjustments(),
-                                        filter: p.name,
-                                      },
+
+                    <div className="studio-dark-section mt-1">
+                      <Range
+                        label="Filter intensity"
+                        value={currentAdjustments.intensity}
+                        onChange={(v) => updatePhoto({ intensity: v })}
+                        onReset={() => updatePhoto({ intensity: 100 })}
+                      />
+                      <button
+                        type="button"
+                        className="button secondary wide"
+                        onClick={() =>
+                          commit({
+                            ...c,
+                            photos: c.photos.map((p) =>
+                              p.locked
+                                ? p
+                                : {
+                                    ...p,
+                                    adjustments: {
+                                      ...p.adjustments,
+                                      filter: photo.adjustments.filter,
+                                      intensity: photo.adjustments.intensity,
                                     },
-                                  ],
-                                  stickers: [],
-                                  texts: [],
-                                  layerOrder: undefined,
-                                }}
-                              />
-                            </div>
-                            <strong>{p.name}</strong>
-                            <span>{p.category}</span>
-                          </button>
-                        ))}
-                    </div>
-                    <Range
-                      label="Filter intensity"
-                      value={currentAdjustments.intensity}
-                      onChange={(v) => updatePhoto({ intensity: v })}
-                      onReset={() => updatePhoto({ intensity: 100 })}
-                    />
-                    <button
-                      className="button secondary wide"
-                      onClick={() =>
-                        commit({
-                          ...c,
-                          photos: c.photos.map((p) =>
-                            p.locked
-                              ? p
-                              : {
-                                  ...p,
-                                  adjustments: {
-                                    ...p.adjustments,
-                                    filter: photo.adjustments.filter,
-                                    intensity: photo.adjustments.intensity,
                                   },
-                                },
-                          ),
-                        })
-                      }
-                    >
-                      Apply filter to every photo
-                    </button>
-                    <button
-                      className="text-button"
-                      onClick={() =>
-                        updatePhoto({ filter: "Original", intensity: 100 })
-                      }
-                    >
-                      Reset filter
-                    </button>
+                            ),
+                          })
+                        }
+                      >
+                        Apply filter to every photo
+                      </button>
+                      <button
+                        type="button"
+                        className="text-button text-amber-400 hover:text-amber-300"
+                        onClick={() =>
+                          updatePhoto({ filter: "Original", intensity: 100 })
+                        }
+                      >
+                        Reset filter
+                      </button>
+                    </div>
                   </>
                 ) : (
                   <p className="library-empty">
-                    Select a photo to explore {filterPresets.length} original
-                    looks.
+                    Select a photo to explore {filterPresets.length} original looks.
                   </p>
                 )}
               </>
             )}
             {tool === "Stickers" && (
               <>
-                <div className="library-summary">
-                  <span>{stickers.length} original transparent vectors</span>
-                  <button onClick={() => stickerInput.current?.click()}>
-                    <ImagePlus size={13} />
-                    Import your own
-                  </button>
-                </div>
-                <div className="library-chips">
-                  {["All packs", "Favorites", "Recent", ...stickerPacks].map(
-                    (p) => (
+                {/* Top Bar: Target & Preview Mode Switcher */}
+                <div className="flex items-center justify-between pb-1.5 border-b border-stone-800 gap-2 flex-wrap text-xs font-mono">
+                  <span className="text-amber-400 text-[10px] uppercase font-bold tracking-wider">
+                    {allStickers.length} STICKERS ({pngStickers.length} PNG + {stickers.length} VECTOR)
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {/* Preview Mode Switcher (Grid / Light / Dark) */}
+                    <div className="preview-mode-group" title="Toggle background to verify sticker transparency on light & dark surfaces">
                       <button
-                        className={pack === p ? "active" : ""}
-                        key={p}
-                        onClick={() => {
-                          setPack(p)
-                          setLibraryPage(0)
-                        }}
+                        type="button"
+                        className={`preview-mode-btn ${stickerPreviewBg === "checkered" ? "active-grid" : ""}`}
+                        onClick={() => setStickerPreviewBg("checkered")}
                       >
-                        {p}
+                        Grid
                       </button>
-                    ),
+                      <button
+                        type="button"
+                        className={`preview-mode-btn ${stickerPreviewBg === "light" ? "active-light" : ""}`}
+                        onClick={() => setStickerPreviewBg("light")}
+                      >
+                        Light
+                      </button>
+                      <button
+                        type="button"
+                        className={`preview-mode-btn ${stickerPreviewBg === "dark" ? "active-dark" : ""}`}
+                        onClick={() => setStickerPreviewBg("dark")}
+                      >
+                        Dark
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      className="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-900 border border-stone-800 text-stone-300 hover:border-amber-400 flex items-center gap-1"
+                      onClick={() => stickerInput.current?.click()}
+                    >
+                      <ImagePlus size={12} />
+                      Import
+                    </button>
+                  </div>
+                </div>
+
+                {/* Pre-placement Tilt / Rotation Selector (As seen in Scrapbook screenshot!) */}
+                <div className="tilt-selector-group">
+                  <span className="label">
+                    <RotateCw size={11} className="text-amber-400" />
+                    Tilt / Rotation:
+                  </span>
+                  <div className="tilt-btn-row">
+                    {[
+                      { label: "-12°", val: -12 },
+                      { label: "-6°", val: -6 },
+                      { label: "0°", val: 0 },
+                      { label: "+6°", val: 6 },
+                      { label: "+12°", val: 12 },
+                      { label: "🎲", val: "random" },
+                    ].map((p) => (
+                      <button
+                        key={String(p.val)}
+                        type="button"
+                        className={`tilt-btn ${stickerPlacementAngle === p.val ? "active" : ""}`}
+                        onClick={() => setStickerPlacementAngle(p.val as any)}
+                        title={`Place sticker with ${p.label} rotation`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="studio-search-bar">
+                  <Search size={14} className="search-icon" />
+                  <input
+                    aria-label="Search stickers"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search stickers by name or keyword..."
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      className="clear-btn"
+                      aria-label="Clear search"
+                      onClick={() => setSearch("")}
+                    >
+                      ✕
+                    </button>
                   )}
                 </div>
-                <div className="sticker-library">
-                  {matchingStickers
-                    .slice(libraryPage * 24, libraryPage * 24 + 24)
-                    .map((s) => (
-                      <article key={s.id}>
-                        <button onClick={() => addSticker(s.id)} title={s.name}>
-                          <img src={stickerUrl(s)} alt="" />
-                          <span>{s.name}</span>
-                        </button>
-                        <button
-                          className="sticker-fav"
-                          aria-label={`Favorite ${s.name}`}
-                          onClick={() =>
-                            setStickerFavorites((f) =>
-                              f.includes(s.id)
-                                ? f.filter((x) => x !== s.id)
-                                : [...f, s.id],
-                            )
-                          }
-                        >
-                          <Heart
-                            size={10}
-                            fill={
-                              stickerFavorites.includes(s.id)
-                                ? "currentColor"
-                                : "none"
-                            }
-                          />
-                        </button>
-                      </article>
-                    ))}
+
+                {/* Pack Selector Chips Scroller with exact counts */}
+                <div className="studio-chip-scroller">
+                  {["All packs", "Favorites", "Recent", ...allStickerPacks].map((p) => {
+                    const count = stickerPackCounts[p] ?? 25
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        className={`studio-pill-chip ${pack === p ? "active" : ""}`}
+                        onClick={() => setPack(p)}
+                      >
+                        <span>{p}</span>
+                        <span className="studio-pill-badge">({count})</span>
+                      </button>
+                    )
+                  })}
                 </div>
-                <Pagination
-                  page={libraryPage}
-                  count={matchingStickers.length}
-                  pageSize={24}
-                  setPage={setLibraryPage}
-                />
+
+                {/* Continuous Scrollable 4-Column Grid (NO PAGINATION ARROWS!) */}
+                <div className="studio-continuous-grid cols-4">
+                  {matchingStickers.map((s) => (
+                    <article
+                      key={s.id}
+                      className={`studio-dark-sticker-card ${
+                        stickerPreviewBg === "light"
+                          ? "bg-light"
+                          : stickerPreviewBg === "dark"
+                          ? "bg-dark"
+                          : "bg-grid"
+                      }`}
+                      onClick={() => addSticker(s.id)}
+                      title={`Click to place ${s.name}`}
+                    >
+                      <div className="sticker-img-box">
+                        <img src={stickerUrl(s)} alt="" loading="lazy" />
+                      </div>
+                      <span className="sticker-name">{s.name}</span>
+                      <button
+                        type="button"
+                        className={`sticker-card-fav ${
+                          stickerFavorites.includes(s.id) ? "active" : ""
+                        }`}
+                        aria-label={`Favorite ${s.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setStickerFavorites((f) =>
+                            f.includes(s.id)
+                              ? f.filter((x) => x !== s.id)
+                              : [...f, s.id],
+                          )
+                        }}
+                      >
+                        <Heart
+                          size={10}
+                          fill={
+                            stickerFavorites.includes(s.id) ? "currentColor" : "none"
+                          }
+                        />
+                      </button>
+                    </article>
+                  ))}
+                  {!matchingStickers.length && (
+                    <div className="col-span-4 py-8 text-center text-stone-400 text-xs font-mono">
+                      No stickers match "{search}". Try another pack or clear search.
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected Sticker Inspector Panel */}
                 {sticker && (
-                  <div className="selected-decoration">
-                    <h3>{sticker.name ?? "Your sticker"}</h3>
-                    <Swatches
-                      value={sticker.color}
-                      onChange={(color) => updateSticker({ color })}
-                    />
+                  <div className="studio-dark-section mt-1">
+                    <div className="flex items-center justify-between">
+                      <strong className="text-xs text-stone-200 font-mono truncate">
+                        {sticker.name ?? "Selected Sticker"}
+                      </strong>
+                      <button
+                        type="button"
+                        className="text-stone-400 hover:text-rose-400"
+                        title="Delete sticker"
+                        onClick={() => commit(deleteLayer(c, sticker.id))}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                    {/* Color swatches for recolorable vector stickers */}
+                    {sticker.color && (
+                      <Swatches
+                        value={sticker.color}
+                        onChange={(color) => updateSticker({ color })}
+                      />
+                    )}
                     <Range
                       label="Sticker size"
                       value={sticker.size}
                       min={2}
                       max={100}
                       onChange={(size) => updateSticker({ size })}
+                      onReset={() => updateSticker({ size: 20 })}
                     />
                     <Range
                       label="Sticker rotation"
@@ -2902,72 +3220,130 @@ export default function Studio({
                       min={-180}
                       max={180}
                       onChange={(rotation) => updateSticker({ rotation })}
+                      onReset={() => updateSticker({ rotation: 0 })}
                     />
-                    <button
-                      className="studio-small-button"
-                      onClick={() => updateSticker({ flipX: !sticker.flipX })}
-                    >
-                      Flip sticker
-                    </button>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        className="studio-small-button flex-1"
+                        onClick={() => updateSticker({ flipX: !sticker.flipX })}
+                      >
+                        Flip sticker
+                      </button>
+                      <button
+                        type="button"
+                        className="studio-small-button flex-1"
+                        onClick={() => {
+                          const newId = crypto.randomUUID()
+                          commit(duplicateLayer(c, sticker.id, newId))
+                          setSelected(newId)
+                        }}
+                      >
+                        <Copy size={13} />
+                        Duplicate
+                      </button>
+                    </div>
                   </div>
                 )}
-                <p className="inspector-footnote">
-                  Imported images keep transparency. Automatic background
-                  removal is not included.
+                <p className="inspector-footnote text-[11px] text-stone-500 font-mono">
+                  All 165 PNG & 225 vector stickers maintain transparency and render in high resolution during photo export.
                 </p>
               </>
             )}
             {tool === "Text" && (
               <>
-                <label className="studio-field">
-                  Your words
-                  <textarea
-                    value={caption}
-                    rows={3}
-                    maxLength={400}
-                    onChange={(e) => setCaption(e.target.value)}
-                    placeholder="Write a little something…"
-                  />
-                </label>
-                <div className="choices">
-                  <button
-                    className="button secondary"
-                    disabled={!caption.trim()}
-                    onClick={() => {
-                      const id = crypto.randomUUID()
-                      commit({
-                        ...c,
-                        texts: [
-                          ...c.texts,
-                          {
-                            id,
-                            text: caption,
-                            x: 50,
-                            y: 85,
-                            size: 22,
-                            rotation: 0,
-                            color: "#4c4d43",
-                            font: "hand",
-                          },
-                        ],
-                      })
-                      setSelected(id)
-                    }}
-                  >
-                    <Plus size={14} />
-                    Add to canvas
-                  </button>
-                  <button
-                    className="text-button"
-                    onClick={() => setCaption(new Date().toLocaleDateString())}
-                  >
-                    Today’s date
-                  </button>
+                <div className="flex items-center justify-between pb-1 border-b border-stone-800 text-[10px] font-mono text-amber-400 uppercase font-bold tracking-wider">
+                  <span>PHOTOBOOTH PRESETS</span>
+                  <span className="text-stone-400">Click to set</span>
                 </div>
+                <div className="studio-chip-scroller">
+                  {[
+                    { label: "Today's Date", text: new Date().toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }) },
+                    { label: "Hongdae 11:45 PM", text: "Hongdae Photo Booth · 11:45 PM" },
+                    { label: "best moments ♡", text: "best moments ♡" },
+                    { label: "seoul nights ★", text: "seoul nights ★" },
+                    { label: "sweet memories ✿", text: "sweet memories ✿" },
+                    { label: "little things ✨", text: "little things ✨" },
+                    { label: "photo dump 🎞️", text: "photo dump 🎞️" },
+                    { label: "forever & always", text: "forever & always" },
+                    { label: "good friends ☻", text: "good friends · good times" },
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      className="studio-pill-chip"
+                      onClick={() => setCaption(preset.text)}
+                    >
+                      <span>{preset.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="studio-dark-section">
+                  <label className="studio-dark-field">
+                    <span>Your words & caption</span>
+                    <textarea
+                      value={caption}
+                      rows={2}
+                      maxLength={400}
+                      onChange={(e) => setCaption(e.target.value)}
+                      placeholder="Write a little something…"
+                    />
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      className="button primary flex-1"
+                      disabled={!caption.trim()}
+                      onClick={() => {
+                        const id = crypto.randomUUID()
+                        commit({
+                          ...c,
+                          texts: [
+                            ...c.texts,
+                            {
+                              id,
+                              text: caption,
+                              x: 50,
+                              y: 85,
+                              size: 22,
+                              rotation: 0,
+                              color: "#faf8f2",
+                              font: "hand",
+                            },
+                          ],
+                        })
+                        setSelected(id)
+                      }}
+                    >
+                      <Plus size={14} />
+                      Add to canvas
+                    </button>
+                    <button
+                      type="button"
+                      className="studio-small-button"
+                      onClick={() => setCaption(new Date().toLocaleDateString())}
+                    >
+                      Today’s date
+                    </button>
+                  </div>
+                </div>
+
                 {text && (
-                  <>
-                    <label className="studio-field">
-                      Selected caption
+                  <div className="studio-dark-section mt-1">
+                    <div className="flex items-center justify-between pb-1 border-b border-stone-800">
+                      <strong className="text-xs text-stone-200 font-mono">SELECTED CAPTION</strong>
+                      <button
+                        type="button"
+                        className="text-stone-400 hover:text-rose-400"
+                        title="Delete text"
+                        onClick={() => commit(deleteLayer(c, text.id))}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                    <label className="studio-dark-field">
+                      <span>Caption Text</span>
                       <textarea
                         rows={2}
                         value={text.text}
@@ -2977,6 +3353,7 @@ export default function Studio({
                     <div className="font-options">
                       {(["hand", "serif", "sans"] as const).map((font) => (
                         <button
+                          type="button"
                           className={text.font === font ? "active" : ""}
                           key={font}
                           style={{
@@ -3000,10 +3377,15 @@ export default function Studio({
                         </button>
                       ))}
                     </div>
-                    <Swatches
-                      value={text.color}
-                      onChange={(color) => updateText({ color })}
-                    />
+                    <div>
+                      <span className="text-[10px] font-mono text-stone-400 uppercase font-bold block mb-1">
+                        INK COLOR
+                      </span>
+                      <Swatches
+                        value={text.color}
+                        onChange={(color) => updateText({ color })}
+                      />
+                    </div>
                     <Range
                       label="Text size"
                       value={text.size}
@@ -3017,9 +3399,7 @@ export default function Studio({
                       min={-3}
                       max={20}
                       step={0.5}
-                      onChange={(letterSpacing) =>
-                        updateText({ letterSpacing })
-                      }
+                      onChange={(letterSpacing) => updateText({ letterSpacing })}
                     />
                     <Range
                       label="Line spacing"
@@ -3045,44 +3425,51 @@ export default function Studio({
                     <div className="choices">
                       {(["left", "center", "right"] as const).map((align) => (
                         <button
-                          className={`chip ${
-                            text.align === align ? "selected" : ""
-                          }`}
+                          type="button"
+                          className={`chip ${text.align === align ? "selected" : ""}`}
                           key={align}
                           onClick={() => updateText({ align })}
                         >
-                          {align}
+                          {align.toUpperCase()}
                         </button>
                       ))}
                     </div>
                     <label className="toggle-row">
-                      Caption card
+                      <span>Caption card background</span>
                       <input
                         type="checkbox"
                         checked={!!text.labelColor}
                         onChange={(e) =>
                           updateText({
-                            labelColor: e.target.checked
-                              ? "#f8f2e6"
-                              : undefined,
+                            labelColor: e.target.checked ? "#18181b" : undefined,
                           })
                         }
                       />
                     </label>
-                  </>
+                  </div>
                 )}
               </>
             )}
             {tool === "Background" && (
               <>
-                <span className="mini-label">YOUR PAPER PALETTE</span>
+                <div className="flex items-center justify-between pb-1 border-b border-stone-800 text-[10px] font-mono text-amber-400 uppercase font-bold tracking-wider">
+                  <span>PHOTOBOOTH PALETTE</span>
+                  <span className="text-stone-400">Paper Tone</span>
+                </div>
                 <Swatches
                   value={c.background}
                   onChange={(background) => commit({ ...c, background })}
                 />
+
+                <div className="flex items-center justify-between pt-2 pb-1 border-b border-stone-800 text-[10px] font-mono text-amber-400 uppercase font-bold tracking-wider">
+                  <span>SURFACE TEXTURES ({backgroundPatterns.length})</span>
+                  <span className="text-stone-400">Continuous grid</span>
+                </div>
+                {/* Continuous 3-column scrollable grid (NO PAGINATION) */}
                 <div className="background-grid">
                   {backgroundPatterns.map((p) => (
                     <button
+                      type="button"
                       className={c.backgroundPattern === p ? "active" : ""}
                       key={p}
                       onClick={() => commit({ ...c, backgroundPattern: p })}
@@ -3095,99 +3482,144 @@ export default function Studio({
                     </button>
                   ))}
                 </div>
-                <Range
-                  label="Texture opacity"
-                  value={(c.backgroundOpacity ?? 0.35) * 100}
-                  onChange={(v) => commit({ ...c, backgroundOpacity: v / 100 })}
-                />
-                <p className="inspector-footnote">
-                  Textures stay separate from your original photos and are
-                  reproduced in exports.
+
+                <div className="studio-dark-section mt-1">
+                  <Range
+                    label="Texture opacity"
+                    value={(c.backgroundOpacity ?? 0.35) * 100}
+                    onChange={(v) => commit({ ...c, backgroundOpacity: v / 100 })}
+                    onReset={() => commit({ ...c, backgroundOpacity: 0.35 })}
+                  />
+                </div>
+                <p className="inspector-footnote text-[11px] text-stone-500 font-mono">
+                  Textures stay non-destructive from your original photos and are reproduced in full quality during photo export.
                 </p>
               </>
             )}
             {tool === "Layers" && (
               <>
-                <div className="layer-list">
-                  {[...layers].reverse().map((l) => (
-                    <div
-                      className={`layer-row ${
-                        selected === l.id ? "active" : ""
-                      }`}
-                      key={l.id}
+                <div className="flex items-center justify-between pb-1 border-b border-stone-800 text-xs font-mono">
+                  <span className="text-amber-400 text-[10px] uppercase font-bold tracking-wider">
+                    {layers.length} Layers · {multi.length} Selected
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {multi.length > 0 && (
+                      <button
+                        type="button"
+                        className="text-[10px] text-stone-400 hover:text-amber-400 font-mono"
+                        onClick={() => setMulti([])}
+                      >
+                        Clear
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="text-[10px] text-amber-400 hover:text-amber-300 font-mono"
+                      onClick={() => setMulti(layers.filter(l => l.kind !== "frame").map(l => l.id))}
                     >
-                      <input
-                        type="checkbox"
-                        aria-label={`Select ${l.label} for grouping`}
-                        checked={multi.includes(l.id)}
-                        disabled={l.kind === "frame"}
-                        onChange={(e) =>
-                          setMulti((m) =>
-                            e.target.checked
-                              ? [...m, l.id]
-                              : m.filter((x) => x !== l.id),
-                          )
-                        }
-                      />
-                      <button
-                        className="layer-select"
-                        onClick={() => setSelected(l.id)}
-                      >
-                        <span className="layer-thumb">
-                          <LayerThumb c={c} id={l.id} />
-                        </span>
-                        <span>
-                          <strong>{l.label.slice(0, 26)}</strong>
-                          <small>
-                            {l.kind}
-                            {l.properties.groupId ? " · grouped" : ""}
-                          </small>
-                        </span>
-                      </button>
-                      <button
-                        className="studio-icon"
-                        aria-label={`${
-                          l.properties.hidden ? "Show" : "Hide"
-                        } ${l.label}`}
-                        onClick={() =>
-                          commit(
-                            patchLayer(c, l.id, {
-                              hidden: !l.properties.hidden,
-                            }),
-                          )
-                        }
-                      >
-                        {l.properties.hidden ? (
-                          <EyeOff size={14} />
-                        ) : (
-                          <Eye size={14} />
-                        )}
-                      </button>
-                      <button
-                        className="studio-icon"
-                        disabled={l.kind === "frame"}
-                        aria-label={`${
-                          l.properties.locked ? "Unlock" : "Lock"
-                        } ${l.label}`}
-                        onClick={() =>
-                          commit(
-                            patchLayer(c, l.id, {
-                              locked: !l.properties.locked,
-                            }),
-                          )
-                        }
-                      >
-                        {l.properties.locked ? (
-                          <LockKeyhole size={13} />
-                        ) : (
-                          <UnlockKeyhole size={13} />
-                        )}
-                      </button>
-                    </div>
-                  ))}
+                      Select All
+                    </button>
+                  </div>
                 </div>
+
+                {/* Continuous scrollable Layer List (NO ARROW PAGINATION) */}
+                <div className="layer-list">
+                  {[...layers].reverse().map((l) => {
+                    const isSelected = selected === l.id
+                    const isGrouped = !!l.properties.groupId
+                    return (
+                      <div
+                        className={`layer-row ${isSelected ? "active" : ""}`}
+                        key={l.id}
+                      >
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${l.label} for grouping`}
+                          checked={multi.includes(l.id)}
+                          disabled={l.kind === "frame"}
+                          onChange={(e) =>
+                            setMulti((m) =>
+                              e.target.checked
+                                ? [...m, l.id]
+                                : m.filter((x) => x !== l.id),
+                            )
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="layer-select"
+                          onClick={() => setSelected(l.id)}
+                        >
+                          <span className="layer-thumb">
+                            <LayerThumb c={c} id={l.id} />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-1">
+                              <span className={`layer-kind-badge ${l.kind}`}>
+                                {l.kind}
+                              </span>
+                              <strong className="truncate">
+                                {l.label.slice(0, 24)}
+                              </strong>
+                            </span>
+                            <small className="text-stone-400 block text-[10px]">
+                              {isGrouped ? "Grouped element" : `${l.kind} layer`}
+                            </small>
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          className="studio-icon"
+                          aria-label={`${l.properties.hidden ? "Show" : "Hide"} ${l.label}`}
+                          title={l.properties.hidden ? "Show" : "Hide"}
+                          onClick={() =>
+                            commit(
+                              patchLayer(c, l.id, {
+                                hidden: !l.properties.hidden,
+                              }),
+                            )
+                          }
+                        >
+                          {l.properties.hidden ? (
+                            <EyeOff size={13} />
+                          ) : (
+                            <Eye size={13} />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className="studio-icon"
+                          disabled={l.kind === "frame"}
+                          aria-label={`${l.properties.locked ? "Unlock" : "Lock"} ${l.label}`}
+                          title={l.properties.locked ? "Unlock" : "Lock"}
+                          onClick={() =>
+                            commit(
+                              patchLayer(c, l.id, {
+                                locked: !l.properties.locked,
+                              }),
+                            )
+                          }
+                        >
+                          {l.properties.locked ? (
+                            <LockKeyhole size={13} />
+                          ) : (
+                            <UnlockKeyhole size={13} />
+                          )}
+                        </button>
+                      </div>
+                    )
+                  })}
+                  {!layers.length && (
+                    <div className="py-8 text-center text-stone-400 text-xs font-mono">
+                      No active layers on canvas. Add photos or stickers!
+                    </div>
+                  )}
+                </div>
+
+                {/* Group & Multi-Action Toolbar */}
                 <div className="group-actions">
                   <button
+                    type="button"
                     disabled={multi.length < 2}
                     onClick={() => {
                       const id = crypto.randomUUID()
@@ -3199,9 +3631,10 @@ export default function Studio({
                       notify("Grouped. Drag any member to move the group.")
                     }}
                   >
-                    Group selected
+                    Group ({multi.length})
                   </button>
                   <button
+                    type="button"
                     disabled={
                       multi.filter((id) =>
                         c.photos.some((p) => p.id === id && !p.locked),
@@ -3211,9 +3644,10 @@ export default function Studio({
                       commit(distributePhotos(c, template, multi, "x"))
                     }
                   >
-                    Space horizontally
+                    Space X
                   </button>
                   <button
+                    type="button"
                     disabled={
                       multi.filter((id) =>
                         c.photos.some((p) => p.id === id && !p.locked),
@@ -3223,9 +3657,10 @@ export default function Studio({
                       commit(distributePhotos(c, template, multi, "y"))
                     }
                   >
-                    Space vertically
+                    Space Y
                   </button>
                   <button
+                    type="button"
                     disabled={!layer?.properties.groupId}
                     onClick={() => {
                       let next = c
@@ -3240,23 +3675,31 @@ export default function Studio({
                     Ungroup
                   </button>
                   <button
+                    type="button"
                     disabled={!layer || layer.kind === "frame"}
                     onClick={copyLayer}
                   >
+                    <Copy size={12} className="inline mr-1" />
                     Copy
                   </button>
-                  <button disabled={!clipboard.current} onClick={pasteLayer}>
+                  <button
+                    type="button"
+                    disabled={!clipboard.current}
+                    onClick={pasteLayer}
+                  >
                     Paste
                   </button>
                 </div>
+
                 {layer && (
-                  <div className="layer-properties">
-                    <span className="mini-label">
-                      SELECTED {layer.kind.toUpperCase()}
+                  <div className="studio-dark-section mt-1">
+                    <span className="text-[10px] uppercase font-bold text-amber-400 font-mono tracking-wider">
+                      SELECTED {layer.kind.toUpperCase()} PROPERTIES
                     </span>
-                    <label className="studio-field">
-                      Layer name
+                    <label className="studio-dark-field">
+                      <span>Layer name</span>
                       <input
+                        type="text"
                         disabled={layer.kind === "frame"}
                         value={layer.properties.name ?? layer.label}
                         onChange={(e) => updateLayer({ name: e.target.value })}
@@ -3275,26 +3718,25 @@ export default function Studio({
                           max={100}
                           onChange={(v) => updateLayer({ shadow: v })}
                         />
-                        <label className="studio-field">
-                          Blend mode
+                        <label className="studio-dark-field">
+                          <span>Blend mode</span>
                           <select
                             value={layer.properties.blend ?? "source-over"}
                             onChange={(e) =>
                               updateLayer({
-                                blend: e.target
-                                  .value as LayerProperties["blend"],
+                                blend: e.target.value as LayerProperties["blend"],
                               })
                             }
                           >
                             <option value="source-over">Normal</option>
-                            <option value="multiply">Multiply</option>
-                            <option value="screen">Screen</option>
+                            <option value="multiply">Multiply (Ink/Blend)</option>
+                            <option value="screen">Screen (Lighten)</option>
                           </select>
                         </label>
                       </>
                     )}
                     {layer.kind === "frame" && c.frameId && (
-                      <div className="space-y-2 mt-2 pt-2 border-t border-stone-200">
+                      <div className="space-y-2 mt-2 pt-2 border-t border-stone-800">
                         <Range
                           label="Frame width"
                           value={Math.round(c.frameTransform?.width ?? 100)}
@@ -3520,6 +3962,7 @@ export default function Studio({
                       ))}
                     <div className="geometry-actions">
                       <button
+                        type="button"
                         disabled={!photo || c.mode !== "freeform"}
                         onClick={() => {
                           const b = photoBounds(c, template, photoIndex)
@@ -3539,6 +3982,7 @@ export default function Studio({
                         Center horizontally
                       </button>
                       <button
+                        type="button"
                         disabled={!photo || c.mode !== "freeform"}
                         onClick={() => {
                           const b = photoBounds(c, template, photoIndex)
@@ -3560,12 +4004,12 @@ export default function Studio({
                     </div>
                   </div>
                 )}
-                <div className="background-layer-row">
-                  <Paintbrush size={17} />
+                <div className="background-layer-row mt-2">
+                  <Paintbrush size={16} />
                   <span>
-                    Background · {c.backgroundPattern ?? "solid paper"}
+                    Background · {c.backgroundPattern ?? "Solid color"}
                   </span>
-                  <button onClick={() => setPanel("Background")}>Edit</button>
+                  <button type="button" onClick={() => setPanel("Background")}>Edit</button>
                 </div>
               </>
             )}

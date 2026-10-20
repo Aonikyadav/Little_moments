@@ -9,6 +9,7 @@ import {
   svgUrl,
   stickers,
   stickerUrl,
+  findSticker,
 } from "./studio/assets"
 import { dimensions, orderedLayers, photoBounds } from "./studio/model"
 export { filterValues } from "./studio/filters"
@@ -1550,15 +1551,21 @@ export async function renderComposition(
       ctx.translate(s.x * sx, s.y * sy)
       ctx.rotate((s.rotation * Math.PI) / 180)
       if (s.flipX) ctx.scale(-1, 1)
-      const asset = stickers.find((a) => a.id === s.assetId)
-      if (asset || s.src) {
-        const image = await loadImage(s.src ?? stickerUrl(asset!, s.color))
+      const asset = findSticker(s.assetId ?? "") ?? stickers.find((a) => a.id === s.assetId)
+      const srcToLoad = s.src ?? (asset ? stickerUrl(asset, s.color) : "")
+      if (srcToLoad) {
+        const image = await loadImage(srcToLoad)
+        const nw = image.naturalWidth || image.width || 1
+        const nh = image.naturalHeight || image.height || 1
+        const aspect = nw / nh
+        const drawW = aspect >= 1 ? s.size * sx : (s.size * sx) * aspect
+        const drawH = aspect >= 1 ? (s.size * sx) / aspect : s.size * sx
         ctx.drawImage(
           image,
-          (-s.size * sx) / 2,
-          (-s.size * sx) / 2,
-          s.size * sx,
-          s.size * sx,
+          -drawW / 2,
+          -drawH / 2,
+          drawW,
+          drawH,
         )
       } else {
         ctx.fillStyle = s.color

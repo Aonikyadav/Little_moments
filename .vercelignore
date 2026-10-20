@@ -1,0 +1,9 @@
+# Vercel deployment ignore file
+# Prevents uploading redundant local archives and test artifacts
+raw_sticker_packs/
+Images/
+test-results/
+playwright-report/
+.tmp-*
+*.log
+.claude-replay.*

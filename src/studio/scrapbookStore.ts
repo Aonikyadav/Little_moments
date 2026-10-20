@@ -20,12 +20,25 @@ export interface PlacedDecoStamp {
   scale: number
 }
 
+export interface PlacedStickerItem {
+  id: string
+  stickerId: string
+  src: string
+  name: string
+  pack: string
+  x: number // percentage (0-100)
+  y: number // percentage (0-100)
+  rotation: number
+  scale: number
+}
+
 export interface PageCustomization {
   memo?: string
   memoFont?: "caveat" | "gochi"
   washiStyle?: string
   stickyNotes?: StickyNoteItem[]
   decoStamps?: PlacedDecoStamp[]
+  placedStickers?: PlacedStickerItem[]
   stripRotation?: number
 }
 

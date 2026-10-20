@@ -375,12 +375,15 @@ function flowerTrail(n: number, y: number) {
   ).join("")
 }
 
+import { PNG_STICKERS, PNG_STICKER_PACKS } from "../data/pngStickers"
+
 export type StickerAsset = {
   id: string
   name: string
   pack: string
   tags: string[]
-  svg: string
+  svg?: string
+  src?: string
   recolorable: boolean
 }
 export const stickerPacks = [
@@ -644,7 +647,34 @@ export const stickers: StickerAsset[] = stickerPacks.flatMap((pack, p) =>
   })),
 )
 export function stickerUrl(asset: StickerAsset, color = "#a45f59") {
-  return svgUrl(`<g color="${escape(color)}">${asset.svg}</g>`)
+  if (asset.src) return asset.src
+  return svgUrl(`<g color="${escape(color)}">${asset.svg || ""}</g>`)
+}
+
+export const pngStickers: StickerAsset[] = PNG_STICKERS.map((s) => ({
+  id: s.id,
+  name: s.name,
+  pack: s.pack,
+  tags: s.tags,
+  src: s.src,
+  svg: "",
+  recolorable: false,
+}))
+
+export const pngStickerPacks = PNG_STICKER_PACKS.map((p) => p.title)
+
+export const allStickerPacks = [
+  ...PNG_STICKER_PACKS.map((p) => p.title),
+  ...stickerPacks,
+]
+
+export const allStickers: StickerAsset[] = [
+  ...pngStickers,
+  ...stickers,
+]
+
+export function findSticker(id: string): StickerAsset | undefined {
+  return allStickers.find((s) => s.id === id)
 }
 export const backgroundPatterns = [
   "none",
