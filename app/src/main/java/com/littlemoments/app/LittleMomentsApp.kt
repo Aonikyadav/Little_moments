@@ -104,7 +104,7 @@ fun LittleMomentsApp() {
             }
         }
 
-        // Screen 1: Starting Page (Splash Screen Overlay)
+        // Screen 1: Starting Page (Splash Screen Overlay matching hand sketch)
         AnimatedVisibility(
             visible = showSplash,
             enter = fadeIn(),
@@ -113,28 +113,62 @@ fun LittleMomentsApp() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(BaseCanvas)
+                    .background(Color(0xFF171717).copy(alpha = 0.7f))
                     .clickable { showSplash = false },
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "starting page ✦",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Cursive
+                    )
+                    Spacer(Modifier.height(10.dp))
                     Box(
                         modifier = Modifier
-                            .size(110.dp)
-                            .background(SurfaceCard, RoundedCornerShape(28.dp))
-                            .border(2.dp, PrimaryInk, RoundedCornerShape(28.dp)),
+                            .width(260.dp)
+                            .height(480.dp)
+                            .background(SurfaceCard, RoundedCornerShape(32.dp))
+                            .border(3.dp, PrimaryInk, RoundedCornerShape(32.dp))
+                            .padding(20.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("LM✦", color = ArcadeMaroon, fontSize = 32.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Serif)
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Text("Little Moments", color = PrimaryInk, fontSize = 22.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Serif)
-                    Text("포토부스 · K-PHOTO STUDIO", color = SecondaryInk, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
-                    Spacer(Modifier.height(16.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Box(modifier = Modifier.size(7.dp).background(GoldenAmber, CircleShape))
-                        Box(modifier = Modifier.size(7.dp).background(ArcadeMaroon, CircleShape))
-                        Box(modifier = Modifier.size(7.dp).background(PrimaryInk, CircleShape))
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            // Centered card with double outline from sketch
+                            Box(
+                                modifier = Modifier
+                                    .size(160.dp, 110.dp)
+                                    .background(BaseCanvas, RoundedCornerShape(20.dp))
+                                    .border(2.5.dp, PrimaryInk, RoundedCornerShape(20.dp))
+                                    .padding(4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .border(1.dp, PrimaryInk.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("LM✦", color = ArcadeMaroon, fontSize = 42.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Serif)
+                                }
+                            }
+                            Spacer(Modifier.height(28.dp))
+                            Text("Little Moments", color = PrimaryInk, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, fontFamily = FontFamily.Serif)
+                            Text("포토부스 · K-PHOTO STUDIO", color = SecondaryInk, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                            Spacer(Modifier.height(24.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Box(modifier = Modifier.size(7.dp).background(GoldenAmber, CircleShape))
+                                Box(modifier = Modifier.size(7.dp).background(ArcadeMaroon, CircleShape))
+                                Box(modifier = Modifier.size(7.dp).background(PrimaryInk, CircleShape))
+                            }
+                            Spacer(Modifier.height(16.dp))
+                            Text("Tap anywhere to enter →", color = SecondaryInk, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        }
                     }
                 }
             }

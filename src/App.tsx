@@ -238,6 +238,10 @@ export default function App() {
   const [page, setPage] = useState<Page>(() => getInitialPage())
   const [showSplash, setShowSplash] = useState<boolean>(() => {
     if (typeof window === "undefined") return false
+    const search = new URLSearchParams(window.location.search)
+    if (search.has("splash") || window.location.hash.includes("splash") || window.location.pathname.includes("splash")) {
+      return true
+    }
     return !sessionStorage.getItem("lm_splash_seen")
   })
   const [settings, setSettings] = useState<BoothSettings>(() =>
@@ -405,7 +409,7 @@ export default function App() {
     const timer = setTimeout(() => {
       setShowSplash(false)
       sessionStorage.setItem("lm_splash_seen", "true")
-    }, 1400)
+    }, 3200)
     return () => clearTimeout(timer)
   }, [showSplash])
 
@@ -1428,45 +1432,63 @@ export default function App() {
       {/* CodePen Paper Texture Overlay */}
       <div className="paper-texture" aria-hidden="true" />
 
-      {/* Starting Page (Splash Screen) from Blueprint Screen 1 */}
+      {/* Starting Page (Splash Screen) - Hand-drawn blueprint Screen 1 */}
       {showSplash && (
         <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#fdfbf7] p-6 text-stone-900 transition-opacity duration-300 cursor-pointer animate-fadeIn"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#171717]/70 backdrop-blur-sm p-4 text-stone-900 transition-opacity duration-300 cursor-pointer animate-fadeIn"
           onClick={() => {
             setShowSplash(false)
             sessionStorage.setItem("lm_splash_seen", "true")
           }}
+          title="Tap anywhere to enter"
         >
-          <div className="w-full max-w-[320px] rounded-3xl border-3 border-stone-900 bg-[#faf7ee] p-8 shadow-[8px_8px_0_#171717] flex flex-col items-center text-center relative overflow-hidden">
-            <div className="w-16 h-1.5 rounded-full bg-stone-300 mb-6" />
+          {/* Handwritten sketch label at top matching sketch: 'starting page' */}
+          <div className="mb-2 flex items-center gap-1.5 font-caveat text-2xl sm:text-3xl text-[#fdfbf7] drop-shadow-md tracking-wider">
+            <span>starting page</span>
+            <span className="text-amber-400">✦</span>
+          </div>
 
-            {/* Hand-drawn LM badge */}
-            <div className="mb-6 w-36 h-32 rounded-2xl border-2 border-stone-900 bg-[#faf8f0] shadow-[4px_4px_0_#171717] flex flex-col items-center justify-center relative">
-              <span className="font-mono font-black text-4xl tracking-tighter text-stone-900 flex items-center gap-1">
-                LM<Sparkles size={24} className="text-amber-500 fill-amber-400" />
-              </span>
-              <span className="text-[10px] font-mono tracking-widest text-stone-500 uppercase mt-1 font-bold">
-                PHOTOSTUDIO
+          {/* Smartphone Frame Outline with Lined Notebook Paper Background (from sketch) */}
+          <div
+            className="w-full max-w-[320px] aspect-[9/18] max-h-[80vh] rounded-[38px] border-[3.5px] border-stone-900 bg-[#fdfcf7] shadow-[0_20px_50px_rgba(0,0,0,0.5),6px_6px_0_#171717] flex flex-col items-center justify-between p-6 relative overflow-hidden select-none"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, transparent 38px, rgba(244, 114, 182, 0.4) 38px, rgba(244, 114, 182, 0.4) 40px, transparent 40px),
+                repeating-linear-gradient(to bottom, transparent, transparent 27px, rgba(203, 213, 225, 0.6) 27px, rgba(203, 213, 225, 0.6) 28px)
+              `,
+              backgroundSize: "100% 100%, 100% 28px",
+            }}
+          >
+            {/* Phone speaker notch */}
+            <div className="w-20 h-2.5 rounded-full bg-stone-900/20 flex items-center justify-center">
+              <div className="w-8 h-1 rounded-full bg-stone-900/40" />
+            </div>
+
+            {/* Centered Rounded Card with Double Ink Outline (exact sketch match) */}
+            <div className="my-auto w-full max-w-[210px] py-7 px-4 rounded-2xl border-[2.5px] border-stone-900 bg-[#faf8f0] shadow-[4px_4px_0_#171717] flex flex-col items-center justify-center relative">
+              {/* Inner stroke line of the double outline from sketch */}
+              <div className="absolute inset-1.5 rounded-xl border border-stone-800 pointer-events-none" />
+
+              <div className="flex items-center justify-center gap-1 font-mono font-black text-5xl tracking-tighter text-stone-900">
+                <span className="font-sans font-extrabold tracking-tight">LM</span>
+                <span className="text-amber-500 text-3xl font-serif">✦</span>
+              </div>
+              <span className="text-[9px] font-mono tracking-widest text-stone-500 uppercase mt-2 font-bold">
+                LITTLE MOMENTS
               </span>
             </div>
 
-            <h1 className="font-caveat text-4xl font-bold text-stone-900 mb-1">
-              Little Moments
-            </h1>
-            <p className="text-xs font-mono text-stone-600 mb-6 leading-relaxed">
-              Korean Photobooth Keepsakes & Analog Print Studio
-            </p>
-
-            {/* Subtle Loading Pulse Dots from sketch */}
-            <div className="flex items-center gap-2 mt-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-stone-900 animate-ping" />
-              <span className="w-2.5 h-2.5 rounded-full bg-stone-900 animate-pulse delay-75" />
-              <span className="w-2.5 h-2.5 rounded-full bg-stone-900 animate-pulse delay-150" />
+            {/* Bottom: Subtle Loading Pulse Dots & Tap Prompt from sketch */}
+            <div className="flex flex-col items-center gap-2 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-stone-900 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-stone-900 animate-pulse delay-75" />
+                <span className="w-2 h-2 rounded-full bg-stone-900 animate-pulse delay-150" />
+              </div>
+              <span className="text-[12px] font-caveat text-stone-700 font-bold">
+                Tap anywhere to enter →
+              </span>
             </div>
-
-            <span className="mt-8 text-[11px] font-mono text-stone-400">
-              Tap anywhere to enter
-            </span>
           </div>
         </div>
       )}
@@ -1511,7 +1533,16 @@ export default function App() {
               setPage("home")
             }}
           >
-            <span className="brand-mark">LM✦</span>
+            <span
+              className="brand-mark cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+              title="Click to view Starting Page (Splash)"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowSplash(true)
+              }}
+            >
+              LM✦
+            </span>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <strong>Little Moments</strong>
