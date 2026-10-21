@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { Search, Sparkles, Filter, Check, ArrowRight } from "lucide-react"
 import type { MobileTab } from "../types"
 import { templates, kBoothTemplates, purikuraTemplates } from "../../templates"
+import { TemplateThumbnail } from "../../components/TemplateThumbnail"
 
 interface TemplatesScreenProps {
   onNavigate: (tab: MobileTab) => void
@@ -46,7 +47,7 @@ export const TemplatesScreen: React.FC<TemplatesScreenProps> = ({
   })
 
   return (
-    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-4 pt-3">
+    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-3.5 pt-3">
       {/* Notebook Stamp Header matching sketch */}
       <header className="flex items-center justify-between pb-2 mb-3 border-b-2 border-stone-900/10">
         <div>
@@ -95,8 +96,8 @@ export const TemplatesScreen: React.FC<TemplatesScreenProps> = ({
         ))}
       </div>
 
-      {/* 2-Column Responsive Card Grid matching sketch */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* 3-Column Compact Card Grid (Half the previous card size, matching popular cards) */}
+      <div className="grid grid-cols-3 gap-2.5">
         {filtered.map((t) => (
           <div
             key={t.id}
@@ -104,42 +105,28 @@ export const TemplatesScreen: React.FC<TemplatesScreenProps> = ({
               onSelectTemplate(t.id)
               onNavigate("studio")
             }}
-            className="bg-white rounded-2xl border-2 border-stone-900 p-2 shadow-[3px_3px_0_#1f1d1a] cursor-pointer active:scale-95 transition-all flex flex-col justify-between group"
+            className="bg-white rounded-xl border-2 border-stone-900 p-1.5 shadow-[2px_2px_0_#1f1d1a] cursor-pointer active:scale-95 transition-all flex flex-col justify-between group"
           >
             {/* Thumbnail */}
-            <div className="w-full aspect-[2/3] bg-[#faf8f2] rounded-xl overflow-hidden border border-stone-300 mb-2 relative flex items-center justify-center">
-              {t.thumbnail ? (
-                <img
-                  src={t.thumbnail}
-                  alt={t.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="p-3 text-center text-xs font-mono text-stone-400">
-                  {t.name}
-                </div>
-              )}
-
-              {/* Cut badge */}
-              <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-stone-900/90 text-white text-[9px] font-mono font-bold">
+            <div className="w-full aspect-[2/3] bg-[#faf8f2] rounded-lg overflow-hidden border border-stone-300 mb-1.5 relative flex items-center justify-center">
+              <TemplateThumbnail
+                template={t}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              />
+              {/* Count Badge */}
+              <div className="absolute top-1 left-1 bg-stone-900/85 text-white text-[8px] font-mono font-bold px-1 rounded shadow-xs">
                 {t.count}-cut
               </div>
             </div>
 
-            {/* Template Name & Action */}
-            <div className="flex items-center justify-between pt-1">
-              <div className="min-w-0 pr-1">
-                <span className="text-xs font-mono font-bold text-stone-900 block truncate">
-                  {t.name}
-                </span>
-                <span className="text-[9.5px] font-mono text-stone-500 block truncate">
-                  {t.subtitle || `${t.count} photos`}
-                </span>
-              </div>
-              <div className="w-6 h-6 rounded-full bg-amber-400 border border-stone-900 flex items-center justify-center text-stone-950 shrink-0">
-                <ArrowRight size={12} />
-              </div>
+            {/* Template Info */}
+            <div className="pt-0.5">
+              <span className="text-[10px] font-mono font-bold text-stone-900 block truncate leading-tight">
+                {t.name}
+              </span>
+              <span className="text-[8.5px] font-mono text-stone-500 block truncate mt-0.5">
+                {t.category}
+              </span>
             </div>
           </div>
         ))}
@@ -147,3 +134,5 @@ export const TemplatesScreen: React.FC<TemplatesScreenProps> = ({
     </div>
   )
 }
+
+export default TemplatesScreen

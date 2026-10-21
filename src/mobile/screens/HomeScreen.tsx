@@ -1,7 +1,8 @@
-import React from "react"
+import React, { useMemo } from "react"
 import { Sparkles, ArrowRight, Camera, Paintbrush, Flame, ChevronRight, Layers } from "lucide-react"
 import type { MobileTab } from "../types"
-import { templates, kBoothTemplates } from "../../templates"
+import { templates, kBoothTemplates, getTemplate } from "../../templates"
+import { TemplateThumbnail } from "../../components/TemplateThumbnail"
 
 interface HomeScreenProps {
   onNavigate: (tab: MobileTab) => void
@@ -12,8 +13,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigate,
   onSelectTemplate,
 }) => {
-  const featuredTemplates = templates.slice(0, 8)
   const featuredKBooth = kBoothTemplates.slice(0, 4)
+
+  // Interleave 5 K-Booth templates into the popular strip templates with natural gaps
+  const mixedPopularTemplates = useMemo(() => {
+    const list: typeof templates = []
+    const baseTemplates = templates.slice(0, 10)
+    const kBoothPicks = [
+      kBoothTemplates[0],  // Purple & Beige Birthday Twin
+      kBoothTemplates[3],  // Blue & White Starry Couple Twin
+      kBoothTemplates[7],  // Seoul Cinema Ticket Barcode
+      kBoothTemplates[10], // Minimalist Slat Shadow Twin
+      kBoothTemplates[13], // Denim Blue Pocket Keepsake
+    ].filter(Boolean)
+
+    let kIdx = 0
+    baseTemplates.forEach((t, i) => {
+      list.push(t)
+      // Spaced with a gap: insert 1 K-Booth template every 2 regular templates
+      if ((i + 1) % 2 === 0 && kIdx < kBoothPicks.length) {
+        list.push(kBoothPicks[kIdx])
+        kIdx++
+      }
+    })
+    return list
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-4 pt-3">
@@ -48,7 +72,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </button>
       </header>
 
-      {/* Hero Card ("Text about APP" + "Mainpic.jpg" from handwritten sketch) */}
+      {/* Hero Card ("Moments worth keeping" + Exact Website Keepsake Frame) */}
       <section className="bg-white rounded-2xl border-2 border-stone-900 p-4 shadow-[4px_4px_0_#1f1d1a] mb-5 relative overflow-hidden">
         {/* Decorative corner tag */}
         <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[9px] font-mono font-bold border border-rose-300">
@@ -89,42 +113,28 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
           </div>
 
-          {/* "Mainpic .jpg" showcase strip column */}
+          {/* Exact Keepsake Strip Frame from Little Moments website */}
           <div className="col-span-5 flex justify-center">
-            <div className="w-full max-w-[125px] bg-[#faf8f2] rounded-xl border-2 border-stone-900 p-1.5 shadow-[3px_3px_0_#1f1d1a] rotate-1">
-              {/* Tape accent */}
-              <div className="w-10 h-3 bg-amber-200/80 -rotate-6 mx-auto -mt-2.5 mb-1 border-t border-b border-amber-300 shadow-xs" />
-              
-              <div className="space-y-1">
-                <div className="aspect-[4/3] rounded bg-stone-200 overflow-hidden border border-stone-800">
-                  <img
-                    src="/images/romantic_love_kisspose_aesthetic/031.jpg"
-                    alt="Preview 1"
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="aspect-[4/3] rounded bg-stone-200 overflow-hidden border border-stone-800">
-                  <img
-                    src="/images/romantic_love_kisspose_aesthetic/032.jpg"
-                    alt="Preview 2"
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="aspect-[4/3] rounded bg-stone-200 overflow-hidden border border-stone-800">
-                  <img
-                    src="/images/romantic_love_kisspose_aesthetic/033.jpg"
-                    alt="Preview 3"
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
+            <div className="relative bg-white rounded-2xl border-2 border-stone-900 p-2 shadow-[4px_4px_0_#1f1d1a] rotate-1 max-w-[135px] w-full flex flex-col items-center">
+              {/* Red original stamp matching website */}
+              <div className="absolute -top-2.5 -right-2.5 px-2 py-0.5 rounded bg-rose-600 text-white font-mono text-[8px] font-black border border-stone-900 shadow-xs uppercase tracking-wider z-10">
+                Original
               </div>
 
-              <div className="mt-1 text-center">
-                <span className="text-[8px] font-mono tracking-widest text-stone-500 font-bold uppercase">
-                  LITTLE MOMENTS ✦
+              {/* Keepsake Strip Display matching website */}
+              <div className="w-full aspect-[1/1.5] bg-[#f7f5ee] rounded-xl border border-stone-800 p-1 overflow-hidden flex items-center justify-center shadow-inner">
+                <TemplateThumbnail
+                  template={getTemplate("tmpl-user-053") || templates[0]}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              <div className="mt-1.5 text-center leading-tight">
+                <span className="text-[8px] font-mono tracking-widest text-stone-800 font-bold uppercase block">
+                  AUTHENTIC KEEPSAKE
+                </span>
+                <span className="text-[7.5px] font-mono text-stone-400 block mt-0.5">
+                  #053 · Red String
                 </span>
               </div>
             </div>
@@ -132,7 +142,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </section>
 
-      {/* Quick Templates Section ("Template", "Template" from sketch) */}
+      {/* Quick Templates Section ("Popular Strip Templates") */}
       <section className="mb-5">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
@@ -140,7 +150,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               Popular Strip Templates
             </h3>
             <span className="text-[10px] font-mono font-bold bg-amber-300 text-stone-950 px-1.5 py-0.2 rounded-full">
-              {templates.length}
+              {mixedPopularTemplates.length}
             </span>
           </div>
 
@@ -154,43 +164,45 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </button>
         </div>
 
-        {/* Horizontal scroll of template cards */}
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none snap-x">
-          {featuredTemplates.map((t) => (
-            <div
-              key={t.id}
-              onClick={() => {
-                onSelectTemplate(t.id)
-                onNavigate("studio")
-              }}
-              className="shrink-0 w-28 bg-white rounded-xl border-2 border-stone-900 p-1.5 shadow-[2px_2px_0_#1f1d1a] active:scale-95 transition-all snap-start cursor-pointer group"
-            >
-              <div className="aspect-[2/3] rounded-lg bg-stone-100 overflow-hidden border border-stone-300 mb-1 flex items-center justify-center relative">
-                {t.thumbnail ? (
-                  <img
-                    src={t.thumbnail}
-                    alt={t.name}
+        {/* Horizontal scroll of template cards (Interleaved with K-Booth) */}
+        <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none snap-x">
+          {mixedPopularTemplates.map((t) => {
+            const isKBooth = t.id.startsWith("kb-") || t.tags?.includes("k-booth") || t.tags?.includes("twin-strip")
+            return (
+              <div
+                key={t.id}
+                onClick={() => {
+                  onSelectTemplate(t.id)
+                  onNavigate("studio")
+                }}
+                className={`shrink-0 w-28 bg-white rounded-xl border-2 border-stone-900 p-1.5 shadow-[2px_2px_0_#1f1d1a] active:scale-95 transition-all snap-start cursor-pointer group relative ${
+                  isKBooth ? "border-amber-500 bg-amber-50/30" : ""
+                }`}
+              >
+                <div className="aspect-[2/3] rounded-lg bg-stone-100 overflow-hidden border border-stone-300 mb-1 flex items-center justify-center relative">
+                  <TemplateThumbnail
+                    template={t}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    loading="lazy"
                   />
-                ) : (
-                  <div className="p-2 text-center text-[10px] font-mono text-stone-500">
-                    {t.name}
+                  <div className="absolute top-1 left-1 bg-stone-900/85 text-white text-[8px] font-mono px-1 rounded shadow-xs">
+                    {t.count}-cut
                   </div>
-                )}
-                <div className="absolute top-1 left-1 bg-stone-900/80 text-white text-[8px] font-mono px-1 rounded">
-                  {t.count}-cut
+                  {isKBooth && (
+                    <div className="absolute top-1 right-1 bg-amber-400 text-stone-950 text-[7px] font-mono font-bold px-1 rounded border border-stone-900 shadow-xs">
+                      K-BOOTH
+                    </div>
+                  )}
                 </div>
+                <p className="text-[10px] font-mono font-bold text-stone-800 truncate text-center">
+                  {t.name}
+                </p>
               </div>
-              <p className="text-[10px] font-mono font-bold text-stone-800 truncate text-center">
-                {t.name}
-              </p>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 
-      {/* Korean K-Booth Section ("K-Booth" from sketch) */}
+      {/* Korean K-Booth Section ("Korean Photobooth Keepsakes") */}
       <section className="bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl border-2 border-stone-900 p-3.5 shadow-[3px_3px_0_#1f1d1a] mb-5">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
@@ -223,9 +235,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               className="bg-white rounded-xl border border-stone-800 p-2 shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
             >
               <div className="w-10 h-14 bg-stone-100 rounded overflow-hidden shrink-0 border border-stone-300">
-                {k.thumbnail && (
-                  <img src={k.thumbnail} alt={k.name} className="w-full h-full object-cover" loading="lazy" />
-                )}
+                <TemplateThumbnail template={k} className="w-full h-full object-cover" />
               </div>
               <div className="min-w-0">
                 <span className="text-[10.5px] font-mono font-bold text-stone-900 block truncate">
@@ -262,3 +272,5 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     </div>
   )
 }
+
+export default HomeScreen

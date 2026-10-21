@@ -98,8 +98,8 @@ export const MobileApp: React.FC = () => {
         )}
       </main>
 
-      {/* 4. Bottom Navigation Bar (Hidden when in Studio or Splash) */}
-      {!showSplash && currentTab !== "studio" && (
+      {/* 4. Bottom Navigation Bar (Hidden when in Studio, Camera, or Splash) */}
+      {!showSplash && currentTab !== "studio" && currentTab !== "camera" && (
         <BottomNavBar
           currentTab={currentTab}
           onSelectTab={setCurrentTab}

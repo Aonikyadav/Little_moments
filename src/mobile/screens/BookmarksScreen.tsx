@@ -41,7 +41,7 @@ export const BookmarksScreen: React.FC<BookmarksScreenProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-4 pt-3">
+    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-3.5 pt-3">
       {/* Header matching sketch */}
       <header className="flex items-center justify-between pb-2 mb-4 border-b-2 border-stone-900/10">
         <div>
@@ -50,28 +50,30 @@ export const BookmarksScreen: React.FC<BookmarksScreenProps> = ({
             <span className="text-amber-500">✦</span>
           </div>
           <div className="text-[10px] font-mono text-stone-500">
-            Your personal photobooth keepsakes
+            {savedCreations.length} personal strips & keepsakes preserved
           </div>
         </div>
 
-        <div className="px-2.5 py-1 rounded-full bg-amber-300 text-stone-950 font-mono text-[10px] font-bold border border-stone-900 shadow-xs">
-          {savedCreations.length} Saved
+        {/* Vintage Stamp */}
+        <div className="px-2 py-1 rounded bg-[#faf8f2] border border-stone-400 font-mono text-[10px] font-bold text-stone-700 shadow-xs flex items-center gap-1">
+          <Bookmark size={11} className="text-amber-500" />
+          <span>{savedCreations.length} Saved</span>
         </div>
       </header>
 
-      {/* 2-Column Grid matching sketch */}
+      {/* Empty State */}
       {savedCreations.length === 0 ? (
         <div className="bg-white rounded-2xl border-2 border-dashed border-stone-400 p-8 text-center my-6 shadow-xs">
-          <div className="w-14 h-14 rounded-full bg-amber-100 border border-stone-900 flex items-center justify-center mx-auto mb-3 text-stone-700">
-            <Bookmark size={24} />
+          <div className="w-12 h-12 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center mx-auto mb-3 text-amber-700">
+            <Bookmark size={20} />
           </div>
-          <h4 className="font-sans font-bold text-sm text-stone-900 mb-1">
-            No Saved Keepsakes Yet
-          </h4>
-          <p className="text-xs font-mono text-stone-500 mb-4 max-w-xs mx-auto">
-            Capture poses in the camera booth or arrange stickers in Studio to save your first photostrip!
+          <h3 className="font-sans font-bold text-sm text-stone-900 mb-1">
+            No Bookmarks Yet
+          </h3>
+          <p className="text-xs font-mono text-stone-500 max-w-xs mx-auto mb-4 leading-relaxed">
+            Snap photos in the Camera Booth or customize a strip in the Studio to preserve your first keepsake.
           </p>
-          <div className="flex justify-center gap-2">
+          <div className="flex items-center justify-center gap-2">
             <button
               type="button"
               onClick={() => onNavigate("camera")}
@@ -89,18 +91,19 @@ export const BookmarksScreen: React.FC<BookmarksScreenProps> = ({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        /* 3-Column Compact Card Grid (Half the previous card size) */
+        <div className="grid grid-cols-3 gap-2.5">
           {savedCreations.map((item: any) => (
             <div
               key={item.id}
               onClick={() => onOpenCreationInStudio(item)}
-              className="bg-white rounded-2xl border-2 border-stone-900 p-2 shadow-[3px_3px_0_#1f1d1a] cursor-pointer active:scale-95 transition-all flex flex-col justify-between group"
+              className="bg-white rounded-xl border-2 border-stone-900 p-1.5 shadow-[2px_2px_0_#1f1d1a] cursor-pointer active:scale-95 transition-all flex flex-col justify-between group"
             >
               {/* Tape accent */}
-              <div className="w-8 h-2.5 bg-amber-200/80 -rotate-3 mx-auto -mt-3.5 mb-1.5 border-t border-b border-amber-300 shadow-xs" />
+              <div className="w-6 h-2 bg-amber-200/80 -rotate-3 mx-auto -mt-2.5 mb-1 border-t border-b border-amber-300 shadow-xs" />
 
               {/* Strip Image */}
-              <div className="w-full aspect-[2/3] bg-[#faf8f2] rounded-xl overflow-hidden border border-stone-300 mb-2 relative">
+              <div className="w-full aspect-[2/3] bg-[#faf8f2] rounded-lg overflow-hidden border border-stone-300 mb-1.5 relative">
                 <img
                   src={item.image}
                   alt={item.title || "Saved Strip"}
@@ -109,31 +112,31 @@ export const BookmarksScreen: React.FC<BookmarksScreenProps> = ({
               </div>
 
               {/* Title & Actions */}
-              <div className="pt-1">
-                <div className="text-[11px] font-mono font-bold text-stone-900 truncate mb-1">
+              <div className="pt-0.5">
+                <div className="text-[10px] font-mono font-bold text-stone-900 truncate mb-1 leading-tight">
                   {item.title || "Photobooth Keepsake"}
                 </div>
                 <div className="flex items-center justify-between text-stone-500 pt-1 border-t border-stone-100">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={(e) => handleDownload(item.image, e)}
-                      className="p-1 rounded hover:bg-stone-100 text-stone-700"
+                      className="p-1 rounded hover:bg-stone-100 text-stone-700 active:scale-90"
                       title="Download"
                     >
-                      <Download size={13} />
+                      <Download size={11} />
                     </button>
                     <button
                       type="button"
                       onClick={(e) => handleDelete(item.id, e)}
-                      className="p-1 rounded hover:bg-rose-50 text-rose-600"
+                      className="p-1 rounded hover:bg-rose-50 text-rose-600 active:scale-90"
                       title="Delete"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={11} />
                     </button>
                   </div>
 
-                  <span className="text-[9px] font-mono text-stone-400">
+                  <span className="text-[7.5px] font-mono text-stone-400">
                     {new Date(item.createdAt || Date.now()).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -148,3 +151,5 @@ export const BookmarksScreen: React.FC<BookmarksScreenProps> = ({
     </div>
   )
 }
+
+export default BookmarksScreen
