@@ -41,7 +41,7 @@ export const BookmarksScreen: React.FC<BookmarksScreenProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-4 pt-3 select-none">
+    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-4 pt-3">
       {/* Header matching sketch */}
       <header className="flex items-center justify-between pb-2 mb-4 border-b-2 border-stone-900/10">
         <div>

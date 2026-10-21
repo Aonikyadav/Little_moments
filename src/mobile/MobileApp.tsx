@@ -42,7 +42,7 @@ export const MobileApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 font-mono relative overflow-x-hidden select-none">
+    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 font-mono relative">
       {/* Paper texture subtle overlay */}
       <div className="paper-texture" aria-hidden="true" />
 

@@ -242,28 +242,11 @@ export default function App() {
   const [page, setPage] = useState<Page>(() => getInitialPage())
   const [showSplash, setShowSplash] = useState<boolean>(() => {
     if (typeof window === "undefined") return false
-    // Desktop PC Web users (laptop/desktop browser) MUST NEVER see splash modal!
-    if (!Capacitor.isNativePlatform() && window.innerWidth >= 768 && !window.location.search.includes("splash")) {
-      return false
-    }
-    // Android Native App:
-    if (Capacitor.isNativePlatform()) {
-      return !sessionStorage.getItem("lm_splash_seen")
-    }
     const search = new URLSearchParams(window.location.search)
     return search.has("splash") || window.location.hash.includes("splash")
   })
 
-  const [showMobileAuth, setShowMobileAuth] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false
-    // Desktop PC Web users MUST NEVER see mobile auth screen
-    if (!Capacitor.isNativePlatform() && window.innerWidth >= 768) return false
-    // Android Native App / Mobile:
-    if (Capacitor.isNativePlatform() || window.location.search.includes("view=mobile")) {
-      return !localStorage.getItem("lm_auth_completed")
-    }
-    return false
-  })
+  const [showMobileAuth, setShowMobileAuth] = useState<boolean>(false)
   const [settings, setSettings] = useState<BoothSettings>(() =>
     readLocal("little-settings", defaultSettings),
   )
@@ -429,9 +412,6 @@ export default function App() {
     const timer = setTimeout(() => {
       setShowSplash(false)
       sessionStorage.setItem("lm_splash_seen", "true")
-      if ((isNativePlatform || window.innerWidth < 768) && !localStorage.getItem("lm_auth_completed")) {
-        setShowMobileAuth(true)
-      }
     }, 1800)
     return () => clearTimeout(timer)
   }, [showSplash])

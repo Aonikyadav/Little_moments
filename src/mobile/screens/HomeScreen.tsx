@@ -16,7 +16,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const featuredKBooth = kBoothTemplates.slice(0, 4)
 
   return (
-    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-4 pt-3 select-none">
+    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-4 pt-3">
       {/* Top Header Bar matching sketch */}
       <header className="flex items-center justify-between mb-4 pb-2 border-b-2 border-stone-900/10">
         <div className="flex items-center gap-2">

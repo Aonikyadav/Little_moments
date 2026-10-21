@@ -29,7 +29,7 @@ export const KBoothScreen: React.FC<KBoothScreenProps> = ({
   })
 
   return (
-    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-4 pt-3 select-none">
+    <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-4 pt-3">
       {/* Header matching sketch */}
       <header className="pb-2 mb-3 border-b-2 border-stone-900/10">
         <div className="flex items-center gap-1.5 font-caveat text-xl text-stone-700 font-bold">
