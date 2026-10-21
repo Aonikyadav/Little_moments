@@ -32,6 +32,10 @@ import {
   Archive,
   ArrowRight,
   X,
+  BookOpen,
+  Wand2,
+  Paintbrush,
+  Camera,
 } from "lucide-react"
 import type { UserAccount } from "../../services/supabase"
 import {
@@ -53,6 +57,24 @@ import {
 } from "../../services/adminService"
 import { fetchSuperadminStats, deletePhotoAsAdmin } from "../../services/supabase"
 import { VisualTemplateStudio } from "./VisualTemplateStudio"
+import { loadProjects, type ProjectRecord } from "../../studio/storage"
+import { getTemplate, templates } from "../../templates"
+import type { Composition, Slot, PhotoCount } from "../../types"
+
+export interface ScrapbookItemRecord {
+  id: string
+  title: string
+  date: string
+  imageUrl: string
+  source: "cloud" | "studio-idb" | "local"
+  userEmail?: string
+  userId?: string
+  templateId?: string
+  composition?: Composition
+  stickerCount?: number
+  textCount?: number
+  photoCount?: number
+}
 
 interface MasterControlDashboardProps {
   currentUser: UserAccount
@@ -64,8 +86,8 @@ export const MasterControlDashboard: React.FC<MasterControlDashboardProps> = ({
   currentUser,
   onClose,
 }) => {
-  // Navigation Tabs: "master" (User Directory & Moderation) | "templates" (Catalog) | "studio" (No-code builder)
-  const [activeTab, setActiveTab] = useState<"master" | "templates" | "studio">("master")
+  // Navigation Tabs: "master" (User Directory & Moderation) | "templates" (Catalog) | "scrapbook" (Scrapbook Keepsakes) | "studio" (No-code builder)
+  const [activeTab, setActiveTab] = useState<"master" | "templates" | "scrapbook" | "studio">("master")
 
   // Platform Metrics
   const [metrics, setMetrics] = useState<AdminPlatformMetrics>({
@@ -89,6 +111,11 @@ export const MasterControlDashboard: React.FC<MasterControlDashboardProps> = ({
   // Photos & Content Moderation
   const [recentPhotos, setRecentPhotos] = useState<any[]>([])
   const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null)
+
+  // Scrapbook Items & Creations State
+  const [scrapbookItems, setScrapbookItems] = useState<ScrapbookItemRecord[]>([])
+  const [scrapbookSearch, setScrapbookSearch] = useState<string>("")
+  const [scrapbookSourceFilter, setScrapbookSourceFilter] = useState<"all" | "cloud" | "studio-idb" | "local">("all")
 
   // Security Audit Logs
   const [auditLogs, setAuditLogs] = useState<AdminAuditLogRecord[]>([])
@@ -135,6 +162,94 @@ export const MasterControlDashboard: React.FC<MasterControlDashboardProps> = ({
       setAuditLogs(auditData)
       setCustomTemplates(templatesData)
       setRecentPhotos(statsData.photos || [])
+
+      // Load Scrapbook Keepsakes from: 1) IndexedDB Studio Projects, 2) LocalStorage Creations, 3) Cloud Photos
+      const loadedScrapbook: ScrapbookItemRecord[] = []
+      const seenIds = new Set<string>()
+
+      // 1. IndexedDB Studio Projects
+      try {
+        const idbProjects = await loadProjects()
+        for (const p of idbProjects) {
+          if (p.id && !seenIds.has(p.id)) {
+            seenIds.add(p.id)
+            const tmpl = p.composition?.templateId ? getTemplate(p.composition.templateId) : null
+            loadedScrapbook.push({
+              id: p.id,
+              title: tmpl?.name ? `${tmpl.name} (Studio Keep)` : "Studio Scrapbook Keep",
+              date: p.date || new Date().toISOString(),
+              imageUrl: p.image,
+              source: "studio-idb",
+              userEmail: currentUser.email,
+              userId: currentUser.id,
+              templateId: p.composition?.templateId,
+              composition: p.composition,
+              stickerCount: p.composition?.stickers?.length || 0,
+              textCount: p.composition?.texts?.length || 0,
+              photoCount: (p.composition?.photos?.length || tmpl?.count || 4) as PhotoCount,
+            })
+          }
+        }
+      } catch (err) {
+        console.warn("[MasterControl] IDB projects load notice:", err)
+      }
+
+      // 2. LocalStorage Creations
+      try {
+        const rawLocal = localStorage.getItem("little-creations")
+        if (rawLocal) {
+          const localList = JSON.parse(rawLocal)
+          if (Array.isArray(localList)) {
+            for (const item of localList) {
+              const itemId = item.id || `local-${Math.random().toString(36).substring(2, 7)}`
+              if (!seenIds.has(itemId)) {
+                seenIds.add(itemId)
+                const comp: Composition | undefined = item.data || item.composition
+                const tmpl = comp?.templateId ? getTemplate(comp.templateId) : null
+                loadedScrapbook.push({
+                  id: itemId,
+                  title: item.name || tmpl?.name || "Local Scrapbook Keepsake",
+                  date: item.date || new Date().toISOString(),
+                  imageUrl: item.previewUrl || item.image,
+                  source: "local",
+                  userEmail: currentUser.email,
+                  userId: currentUser.id,
+                  templateId: comp?.templateId,
+                  composition: comp,
+                  stickerCount: comp?.stickers?.length || 0,
+                  textCount: comp?.texts?.length || 0,
+                  photoCount: (comp?.photos?.length || tmpl?.count || 4) as PhotoCount,
+                })
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[MasterControl] Local creations load notice:", err)
+      }
+
+      // 3. Cloud Photos from Supabase
+      const cloudPhotos = statsData.photos || []
+      for (const p of cloudPhotos) {
+        const pId = p.id || `cloud-${Math.random().toString(36).substring(2, 7)}`
+        if (!seenIds.has(pId)) {
+          seenIds.add(pId)
+          const tmpl = p.templateId ? getTemplate(p.templateId) : null
+          loadedScrapbook.push({
+            id: pId,
+            title: p.title || (tmpl?.name ? `${tmpl.name} Strip` : "Cloud Photobooth Keepsake"),
+            date: p.createdAt || new Date().toISOString(),
+            imageUrl: p.imageUrl,
+            source: "cloud",
+            userEmail: p.userEmail || undefined,
+            userId: p.userId,
+            templateId: p.templateId,
+            photoCount: (tmpl?.count || 4) as PhotoCount,
+          })
+        }
+      }
+
+      setScrapbookItems(loadedScrapbook)
     } catch (err) {
       console.warn("[MasterControl] Error loading dashboard data:", err)
     } finally {
@@ -195,6 +310,24 @@ export const MasterControlDashboard: React.FC<MasterControlDashboardProps> = ({
     const set = new Set(customTemplates.map((t) => t.category).filter(Boolean))
     return Array.from(set)
   }, [customTemplates])
+
+  // Filtered Scrapbook Items List
+  const filteredScrapbook = useMemo(() => {
+    let result = [...scrapbookItems]
+    if (scrapbookSearch.trim()) {
+      const q = scrapbookSearch.toLowerCase()
+      result = result.filter(
+        (s) =>
+          s.title.toLowerCase().includes(q) ||
+          (s.userEmail && s.userEmail.toLowerCase().includes(q)) ||
+          (s.templateId && s.templateId.toLowerCase().includes(q))
+      )
+    }
+    if (scrapbookSourceFilter !== "all") {
+      result = result.filter((s) => s.source === scrapbookSourceFilter)
+    }
+    return result
+  }, [scrapbookItems, scrapbookSearch, scrapbookSourceFilter])
 
   // Actions: User Role & Status Changes
   const handleToggleUserRole = (u: AdminUserRecord) => {
@@ -339,6 +472,74 @@ export const MasterControlDashboard: React.FC<MasterControlDashboardProps> = ({
     })
   }
 
+  // Convert any Scrapbook Keepsake or Project into a Live Template in Visual Studio
+  const handleConvertScrapbookToTemplate = (item: ScrapbookItemRecord) => {
+    // 1. Resolve composition and base template definition
+    const comp = item.composition
+    const tid = comp?.templateId || item.templateId || "four-cut"
+    const baseTmpl = getTemplate(tid) || templates[0]
+
+    // 2. Build clean template slots (strip previous user photos so others can capture fresh photos)
+    const slots: Slot[] = baseTmpl.slots?.length
+      ? baseTmpl.slots.map((s) => ({ ...s }))
+      : [
+          { x: 30, y: 30, width: 340, height: 230, radius: 4 },
+          { x: 30, y: 280, width: 340, height: 230, radius: 4 },
+          { x: 30, y: 530, width: 340, height: 230, radius: 4 },
+          { x: 30, y: 780, width: 340, height: 230, radius: 4 },
+        ]
+
+    const photoCount = (baseTmpl.count || slots.length || 4) as PhotoCount
+
+    // 3. Extract decorative elements from composition (stickers, texts, frame, background)
+    const stickers = comp?.stickers ? comp.stickers.map((s) => ({ ...s })) : []
+    const texts = comp?.texts ? comp.texts.map((t) => ({ ...t })) : []
+    const background = comp?.background || baseTmpl.background || "#ffffff"
+    const backgroundPattern = comp?.backgroundPattern || baseTmpl.backgroundPattern
+    const backgroundOpacity = comp?.backgroundOpacity ?? 1
+    const frameId = comp?.frameId || baseTmpl.frameId
+    const frameColor = comp?.frameColor || baseTmpl.frameColor
+    const frameOpacity = comp?.frameOpacity ?? 1
+    const frameTransform = comp?.frameTransform
+
+    // 4. Create custom template draft
+    const cleanTitle = item.title.replace(/\s*\(Template\)$/i, "").replace(/\s*\(Studio Keep\)$/i, "")
+    const newTemplateDraft: CustomTemplateRecord = {
+      id: `tmpl-custom-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: `${cleanTitle} (Template)`,
+      description: `Converted from Scrapbook keepsake (${new Date(item.date).toLocaleDateString()}). Preserves custom layout, decorations, and styling.`,
+      category: baseTmpl.category || "Scrapbook Specials",
+      tags: ["scrapbook-remix", "admin-curated", baseTmpl.category?.toLowerCase() || "custom"],
+      version: 1,
+      thumbnailUrl: item.imageUrl || baseTmpl.thumbnail,
+      width: baseTmpl.width || 800,
+      height: baseTmpl.height || 1200,
+      aspectRatio: baseTmpl.orientation || "portrait",
+      orientation: baseTmpl.orientation || "portrait",
+      photoCount: photoCount,
+      slots: slots,
+      background: background,
+      backgroundPattern: backgroundPattern,
+      backgroundOpacity: backgroundOpacity,
+      accent: baseTmpl.accent || "#ff6b8b",
+      frameId: frameId,
+      frameColor: frameColor,
+      frameOpacity: frameOpacity,
+      frameTransform: frameTransform,
+      stickers: stickers,
+      texts: texts,
+      status: "draft",
+      createdBy: currentUser.email || "superadmin",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    // 5. Connect to Studio & notify
+    setSelectedTemplateForStudio(newTemplateDraft)
+    setActiveTab("studio")
+    showToast(`🎨 Loaded "${newTemplateDraft.name}" into Studio! Ready to customize & publish.`)
+  }
+
   // Switch to Studio with selected template
   const handleEditInStudio = (tmpl: CustomTemplateRecord) => {
     setSelectedTemplateForStudio(tmpl)
@@ -400,6 +601,18 @@ export const MasterControlDashboard: React.FC<MasterControlDashboardProps> = ({
             >
               <Layers size={13} />
               <span>Templates ({customTemplates.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("scrapbook")}
+              className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === "scrapbook"
+                  ? "bg-stone-900 text-amber-300 shadow-xs"
+                  : "text-stone-700 hover:text-stone-950"
+              }`}
+            >
+              <BookOpen size={13} />
+              <span>Scrapbook ({scrapbookItems.length})</span>
             </button>
             <button
               type="button"
@@ -725,14 +938,36 @@ export const MasterControlDashboard: React.FC<MasterControlDashboardProps> = ({
                               </div>
                             </div>
 
-                            <button
-                              type="button"
-                              onClick={() => handleDeletePhoto(p.id, p.title)}
-                              className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 hover:border-rose-300 border border-transparent transition-colors"
-                              title="Delete prohibited photo"
-                            >
-                              <Trash2 size={13} />
-                            </button>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const matchingScrapbook = scrapbookItems.find((s) => s.id === p.id) || {
+                                    id: p.id,
+                                    title: p.title || "Cloud Keepsake",
+                                    date: p.createdAt || new Date().toISOString(),
+                                    imageUrl: p.imageUrl,
+                                    source: "cloud" as const,
+                                    userEmail: p.userEmail || undefined,
+                                    templateId: p.templateId,
+                                  }
+                                  handleConvertScrapbookToTemplate(matchingScrapbook)
+                                }}
+                                className="px-2 py-1 rounded bg-amber-100 hover:bg-amber-200 text-stone-900 text-[10px] font-bold border border-amber-300 flex items-center gap-1 transition-all active:scale-95"
+                                title="Open this keepsake in Visual Studio to convert it into a reusable user template"
+                              >
+                                <Wand2 size={11} className="text-amber-700" />
+                                <span>Open in Studio</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePhoto(p.id, p.title)}
+                                className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 hover:border-rose-300 border border-transparent transition-colors"
+                                title="Delete prohibited photo"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           </div>
                         ))
                       )}
@@ -944,6 +1179,166 @@ export const MasterControlDashboard: React.FC<MasterControlDashboardProps> = ({
                                 <Trash2 size={13} />
                               </button>
                             </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: SCRAPBOOK & CREATIONS (CONVERT TO TEMPLATE) */}
+            {activeTab === "scrapbook" && (
+              <div className="space-y-4">
+                {/* Header & Controls */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl border-2 border-stone-900 shadow-[4px_4px_0_#171717] p-4">
+                  <div>
+                    <h2 className="font-bold text-sm text-stone-950 flex items-center gap-2">
+                      <BookOpen size={16} className="text-amber-600" />
+                      <span>Scrapbook & Creations — Template Conversion Hub</span>
+                    </h2>
+                    <p className="text-[11px] text-stone-500 font-mono">
+                      Convert finished scrapbook keepsakes, photobooth strips, and studio projects into reusable public templates
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Source Filter */}
+                    <div className="flex items-center bg-stone-100 p-0.5 rounded-lg border text-xs">
+                      {(["all", "cloud", "studio-idb", "local"] as const).map((src) => (
+                        <button
+                          key={src}
+                          type="button"
+                          onClick={() => setScrapbookSourceFilter(src)}
+                          className={`px-2.5 py-1 rounded font-bold capitalize ${
+                            scrapbookSourceFilter === src
+                              ? "bg-stone-900 text-white shadow-xs"
+                              : "text-stone-600 hover:text-stone-900"
+                          }`}
+                        >
+                          {src === "all" ? "All Sources" : src === "cloud" ? "Cloud DB" : src === "studio-idb" ? "Studio IDB" : "Local App"}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="relative">
+                      <Search size={13} className="absolute left-2.5 top-2.5 text-stone-400" />
+                      <input
+                        type="text"
+                        value={scrapbookSearch}
+                        onChange={(e) => setScrapbookSearch(e.target.value)}
+                        placeholder="Search creations..."
+                        className="pl-7 pr-3 py-1.5 rounded-xl border border-stone-300 text-xs bg-stone-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-stone-900 font-mono w-44"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Scrapbook Cards Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filteredScrapbook.length === 0 ? (
+                    <div className="col-span-full py-16 text-center bg-white rounded-2xl border-2 border-dashed border-stone-300 text-stone-400">
+                      <BookOpen size={32} className="mx-auto mb-2 text-stone-300" />
+                      <p className="font-bold">No scrapbook creations found matching filter.</p>
+                      <p className="text-xs text-stone-400 mt-1">
+                        Any photo strips created in the Booth or Studio can be loaded here and converted to public templates!
+                      </p>
+                    </div>
+                  ) : (
+                    filteredScrapbook.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white rounded-2xl border-2 border-stone-900 shadow-[3px_3px_0_#171717] overflow-hidden flex flex-col justify-between group"
+                      >
+                        {/* Cover Image Preview */}
+                        <div
+                          onClick={() => item.imageUrl && setPreviewPhotoUrl(item.imageUrl)}
+                          className="aspect-[4/5] bg-stone-100 border-b-2 border-stone-900 p-2.5 flex items-center justify-center cursor-pointer relative overflow-hidden group-hover:bg-amber-50/50 transition-colors"
+                        >
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.title}
+                              className="max-h-full max-w-full object-contain rounded shadow-xs group-hover:scale-105 transition-transform"
+                            />
+                          ) : (
+                            <div className="text-center p-4">
+                              <ImageIcon size={28} className="mx-auto text-stone-300 mb-1" />
+                              <span className="font-bold text-stone-400 text-xs">{item.title}</span>
+                            </div>
+                          )}
+
+                          {/* Source Badge */}
+                          <div className="absolute top-2 left-2">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[9.5px] uppercase font-bold tracking-wider shadow-xs ${
+                                item.source === "cloud"
+                                  ? "bg-purple-600 text-white"
+                                  : item.source === "studio-idb"
+                                    ? "bg-amber-500 text-stone-950"
+                                    : "bg-emerald-600 text-white"
+                              }`}
+                            >
+                              {item.source === "cloud" ? "Cloud Keepsake" : item.source === "studio-idb" ? "Studio Project" : "Local Keepsake"}
+                            </span>
+                          </div>
+
+                          {/* Inspect Overlay Icon */}
+                          <span className="absolute bottom-2 right-2 p-1 rounded-lg bg-stone-900/70 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Eye size={12} />
+                          </span>
+                        </div>
+
+                        {/* Card Meta & Open in Studio Button */}
+                        <div className="p-3.5 space-y-2.5 flex-1 flex flex-col justify-between text-xs">
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                              {item.photoCount ? (
+                                <span className="px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 text-[9.5px] font-bold border border-stone-200">
+                                  {item.photoCount}-Cut
+                                </span>
+                              ) : null}
+                              {item.stickerCount ? (
+                                <span className="px-1.5 py-0.5 rounded bg-pink-50 text-pink-700 text-[9.5px] font-bold border border-pink-200">
+                                  ★ {item.stickerCount} stickers
+                                </span>
+                              ) : null}
+                              {item.textCount ? (
+                                <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[9.5px] font-bold border border-blue-200">
+                                  T {item.textCount} texts
+                                </span>
+                              ) : null}
+                            </div>
+
+                            <strong className="font-bold text-stone-950 block truncate text-sm" title={item.title}>
+                              {item.title}
+                            </strong>
+                            <p className="text-stone-500 text-[10px] truncate mt-0.5">
+                              {item.userEmail || "Superadmin Project"} · {new Date(item.date).toLocaleDateString()}
+                            </p>
+                          </div>
+
+                          <div className="pt-2 border-t border-stone-100 flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleConvertScrapbookToTemplate(item)}
+                              className="w-full py-1.5 px-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 shadow-[2px_2px_0_#d97762] active:scale-95 transition-all"
+                              title="Open this scrapbook design in Visual Studio to customize and publish as a user template"
+                            >
+                              <Wand2 size={12} className="text-amber-400" />
+                              <span>Open in Studio</span>
+                            </button>
+                            {item.imageUrl && (
+                              <button
+                                type="button"
+                                onClick={() => setPreviewPhotoUrl(item.imageUrl)}
+                                className="p-1.5 rounded-xl border border-stone-300 hover:border-stone-900 text-stone-700 shrink-0"
+                                title="Inspect high resolution photo"
+                              >
+                                <Eye size={13} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>

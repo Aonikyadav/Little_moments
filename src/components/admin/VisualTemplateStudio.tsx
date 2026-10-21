@@ -171,6 +171,32 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
     setTimeout(() => setNotification(null), 3500)
   }
 
+  // Sync state whenever initialTemplate changes (e.g. from Scrapbook or Catalog)
+  useEffect(() => {
+    if (initialTemplate) {
+      setTemplateId(initialTemplate.id)
+      setName(initialTemplate.name)
+      setDescription(initialTemplate.description || "")
+      setCategory(initialTemplate.category)
+      setTagsInput((initialTemplate.tags || []).join(", "))
+      setStatus(initialTemplate.status)
+      setVersion(initialTemplate.version || 1)
+      setSelectedRatio(initialTemplate.aspectRatio || "original")
+      setCanvasWidth(initialTemplate.width || 1000)
+      setCanvasHeight(initialTemplate.height || 2400)
+      setBackground(initialTemplate.background || "#fdfbf7")
+      setBackgroundPattern(initialTemplate.backgroundPattern || "none")
+      setBackgroundOpacity(initialTemplate.backgroundOpacity ?? 0.8)
+      setAccent(initialTemplate.accent || "#d97762")
+      setSlots(initialTemplate.slots || [])
+      setFrameId(initialTemplate.frameId)
+      setFrameColor(initialTemplate.frameColor)
+      setStickersList(initialTemplate.stickers ? [...initialTemplate.stickers] : [])
+      setTextsList(initialTemplate.texts ? [...initialTemplate.texts] : [])
+      setPreviewCoverUrl(initialTemplate.thumbnailUrl || null)
+    }
+  }, [initialTemplate])
+
   // Handle aspect ratio preset change
   const handleSelectRatio = (presetId: string) => {
     const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === presetId)
