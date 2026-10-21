@@ -42,7 +42,7 @@ function createInitialComposition(templateId: string, incomingPhotos: string[]):
     id: `photo-${Date.now()}-${i}`,
     src: url,
     name: `Shot ${i + 1}`,
-    adjustments: { ...defaultAdjustments },
+    adjustments: defaultAdjustments(),
   }))
 
   return {
@@ -55,11 +55,13 @@ function createInitialComposition(templateId: string, incomingPhotos: string[]):
     padding: 0,
     photos,
     stickers: [],
+    texts: [],
   }
 }
 
 export const MobileStudioScreen: React.FC<MobileStudioScreenProps> = ({
   onClose,
+  onNavigateToCamera,
   initialTemplateId = "tmpl-user-001",
   incomingPhotos = [],
 }) => {
@@ -102,7 +104,7 @@ export const MobileStudioScreen: React.FC<MobileStudioScreenProps> = ({
         id: `photo-${Date.now()}-${i}`,
         src: url,
         name: `Shot ${composition.photos.length + i + 1}`,
-        adjustments: { ...defaultAdjustments },
+        adjustments: defaultAdjustments(),
       }))
       handleEdit({
         ...composition,

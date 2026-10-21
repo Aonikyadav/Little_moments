@@ -12,6 +12,7 @@ import {
   findSticker,
 } from "./studio/assets"
 import { dimensions, orderedLayers, photoBounds } from "./studio/model"
+import { findGridLayout } from "./studio/gridEngine"
 export { filterValues } from "./studio/filters"
 
 export const resolvedAdjustments = (a: Adjustments): Adjustments => {
@@ -1537,6 +1538,38 @@ export async function renderComposition(
     sy = canvas.height / 100
   ctx.imageSmoothingQuality = "high"
   background(ctx, c, canvas.width, canvas.height)
+
+  // Render empty slot placeholders if the composition has fewer photos than template slots
+  const totalSlots = c.gridLayoutId
+    ? (findGridLayout(c.gridLayoutId)?.count ?? t.count ?? t.slots?.length ?? 4)
+    : (t.slots?.length || t.count || 4)
+  if (c.photos.length < totalSlots) {
+    for (let slotIdx = c.photos.length; slotIdx < totalSlots; slotIdx++) {
+      const b = photoBounds(c, t, slotIdx),
+        w = b.width * sx,
+        h = b.height * sy
+      ctx.save()
+      ctx.translate((b.x + b.width / 2) * sx, (b.y + b.height / 2) * sy)
+      ctx.rotate((b.rotation * Math.PI) / 180)
+      const rad = Math.min(c.radius * sx * 0.12, w / 2, h / 2)
+      ctx.fillStyle = "rgba(255, 255, 255, 0.55)"
+      ctx.beginPath()
+      ctx.roundRect(-w / 2, -h / 2, w, h, Math.max(2, rad))
+      ctx.fill()
+      ctx.setLineDash([Math.max(4, 5 * scale), Math.max(4, 5 * scale)])
+      ctx.strokeStyle = "rgba(40, 40, 40, 0.4)"
+      ctx.lineWidth = Math.max(1.5, 2 * scale)
+      ctx.stroke()
+      ctx.setLineDash([])
+      ctx.fillStyle = "rgba(40, 40, 40, 0.6)"
+      ctx.font = `bold ${Math.max(12, w * 0.08)}px monospace`
+      ctx.textAlign = "center"
+      ctx.textBaseline = "middle"
+      ctx.fillText(`+ PHOTO ${slotIdx + 1}`, 0, 0)
+      ctx.restore()
+    }
+  }
+
   for (const layer of orderedLayers(c)) {
     if (layer.properties.hidden || layer.properties.opacity === 0) continue
     ctx.save()
