@@ -156,6 +156,12 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
   const [devicePreviewMode, setDevicePreviewMode] = useState<"mobile" | "tablet" | "strip" | null>(null)
   const [previewCoverUrl, setPreviewCoverUrl] = useState<string | null>(initialTemplate?.thumbnailUrl || null)
 
+  // Cover Artwork Protection — scrapbook artwork is ALWAYS preserved as catalog cover
+  const [originalCoverUrl, setOriginalCoverUrl] = useState<string | null>(initialTemplate?.thumbnailUrl || null)
+  const [coverSource, setCoverSource] = useState<"scrapbook" | "canvas" | "custom">(
+    initialTemplate?.thumbnailUrl ? "scrapbook" : "canvas"
+  )
+
   // UI State
   const [isSaving, setIsSaving] = useState<boolean>(false)
   const [showPublishModal, setShowPublishModal] = useState<boolean>(false)
@@ -193,7 +199,11 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
       setFrameColor(initialTemplate.frameColor)
       setStickersList(initialTemplate.stickers ? [...initialTemplate.stickers] : [])
       setTextsList(initialTemplate.texts ? [...initialTemplate.texts] : [])
-      setPreviewCoverUrl(initialTemplate.thumbnailUrl || null)
+      // Preserve scrapbook artwork: set originalCoverUrl and coverSource from incoming template
+      const incomingCover = initialTemplate.thumbnailUrl || null
+      setOriginalCoverUrl(incomingCover)
+      setPreviewCoverUrl(incomingCover)
+      setCoverSource(incomingCover ? "scrapbook" : "canvas")
     }
   }, [initialTemplate])
 
@@ -296,10 +306,15 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
     renderComposition(canvas, liveComposition, runtimeTemplate, 0.4)
       .then(() => {
         if (!active) return
-        // Auto-generate preview thumbnail dataUrl
+        // Auto-generate canvas thumbnail — ONLY update previewCoverUrl when NOT protecting scrapbook artwork.
+        // If coverSource is "scrapbook", the original artwork must remain the catalog cover untouched.
         try {
           const thumb = canvas.toDataURL("image/jpeg", 0.75)
-          setPreviewCoverUrl(thumb)
+          if (coverSource !== "scrapbook") {
+            setPreviewCoverUrl(thumb)
+          }
+          // Always store latest canvas render separately for when user switches cover mode
+          ;(canvas as any).__lastCanvasThumb = thumb
         } catch {}
       })
       .catch((err) => console.warn("[Builder Canvas] Render warning:", err))
@@ -307,7 +322,7 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
     return () => {
       active = false
     }
-  }, [liveComposition, runtimeTemplate])
+  }, [liveComposition, runtimeTemplate, coverSource])
 
   // Slot Management
   const handleAddSlot = () => {
@@ -425,6 +440,12 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
     setIsSaving(true)
     const effectiveCategory = category === "+ New Category" ? customCategory || "Custom Studio" : category
 
+    // Determine final cover: scrapbook artwork wins over blank canvas preview
+    const finalCover =
+      coverSource === "scrapbook" && originalCoverUrl
+        ? originalCoverUrl
+        : (previewCoverUrl || originalCoverUrl || undefined)
+
     const record: CustomTemplateRecord = {
       id: templateId,
       name,
@@ -432,7 +453,7 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
       category: effectiveCategory,
       tags: tagsInput.split(",").map((s) => s.trim()).filter(Boolean),
       version,
-      thumbnailUrl: previewCoverUrl || undefined,
+      thumbnailUrl: finalCover,
       width: canvasWidth,
       height: canvasHeight,
       aspectRatio: selectedRatio,
@@ -453,7 +474,9 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
       updatedAt: new Date().toISOString(),
     }
 
-    const res = await saveCustomTemplate(record, previewCoverUrl || undefined, currentUser)
+    // Only upload as a new blob when it's a custom-uploaded cover (not the preserved scrapbook URL)
+    const uploadBlob = coverSource === "custom" ? (finalCover || undefined) : undefined
+    const res = await saveCustomTemplate(record, uploadBlob, currentUser)
     setIsSaving(false)
 
     if (res.success && res.template) {
@@ -470,6 +493,12 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
     setIsSaving(true)
     const effectiveCategory = category === "+ New Category" ? customCategory || "Custom Studio" : category
 
+    // Determine final cover: scrapbook artwork wins over blank canvas preview
+    const finalCover =
+      coverSource === "scrapbook" && originalCoverUrl
+        ? originalCoverUrl
+        : (previewCoverUrl || originalCoverUrl || undefined)
+
     const record: CustomTemplateRecord = {
       id: templateId,
       name,
@@ -477,7 +506,7 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
       category: effectiveCategory,
       tags: tagsInput.split(",").map((s) => s.trim()).filter(Boolean),
       version: version + 1,
-      thumbnailUrl: previewCoverUrl || undefined,
+      thumbnailUrl: finalCover,
       width: canvasWidth,
       height: canvasHeight,
       aspectRatio: selectedRatio,
@@ -499,7 +528,9 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
       publishedAt: new Date().toISOString(),
     }
 
-    const res = await saveCustomTemplate(record, previewCoverUrl || undefined, currentUser)
+    // Only upload as a new blob when it's a custom-uploaded cover (not the preserved scrapbook URL)
+    const uploadBlob = coverSource === "custom" ? (finalCover || undefined) : undefined
+    const res = await saveCustomTemplate(record, uploadBlob, currentUser)
     setIsSaving(false)
     setShowPublishModal(false)
 
@@ -1416,22 +1447,122 @@ export const VisualTemplateStudio: React.FC<VisualTemplateStudioProps> = ({
               <h3 className="font-bold text-sm text-stone-900">Confirm Template Publication</h3>
             </div>
 
+            {/* Template metadata row */}
             <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-stone-300">
-              {previewCoverUrl && (
-                <img
-                  src={previewCoverUrl}
-                  alt={name}
-                  className="w-14 h-20 object-contain rounded border border-stone-200 shrink-0 bg-stone-50"
-                />
-              )}
-              <div className="text-xs font-mono space-y-1">
-                <strong className="block font-bold text-stone-900">{name}</strong>
+              {/* Active cover preview */}
+              <div className="relative shrink-0">
+                {(coverSource === "scrapbook" ? originalCoverUrl : previewCoverUrl) ? (
+                  <img
+                    src={(coverSource === "scrapbook" ? originalCoverUrl : previewCoverUrl) || ""}
+                    alt={name}
+                    className="w-14 h-20 object-contain rounded border border-stone-200 bg-stone-50"
+                  />
+                ) : (
+                  <div className="w-14 h-20 rounded border-2 border-dashed border-stone-300 bg-stone-50 flex items-center justify-center">
+                    <ImageIcon size={16} className="text-stone-400" />
+                  </div>
+                )}
+                {coverSource === "scrapbook" && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-amber-400 text-stone-900 text-[7px] font-bold px-1 py-0.5 rounded border border-stone-900 leading-none">✦ ART</span>
+                )}
+              </div>
+              <div className="text-xs font-mono space-y-1 min-w-0">
+                <strong className="block font-bold text-stone-900 truncate">{name}</strong>
                 <span className="text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[10px] font-bold block">
                   Category: {category}
                 </span>
                 <span className="text-stone-500 block text-[10px]">
                   {slots.length} photo cuts · {canvasWidth}×{canvasHeight}px
                 </span>
+              </div>
+            </div>
+
+            {/* Cover Artwork Selector */}
+            <div className="bg-white rounded-xl border-2 border-stone-200 p-3 space-y-2">
+              <p className="text-[10px] font-mono font-bold text-stone-600 uppercase tracking-wide">Catalog Cover Picture</p>
+              <div className="flex flex-col gap-1.5">
+                {/* Option 1: Use Scrapbook Artwork */}
+                {originalCoverUrl && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCoverSource("scrapbook")
+                      setPreviewCoverUrl(originalCoverUrl)
+                    }}
+                    className={`flex items-center gap-2.5 p-2 rounded-lg border text-left transition-all ${
+                      coverSource === "scrapbook"
+                        ? "border-amber-500 bg-amber-50 shadow-[1px_1px_0_#d97762]"
+                        : "border-stone-200 hover:border-stone-400 bg-white"
+                    }`}
+                  >
+                    <img src={originalCoverUrl} alt="Scrapbook artwork" className="w-8 h-11 object-contain rounded border border-stone-200 bg-stone-50 shrink-0" />
+                    <div>
+                      <span className="text-[10px] font-bold text-stone-900 block">✦ Original Scrapbook Artwork</span>
+                      <span className="text-[9px] text-stone-500 font-mono">Finished creation with real photos — attracts users!</span>
+                    </div>
+                    {coverSource === "scrapbook" && <span className="ml-auto text-amber-600 text-[10px] font-bold shrink-0">✓ Active</span>}
+                  </button>
+                )}
+
+                {/* Option 2: Use Canvas Preview (blank template wireframe) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCoverSource("canvas")
+                    const lastThumb = (canvasRef.current as any)?.__lastCanvasThumb || null
+                    setPreviewCoverUrl(lastThumb)
+                  }}
+                  className={`flex items-center gap-2.5 p-2 rounded-lg border text-left transition-all ${
+                    coverSource === "canvas"
+                      ? "border-stone-900 bg-stone-50 shadow-[1px_1px_0_#171717]"
+                      : "border-stone-200 hover:border-stone-400 bg-white"
+                  }`}
+                >
+                  <div className="w-8 h-11 rounded border border-stone-300 bg-stone-100 flex items-center justify-center shrink-0">
+                    <Sparkles size={12} className="text-stone-400" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-stone-900 block">Blank Template Preview</span>
+                    <span className="text-[9px] text-stone-500 font-mono">Canvas wireframe with empty photo slots</span>
+                  </div>
+                  {coverSource === "canvas" && <span className="ml-auto text-stone-700 text-[10px] font-bold shrink-0">✓ Active</span>}
+                </button>
+
+                {/* Option 3: Upload Custom Cover */}
+                <label
+                  className={`flex items-center gap-2.5 p-2 rounded-lg border text-left cursor-pointer transition-all ${
+                    coverSource === "custom"
+                      ? "border-emerald-600 bg-emerald-50 shadow-[1px_1px_0_#059669]"
+                      : "border-stone-200 hover:border-stone-400 bg-white"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const reader = new FileReader()
+                      reader.onload = (ev) => {
+                        const dataUrl = ev.target?.result as string
+                        if (dataUrl) {
+                          setPreviewCoverUrl(dataUrl)
+                          setCoverSource("custom")
+                        }
+                      }
+                      reader.readAsDataURL(file)
+                    }}
+                  />
+                  <div className="w-8 h-11 rounded border border-stone-300 bg-stone-100 flex items-center justify-center shrink-0">
+                    <ImageIcon size={12} className="text-stone-400" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-stone-900 block">Upload Custom Cover</span>
+                    <span className="text-[9px] text-stone-500 font-mono">Choose your own catalog cover image</span>
+                  </div>
+                  {coverSource === "custom" && <span className="ml-auto text-emerald-700 text-[10px] font-bold shrink-0">✓ Active</span>}
+                </label>
               </div>
             </div>
 
