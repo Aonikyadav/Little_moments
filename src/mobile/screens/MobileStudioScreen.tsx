@@ -26,24 +26,17 @@ const Studio = lazy(() => import("../../studio/Studio"))
 
 interface MobileStudioScreenProps {
   onClose: () => void
+  onNavigateToCamera?: () => void
   initialTemplateId?: string
   incomingPhotos?: string[]
 }
 
-const samplePhotos = [
-  "/images/romantic_love_kisspose_aesthetic/031.jpg",
-  "/images/romantic_love_kisspose_aesthetic/032.jpg",
-  "/images/romantic_love_kisspose_aesthetic/033.jpg",
-  "/images/romantic_love_kisspose_aesthetic/034.jpg",
-  "/images/romantic_love_kisspose_aesthetic/035.jpg",
-  "/images/cool_animated_romantic/001.jpg",
-]
-
 function createInitialComposition(templateId: string, incomingPhotos: string[]): Composition {
   const t = getTemplate(templateId || "tmpl-user-001")
+  // Zero dummy images: only populate with real photos provided by user
   const photoSources = incomingPhotos && incomingPhotos.length > 0
     ? incomingPhotos
-    : samplePhotos.slice(0, t.count)
+    : []
 
   const photos: Photo[] = photoSources.map((url, i) => ({
     id: `photo-${Date.now()}-${i}`,
@@ -62,7 +55,6 @@ function createInitialComposition(templateId: string, incomingPhotos: string[]):
     padding: 0,
     photos,
     stickers: [],
-    texts: [],
   }
 }
 
@@ -83,6 +75,7 @@ export const MobileStudioScreen: React.FC<MobileStudioScreenProps> = ({
   const [exportPreviewUrl, setExportPreviewUrl] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState<boolean>(false)
 
+  const galleryInputRef = useRef<HTMLInputElement>(null)
   const toastTimerRef = useRef<NodeJS.Timeout | null>(null)
   const currentTemplate = getTemplate(composition.templateId)
 
@@ -90,6 +83,33 @@ export const MobileStudioScreen: React.FC<MobileStudioScreenProps> = ({
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
     setToast(msg)
     toastTimerRef.current = setTimeout(() => setToast(null), 3000)
+  }
+
+  // Direct Gallery Upload in Studio
+  const handleStudioGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    const readPromises = Array.from(files).map((file) => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.readAsDataURL(file)
+      })
+    })
+
+    Promise.all(readPromises).then((urls) => {
+      const newPhotos: Photo[] = urls.map((url, i) => ({
+        id: `photo-${Date.now()}-${i}`,
+        src: url,
+        name: `Shot ${composition.photos.length + i + 1}`,
+        adjustments: { ...defaultAdjustments },
+      }))
+      handleEdit({
+        ...composition,
+        photos: [...composition.photos, ...newPhotos].slice(0, currentTemplate.count),
+      })
+      notify(`Added ${urls.length} real photo(s)! ✧`)
+    })
   }
 
   // Update composition when incoming template changes
@@ -286,6 +306,17 @@ export const MobileStudioScreen: React.FC<MobileStudioScreenProps> = ({
             </button>
           </div>
 
+          {/* Quick Add Photo button */}
+          <button
+            type="button"
+            onClick={() => galleryInputRef.current?.click()}
+            className="px-2.5 py-1.5 rounded-full bg-amber-200 border border-stone-800 text-stone-950 text-xs font-semibold shadow-2xs active:scale-95 transition-all flex items-center gap-1"
+            title="Upload Photo from Gallery"
+          >
+            <Camera size={12} />
+            <span className="text-[11px] font-bold">+ Photo</span>
+          </button>
+
           <button
             type="button"
             className="px-2.5 py-1.5 rounded-full bg-white border border-stone-300 hover:border-stone-900 text-xs font-semibold text-stone-800 shadow-2xs active:scale-95 transition-all hidden xs:inline-flex items-center gap-1"
@@ -306,6 +337,46 @@ export const MobileStudioScreen: React.FC<MobileStudioScreenProps> = ({
           </button>
         </div>
       </header>
+
+      {/* Empty Photos Guide Pill (No Dummy Images) */}
+      {composition.photos.length === 0 && (
+        <div className="bg-amber-100/95 border-b border-amber-300 px-3 py-1.5 flex items-center justify-between text-xs font-mono text-stone-900 z-20 flex-shrink-0">
+          <div className="flex items-center gap-1.5">
+            <Sparkles size={13} className="text-amber-700 flex-shrink-0" />
+            <span className="font-bold">Blank Frame:</span>
+            <span className="text-stone-600 hidden xs:inline">Requires {currentTemplate.count} real photos</span>
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {onNavigateToCamera && (
+              <button
+                type="button"
+                onClick={onNavigateToCamera}
+                className="px-2.5 py-1 rounded-md bg-stone-900 text-white text-[10.5px] font-bold flex items-center gap-1 active:scale-95"
+              >
+                <Camera size={11} className="text-amber-300" />
+                <span>Snap Camera</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              className="px-2.5 py-1 rounded-md bg-amber-300 border border-stone-800 text-stone-950 text-[10.5px] font-bold flex items-center gap-1 active:scale-95"
+            >
+              <span>Upload Gallery</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden gallery file input */}
+      <input
+        ref={galleryInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        className="hidden"
+        onChange={handleStudioGalleryUpload}
+      />
 
       {/* Main Full-Featured Studio Component (Exact Web Studio with tactile tools, layers, stickers, filters) */}
       <div className="flex-1 min-h-0 h-full overflow-hidden flex flex-col relative">

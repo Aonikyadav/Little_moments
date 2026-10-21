@@ -47,7 +47,7 @@ import type {
 } from "../types"
 import { defaultAdjustments } from "../types"
 import { getTemplate, templates, templatesForCount } from "../templates"
-import { loadImage, renderComposition } from "../rendering"
+import { cssFilter, loadImage, renderComposition } from "../rendering"
 import { adjustmentControls } from "./pixels"
 import { filterPresets } from "./filters"
 import {
@@ -3543,30 +3543,26 @@ export default function Studio({
                           title={p.description}
                           onClick={() => updatePhoto({ filter: p.name })}
                         >
-                          <div className="filter-thumb-box">
-                            <StudioPreview
-                              maxEdge={140}
-                              composition={{
-                                ...c,
-                                mode: "guided",
-                                aspectRatio: "square",
-                                templateId: "solo-polaroid",
-                                frameId: undefined,
-                                photos: [
-                                  {
-                                    ...photo,
-                                    transform: undefined,
-                                    adjustments: {
-                                      ...defaultAdjustments(),
-                                      filter: p.name,
-                                    },
-                                  },
-                                ],
-                                stickers: [],
-                                texts: [],
-                                layerOrder: undefined,
-                              }}
-                            />
+                          <div className="filter-thumb-box overflow-hidden relative w-full aspect-square rounded bg-stone-900 flex items-center justify-center">
+                            {photo?.src ? (
+                              <img
+                                src={photo.src}
+                                alt={p.name}
+                                loading="lazy"
+                                className="w-full h-full object-cover pointer-events-none"
+                                style={{
+                                  filter: cssFilter({
+                                    ...defaultAdjustments(),
+                                    filter: p.name,
+                                    intensity: 100,
+                                  }),
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-stone-800 flex items-center justify-center text-[10px] text-stone-400 font-mono">
+                                {p.name}
+                              </div>
+                            )}
                           </div>
                           <strong>{p.name}</strong>
                           <span>{p.category}</span>

@@ -60,16 +60,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
         </div>
 
-        {/* Quick K-Booth shortcut pill from sketch */}
-        <button
-          type="button"
-          onClick={() => onNavigate("kbooth")}
-          className="flex items-center gap-1.5 px-3 py-1 bg-amber-400 hover:bg-amber-300 text-stone-950 rounded-full border border-stone-900 shadow-[2px_2px_0_#1f1d1a] active:scale-95 transition-all text-xs font-mono font-bold"
-        >
-          <Sparkles size={13} />
-          <span>K-Booth</span>
-          <span className="bg-stone-900 text-white text-[9px] px-1 py-0.2 rounded-full">15 NEW</span>
-        </button>
+        {/* Quick Action Square Buttons matching sketch (Studio & K-Booth) */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* 1. Studio Quick Action (Square button matching sketch) */}
+          <button
+            type="button"
+            onClick={() => onNavigate("studio")}
+            title="Studio (Customize & Edit Layouts)"
+            aria-label="Open Studio"
+            className="w-10 h-10 rounded-lg border-2 border-stone-900 bg-white shadow-[2px_2px_0_#171717] flex flex-col items-center justify-center text-stone-900 hover:bg-stone-50 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all group"
+          >
+            <Paintbrush size={16} className="text-stone-900 group-hover:text-amber-700 transition-colors" />
+            <span className="text-[7.5px] font-mono font-bold tracking-tight uppercase leading-none mt-0.5">STUDIO</span>
+          </button>
+
+          {/* 2. K-Booth Quick Action (Square button matching sketch) */}
+          <button
+            type="button"
+            onClick={() => onNavigate("kbooth")}
+            title="K-Booth (Korean Photostrip Frames)"
+            aria-label="Open K-Booth"
+            className="w-10 h-10 rounded-lg border-2 border-stone-900 bg-amber-200 shadow-[2px_2px_0_#171717] flex flex-col items-center justify-center text-stone-950 hover:bg-amber-300 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all group"
+          >
+            <Sparkles size={16} className="text-amber-900 group-hover:scale-110 transition-transform" />
+            <span className="text-[7.5px] font-mono font-bold tracking-tight uppercase leading-none mt-0.5">K-BOOTH</span>
+          </button>
+        </div>
       </header>
 
       {/* Hero Card ("Moments worth keeping" + Exact Website Keepsake Frame) */}
