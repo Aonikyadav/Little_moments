@@ -84,6 +84,15 @@ function readLocalTemplates(): CustomTemplateRecord[] {
   }
 }
 
+/**
+ * Public alias for synchronous local cache reads.
+ * Use this to pre-load custom template stickers/texts/frames before the
+ * async Supabase fetch completes, preventing the "empty composition" race condition.
+ */
+export function readLocalTemplateCache(): CustomTemplateRecord[] {
+  return readLocalTemplates()
+}
+
 function writeLocalTemplates(items: CustomTemplateRecord[]) {
   if (typeof window === "undefined") return
   try {

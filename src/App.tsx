@@ -69,7 +69,7 @@ import {
   getAllTemplates,
   getCustomTemplateDefinition,
 } from "./templates"
-import { fetchCustomTemplates } from "./services/adminService"
+import { fetchCustomTemplates, readLocalTemplateCache } from "./services/adminService"
 import { MasterControlDashboard } from "./components/admin/MasterControlDashboard"
 import { cssFilter, renderComposition } from "./rendering"
 import "./studio/studio.css"
@@ -380,6 +380,15 @@ export default function App() {
 
   // Initial sync for custom published templates
   useEffect(() => {
+    // PRE-LOAD from local cache synchronously so stickers/texts/frames are
+    // available immediately — before the async Supabase fetch finishes.
+    const localCached = readLocalTemplateCache()
+    if (localCached && localCached.length > 0) {
+      registerCustomTemplates(localCached)
+      setDynamicTemplates(getAllTemplates())
+    }
+
+    // Async refresh from Supabase — updates with latest published templates
     fetchCustomTemplates(false)
       .then((customs) => {
         if (customs && customs.length > 0) {

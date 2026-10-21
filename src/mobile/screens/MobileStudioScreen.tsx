@@ -143,6 +143,35 @@ export const MobileStudioScreen: React.FC<MobileStudioScreenProps> = ({
     }
   }, [initialTemplateId])
 
+  // Self-healing: if composition was built before customDef was populated (race condition),
+  // re-apply stickers/texts/frame once the definition becomes available. Preserves user photos.
+  useEffect(() => {
+    if (!initialTemplateId) return
+    const customDef = getCustomTemplateDefinition(initialTemplateId)
+    if (!customDef) return
+    // Only re-apply if composition looks like the generic fallback (no decorative layers from template)
+    const hasNoDecorativeLayers =
+      composition.stickers.length === 0 &&
+      composition.texts.length === 0 &&
+      !composition.frameId
+    const templateHasLayers =
+      (customDef.stickers && customDef.stickers.length > 0) ||
+      (customDef.texts && customDef.texts.length > 0) ||
+      customDef.frameId
+    if (hasNoDecorativeLayers && templateHasLayers) {
+      setComposition((prev) => ({
+        ...prev,
+        stickers: customDef.stickers ? [...customDef.stickers] : prev.stickers,
+        texts: customDef.texts ? [...customDef.texts] : prev.texts,
+        frameId: customDef.frameId || prev.frameId,
+        frameColor: customDef.frameColor || prev.frameColor,
+        frameOpacity: customDef.frameOpacity ?? prev.frameOpacity,
+        backgroundPattern: customDef.backgroundPattern || prev.backgroundPattern,
+        backgroundOpacity: customDef.backgroundOpacity ?? prev.backgroundOpacity,
+      }))
+    }
+  }, [initialTemplateId, composition.templateId])
+
   // Studio History Management
   const handleEdit = (next: Composition, before?: Composition) => {
     setHistory((prev) => [...prev.slice(-30), before ?? composition])

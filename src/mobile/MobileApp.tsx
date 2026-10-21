@@ -13,7 +13,7 @@ import { MobileStudioScreen } from "./screens/MobileStudioScreen"
 import { getTemplate, registerCustomTemplates } from "../templates"
 import { TemplateThumbnail } from "../components/TemplateThumbnail"
 import { getCurrentUser, type UserAccount } from "../services/supabase"
-import { fetchCustomTemplates } from "../services/adminService"
+import { fetchCustomTemplates, readLocalTemplateCache } from "../services/adminService"
 import { UserAccountModal } from "../components/UserAccountModal"
 import { MasterControlDashboard } from "../components/admin/MasterControlDashboard"
 
@@ -38,6 +38,13 @@ export const MobileApp: React.FC = () => {
       if (mounted && u) setCurrentUser(u)
     }).catch(() => {})
 
+    // PRE-LOAD from local cache synchronously so stickers/texts/frames
+    // are ready immediately — before the async Supabase fetch finishes.
+    const localCached = readLocalTemplateCache()
+    if (localCached && localCached.length > 0) {
+      registerCustomTemplates(localCached)
+    }
+
     if (typeof window !== "undefined") {
       const search = new URLSearchParams(window.location.search)
       const hash = window.location.hash.toLowerCase()
@@ -52,6 +59,7 @@ export const MobileApp: React.FC = () => {
       }
     }
 
+    // Async refresh from Supabase — updates map with latest published templates
     fetchCustomTemplates(false).then((customs) => {
       if (mounted && customs && customs.length > 0) {
         registerCustomTemplates(customs)
