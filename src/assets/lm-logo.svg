@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Dark Card Background Gradient -->
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181c" />
+      <stop offset="50%" stop-color="#131316" />
+      <stop offset="100%" stop-color="#0e0e11" />
+    </linearGradient>
+
+    <!-- Star Glow Gradient -->
+    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+      <stop offset="40%" stop-color="#fef08a" stop-opacity="0.85" />
+      <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Filter for Chromatic Glow (Cyan left, Gold right, White core) -->
+    <filter id="chromaticGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="-2.5" dy="0" stdDeviation="2.5" flood-color="#38bdf8" flood-opacity="0.9" />
+      <feDropShadow dx="2.5" dy="0" stdDeviation="2.5" flood-color="#fef08a" flood-opacity="0.9" />
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ffffff" flood-opacity="0.6" />
+    </filter>
+
+    <filter id="starBloom" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Rounded App Icon Background -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#cardBg)" stroke="#27272a" stroke-width="4" />
+
+  <!-- Inner Subtle Bevel Stroke -->
+  <rect x="22" y="22" width="468" height="468" rx="102" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2" />
+
+  <!-- Subtle ambient glow in center -->
+  <circle cx="256" cy="256" r="180" fill="url(#starGlow)" opacity="0.12" />
+
+  <g transform="translate(24, 0)">
+    <!-- Cursive Calligraphy "LM" -->
+    <g filter="url(#chromaticGlow)">
+      <!-- L letter (cursive brush stroke with loop) -->
+      <path d="M 130 190
+               C 120 145, 150 115, 172 135
+               C 188 152, 175 195, 155 245
+               C 138 288, 122 340, 118 365
+               C 114 388, 130 395, 150 382
+               C 172 368, 205 348, 222 342"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="24"
+            stroke-linecap="round"
+            stroke-linejoin="round" />
+
+      <!-- M letter (cursive connected brush arches) -->
+      <path d="M 215 250
+               C 215 225, 235 210, 252 230
+               C 265 246, 260 295, 255 355
+               M 255 255
+               C 270 220, 298 215, 312 238
+               C 325 258, 320 305, 315 352
+               M 315 255
+               C 330 220, 360 225, 368 250
+               C 375 275, 368 325, 365 355
+               C 364 368, 375 372, 390 360"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="23"
+            stroke-linecap="round"
+            stroke-linejoin="round" />
+    </g>
+
+    <!-- Chromatic cyan/gold edge accents matching user reference -->
+    <!-- Cyan left offset -->
+    <path d="M 127 190 C 117 145, 147 115, 169 135 C 185 152, 172 195, 152 245 C 135 288, 119 340, 115 365 C 111 388, 127 395, 147 382 C 169 368, 202 348, 219 342"
+          fill="none" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" opacity="0.8" />
+    <!-- Gold right offset -->
+    <path d="M 133 190 C 123 145, 153 115, 175 135 C 191 152, 178 195, 158 245 C 141 288, 125 340, 121 365 C 117 388, 133 395, 153 382 C 175 368, 208 348, 225 342"
+          fill="none" stroke="#fde047" stroke-width="7" stroke-linecap="round" opacity="0.8" />
+
+    <!-- 4-Point Brilliant Sparkle Star (✦) on the right -->
+    <g transform="translate(390, 256)" filter="url(#starBloom)">
+      <!-- Star Outer Halo -->
+      <path d="M 0 -85
+               Q 0 0, 85 0
+               Q 0 0, 0 85
+               Q 0 0, -85 0
+               Q 0 0, 0 -85 Z"
+            fill="#ffffff"
+            stroke="#fef08a"
+            stroke-width="4" />
+      <!-- Star Core Brightness -->
+      <circle cx="0" cy="0" r="16" fill="#ffffff" />
+    </g>
+  </g>
+</svg>

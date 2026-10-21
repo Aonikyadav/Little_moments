@@ -26,3 +26,6 @@ logs/
 # Browser verification artifacts
 /test-results/
 /playwright-report/
+
+# Android build outputs
+*.apk

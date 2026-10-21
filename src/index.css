@@ -27,6 +27,20 @@ body {
   position: relative;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+  -webkit-touch-callout: none;
+}
+
+/* Hide all browser scrollbars across the app for true native feel */
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
 .font-gochi {
