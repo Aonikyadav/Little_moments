@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.LittleMoments" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/base_canvas</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/surface_card</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowBackground">@color/base_canvas</item>
+    </style>
+</resources>

@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Little Moments</string>
+    <string name="title_activity_main">Little Moments</string>
+    <string name="korean_booth_title">인생네컷 · K-Booth</string>
+    <string name="shutter_sound_title">Shutter Sound</string>
+</resources>

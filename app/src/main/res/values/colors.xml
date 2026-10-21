@@ -1,0 +1,8 @@
+<resources>
+    <color name="base_canvas">#F8F6F0</color>
+    <color name="surface_card">#FAF8F2</color>
+    <color name="primary_ink">#1F1D1A</color>
+    <color name="arcade_maroon">#853B43</color>
+    <color name="golden_amber">#F59E0B</color>
+    <color name="selected_cyan">#22D3EE</color>
+</resources>
