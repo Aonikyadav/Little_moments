@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Search, Sparkles, Filter, Check, ArrowRight } from "lucide-react"
+import { Search, Sparkles, Filter, Check, ArrowRight, Paintbrush } from "lucide-react"
 import type { MobileTab } from "../types"
 import { templates, kBoothTemplates, purikuraTemplates } from "../../templates"
 import { TemplateThumbnail } from "../../components/TemplateThumbnail"
@@ -48,21 +48,46 @@ export const TemplatesScreen: React.FC<TemplatesScreenProps> = ({
 
   return (
     <div className="min-h-screen bg-[#f8f6f0] text-stone-900 pb-24 px-3.5 pt-3">
-      {/* Notebook Stamp Header matching sketch */}
-      <header className="flex items-center justify-between pb-2 mb-3 border-b-2 border-stone-900/10">
-        <div>
-          <div className="flex items-center gap-1.5 font-caveat text-xl text-stone-700 font-bold">
+      {/* Notebook Stamp Header matching sketch (Image 1 & 2) */}
+      <header className="flex items-center justify-between pb-2 mb-3 border-b-2 border-stone-900/10 gap-2">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1.5 font-caveat text-xl text-stone-700 font-bold leading-tight">
             <span>Template Catalog</span>
             <span className="text-amber-500">✦</span>
           </div>
-          <div className="text-[10px] font-mono text-stone-500">
-            Slide up to choose your frame & layout
+          {/* Vintage Date / Page stamp from sketch */}
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#faf8f2] border border-stone-400 font-caveat text-xs text-stone-700 font-bold shadow-2xs mt-1 w-fit">
+            <span>Date: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+            <span className="text-stone-300">·</span>
+            <span>Page: 01</span>
           </div>
         </div>
 
-        {/* Vintage Date / Page stamp from sketch */}
-        <div className="px-2 py-1 rounded bg-[#faf8f2] border border-stone-400 font-caveat text-xs text-stone-700 font-bold shadow-xs">
-          <span>Date: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+        {/* Quick Action Square Buttons matching sketch (Studio & K-Booth) */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* 1. Studio Quick Action (Square button matching Image 2) */}
+          <button
+            type="button"
+            onClick={() => onNavigate("studio")}
+            title="Studio (Customize & Edit Layouts)"
+            aria-label="Open Studio"
+            className="w-10 h-10 rounded-lg border-2 border-stone-900 bg-white shadow-[2px_2px_0_#171717] flex flex-col items-center justify-center text-stone-900 hover:bg-stone-50 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all group"
+          >
+            <Paintbrush size={16} className="text-stone-900 group-hover:text-amber-700 transition-colors" />
+            <span className="text-[7.5px] font-mono font-bold tracking-tight uppercase leading-none mt-0.5">STUDIO</span>
+          </button>
+
+          {/* 2. K-Booth Quick Action (Square button matching Image 2) */}
+          <button
+            type="button"
+            onClick={() => onNavigate("kbooth")}
+            title="K-Booth (Korean Photostrip Frames)"
+            aria-label="Open K-Booth"
+            className="w-10 h-10 rounded-lg border-2 border-stone-900 bg-amber-200 shadow-[2px_2px_0_#171717] flex flex-col items-center justify-center text-stone-950 hover:bg-amber-300 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all group"
+          >
+            <Sparkles size={16} className="text-amber-900 group-hover:scale-110 transition-transform" />
+            <span className="text-[7.5px] font-mono font-bold tracking-tight uppercase leading-none mt-0.5">K-BOOTH</span>
+          </button>
         </div>
       </header>
 

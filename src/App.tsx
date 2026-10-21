@@ -1686,23 +1686,28 @@ export default function App() {
 
           {page === "templates" && (
             <>
+              {/* Studio Square Button matching sketch */}
               <button
                 type="button"
-                className="sketch-button sketch-button--sm text-xs py-1 px-2 flex items-center gap-1 bg-amber-200 border-stone-900 text-stone-900 shadow-[2px_2px_0_#171717] active:scale-95 font-bold"
-                onClick={() => setPage("kbooth")}
-                title="K-Booth Photostrips"
-              >
-                <Sparkles size={13} className="text-amber-800" />
-                <span>K-Booth</span>
-              </button>
-              <button
-                type="button"
-                className="sketch-button sketch-button--sm text-xs py-1 px-2 flex items-center gap-1 bg-stone-900 text-white border-stone-900 shadow-[2px_2px_0_#d97762] active:scale-95 font-bold"
+                className="w-8 h-8 rounded-lg border-2 border-stone-900 bg-white shadow-[2px_2px_0_#171717] flex flex-col items-center justify-center text-stone-900 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all group"
                 onClick={() => setPage("editor")}
                 title="Open Studio"
+                aria-label="Open Studio"
               >
-                <Paintbrush size={13} className="text-amber-300" />
-                <span>Studio</span>
+                <Paintbrush size={14} className="text-stone-900 group-hover:text-amber-700" />
+                <span className="text-[6.5px] font-mono font-bold leading-none mt-0.5">STUDIO</span>
+              </button>
+
+              {/* K-Booth Square Button matching sketch */}
+              <button
+                type="button"
+                className="w-8 h-8 rounded-lg border-2 border-stone-900 bg-amber-200 shadow-[2px_2px_0_#171717] flex flex-col items-center justify-center text-stone-950 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all group"
+                onClick={() => setPage("kbooth")}
+                title="K-Booth Photostrips"
+                aria-label="Open K-Booth"
+              >
+                <Sparkles size={14} className="text-amber-900" />
+                <span className="text-[6.5px] font-mono font-bold leading-none mt-0.5">K-BOOTH</span>
               </button>
             </>
           )}
@@ -2332,15 +2337,50 @@ export default function App() {
         {/* ======================================================== */}
         {page === "templates" && (
           <section className="shop-section border-t-0 pt-6">
-            <header className="section-heading">
+            <header className="section-heading flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div>
                 <p className="eyebrow">Authentic Keepsakes · {templates.length} Curated Covers</p>
                 <h2>Featured Layouts & Strips</h2>
+                <p className="mt-1">
+                  Every card corresponds to an authentic photo booth strip or scrapbook
+                  composition directly from our curated collections. Click any template to inspect its slots and start your session.
+                </p>
               </div>
-              <p>
-                Every card corresponds to an authentic photo booth strip or scrapbook
-                composition directly from our curated collections. Click any template to inspect its slots and start your session.
-              </p>
+
+              {/* Notebook Header Stamp matching sketch for web & mobile (Image 1 & 2) */}
+              <div className="flex items-center gap-2.5 self-start sm:self-auto flex-shrink-0">
+                <div className="px-2.5 py-1 rounded bg-[#faf8f2] border border-stone-400 font-caveat text-xs text-stone-700 font-bold shadow-2xs flex items-center gap-2">
+                  <span>Date: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                  <span className="text-stone-300">·</span>
+                  <span>Page: 01</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Studio Square Button (Image 2) */}
+                  <button
+                    type="button"
+                    onClick={() => setPage("editor")}
+                    title="Open Studio Editor"
+                    aria-label="Open Studio Editor"
+                    className="w-10 h-10 rounded-lg border-2 border-stone-900 bg-white shadow-[2px_2px_0_#171717] flex flex-col items-center justify-center text-stone-900 hover:bg-stone-50 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all group"
+                  >
+                    <Paintbrush size={16} className="text-stone-900 group-hover:text-amber-700 transition-colors" />
+                    <span className="text-[7.5px] font-mono font-bold tracking-tight uppercase leading-none mt-0.5">STUDIO</span>
+                  </button>
+
+                  {/* K-Booth Square Button (Image 2) */}
+                  <button
+                    type="button"
+                    onClick={() => setPage("kbooth")}
+                    title="Open Korean K-Booth Frames"
+                    aria-label="Open K-Booth Frames"
+                    className="w-10 h-10 rounded-lg border-2 border-stone-900 bg-amber-200 shadow-[2px_2px_0_#171717] flex flex-col items-center justify-center text-stone-950 hover:bg-amber-300 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all group"
+                  >
+                    <Sparkles size={16} className="text-amber-900 group-hover:scale-110 transition-transform" />
+                    <span className="text-[7.5px] font-mono font-bold tracking-tight uppercase leading-none mt-0.5">K-BOOTH</span>
+                  </button>
+                </div>
+              </div>
             </header>
 
             {/* Filter Tools */}
