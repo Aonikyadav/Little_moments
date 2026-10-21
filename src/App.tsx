@@ -72,7 +72,7 @@ import { saveProject, loadProjects, removeProject } from "./studio/storage"
 import useFontRevision from "./studio/useFontRevision"
 import { generateQrCodeDataUrl } from "./utils/qrCode"
 import { TemplateThumbnail } from "./components/TemplateThumbnail"
-import { findGridLayout } from "./studio/gridEngine"
+import { findGridLayout, getActiveAspectRatio } from "./studio/gridEngine"
 import { ScrapbookAlbum } from "./components/ScrapbookAlbum"
 import { MobileKeepsakeViewer } from "./components/MobileKeepsakeViewer"
 import {
@@ -2933,7 +2933,7 @@ export default function App() {
                       : currentTemplate.name}
                   </h2>
                   <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-stone-200/70 text-stone-700 text-[10.5px] font-mono font-medium">
-                    {composition.aspectRatio ?? "1:1"}
+                    {getActiveAspectRatio(composition, currentTemplate)}
                   </span>
                 </div>
               </div>
@@ -2979,24 +2979,26 @@ export default function App() {
             </div>
 
             {/* Studio Canvas & Inspector Viewport */}
-            <Suspense
-              fallback={
-                <div className="py-24 text-center">
-                  <Loader2 size={36} className="animate-spin mx-auto mb-3 text-stone-800" />
-                  <p className="font-gochi text-2xl">Preparing Creative Canvas...</p>
-                </div>
-              }
-            >
-              <Studio
-                composition={composition}
-                onChange={(next, before) => edit(next, before)}
-                onTransient={(next) => setComposition(next)}
-                onDone={() => setPage("export")}
-                onSave={() => saveCurrentCreation()}
-                saveStatus={saveStatus}
-                notify={(msg) => notify(msg)}
-              />
-            </Suspense>
+            <div className="flex-1 min-h-0 h-full overflow-hidden flex flex-col">
+              <Suspense
+                fallback={
+                  <div className="py-24 text-center">
+                    <Loader2 size={36} className="animate-spin mx-auto mb-3 text-stone-800" />
+                    <p className="font-gochi text-2xl">Preparing Creative Canvas...</p>
+                  </div>
+                }
+              >
+                <Studio
+                  composition={composition}
+                  onChange={(next, before) => edit(next, before)}
+                  onTransient={(next) => setComposition(next)}
+                  onDone={() => setPage("export")}
+                  onSave={() => saveCurrentCreation()}
+                  saveStatus={saveStatus}
+                  notify={(msg) => notify(msg)}
+                />
+              </Suspense>
+            </div>
           </section>
         )}
 

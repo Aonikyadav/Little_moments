@@ -30,6 +30,26 @@ export const ASPECT_RATIOS: AspectRatioInfo[] = [
   { id: "3:2", label: "3:2", sublabel: "Wide 6×4", width: 2400, height: 1600, ratio: 3 / 2, iconType: "wide" },
 ]
 
+export function getActiveAspectRatio(
+  c: { aspectRatio?: string },
+  t: { width: number; height: number },
+): AspectRatioId {
+  if (c.aspectRatio && c.aspectRatio !== "original") {
+    return c.aspectRatio as AspectRatioId
+  }
+  const ratio = t.width / t.height
+  let closest: AspectRatioId = "1:1"
+  let minDiff = Infinity
+  for (const ar of ASPECT_RATIOS) {
+    const diff = Math.abs(ar.ratio - ratio)
+    if (diff < minDiff) {
+      minDiff = diff
+      closest = ar.id
+    }
+  }
+  return closest
+}
+
 export type GridWireframeRect = {
   x: number
   y: number

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react"
 import {
   ArrowRight,
@@ -69,6 +69,7 @@ import {
   GRID_LAYOUTS,
   findGridLayout,
   getLayoutsForCount,
+  getActiveAspectRatio,
 } from "./gridEngine"
 import type { AspectRatioId, GridLayout } from "./gridEngine"
 import {
@@ -362,6 +363,7 @@ export default function Studio({
     [filterSearch, setFilterSearch] = useState("")
   const stage = useRef<HTMLDivElement>(null),
     studioBodyRef = useRef<HTMLDivElement>(null),
+    viewportRef = useRef<HTMLDivElement>(null),
     importInput = useRef<HTMLInputElement>(null),
     stickerInput = useRef<HTMLInputElement>(null),
     clipboard = useRef<LayerClipboard | null>(null),
@@ -380,6 +382,30 @@ export default function Studio({
     lastTap = useRef<{ time: number; id: string; x: number; y: number } | null>(null),
     hudTimeout = useRef<number | null>(null)
 
+  const [viewportSize, setViewportSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
+
+  useLayoutEffect(() => {
+    const el = viewportRef.current
+    if (!el) return
+    const update = () => {
+      const rect = el.getBoundingClientRect()
+      if (rect.width > 0 && rect.height > 0) {
+        setViewportSize({ width: Math.round(rect.width), height: Math.round(rect.height) })
+      }
+    }
+    update()
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          setViewportSize({ width: Math.round(width), height: Math.round(height) })
+        }
+      }
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   const showHud = (text: string, sub?: string) => {
     setGestureHud({ text, sub })
     if (hudTimeout.current) window.clearTimeout(hudTimeout.current)
@@ -395,6 +421,41 @@ export default function Studio({
     sticker = c.stickers.find((s) => s.id === selected),
     text = c.texts.find((t) => t.id === selected),
     size = dimensions(c, template)
+
+  const canvasFit = useMemo(() => {
+    const targetW = size.width || 1800
+    const targetH = size.height || 1800
+    const aspect = targetW / targetH
+
+    const vpW = viewportSize.width > 0
+      ? viewportSize.width
+      : (typeof window !== "undefined" ? Math.max(200, window.innerWidth - inspectorWidth - 20) : 600)
+    const vpH = viewportSize.height > 0
+      ? viewportSize.height
+      : (typeof window !== "undefined" ? Math.max(200, window.innerHeight - 260) : 500)
+
+    // Provide clean, comfortable breathing room around the photobooth canvas
+    const padX = vpW < 500 ? 12 : 24
+    const padY = vpH < 500 ? 12 : 24
+
+    const maxW = Math.max(50, vpW - padX)
+    const maxH = Math.max(50, vpH - padY)
+
+    let w: number
+    let h: number
+
+    if (maxW / maxH > aspect) {
+      // Height-constrained: canvas height fills available height
+      h = Math.round(maxH)
+      w = Math.round(maxH * aspect)
+    } else {
+      // Width-constrained: canvas width fills available width
+      w = Math.round(maxW)
+      h = Math.round(maxW / aspect)
+    }
+
+    return { width: w, height: h, aspect }
+  }, [size.width, size.height, viewportSize.width, viewportSize.height, inspectorWidth])
   const currentAdjustments = { ...defaultAdjustments(), ...photo?.adjustments }
   const preview = frameCandidate
     ? {
@@ -619,6 +680,7 @@ export default function Studio({
       mode: "guided",
       templateId: t.id,
       gridLayoutId: undefined,
+      aspectRatio: undefined,
       photos: nextPhotos.map((p) => ({ ...p, transform: undefined })),
     }
 
@@ -1170,11 +1232,13 @@ export default function Studio({
         setZoom(nextZoom)
         showHud(`Canvas Zoom: ${Math.round(nextZoom * 100)}%`, "Pinch to zoom strip")
       }
-      const nextPanX = Math.round(g.pan.x + (dx * rect.width) / 100)
-      const nextPanY = Math.round(g.pan.y + (dy * rect.height) / 100)
-      setPan({ x: nextPanX, y: nextPanY })
-      if (pointers.current.size === 1) {
-        showHud("Canvas Pan", "Moving photobooth strip")
+      if (pointers.current.size === 2 || zoom > 1.05 || touchMode === "canvas") {
+        const nextPanX = Math.round(g.pan.x + (dx * rect.width) / 100)
+        const nextPanY = Math.round(g.pan.y + (dy * rect.height) / 100)
+        setPan({ x: nextPanX, y: nextPanY })
+        if (pointers.current.size === 1) {
+          showHud("Canvas Pan", "Moving photobooth strip")
+        }
       }
       return
     }
@@ -1486,7 +1550,6 @@ export default function Studio({
         className="studio-body"
         style={{
           "--studio-inspector-width": `${inspectorWidth}px`,
-          gridTemplateColumns: `1fr ${inspectorWidth}px`,
         } as CSSProperties}
       >
         <div className="studio-workbench">
@@ -1530,6 +1593,7 @@ export default function Studio({
             </button>
           </div>
           <div
+            ref={viewportRef}
             className="canvas-viewport relative"
             onPointerDown={pointerDown}
             onPointerMove={pointerMove}
@@ -1551,18 +1615,22 @@ export default function Studio({
               className="canvas-paper-shadow"
               style={
                 {
-                  height: "90%",
-                  maxHeight: "90%",
-                  maxWidth: "92%",
-                  aspectRatio: `${size.width}/${size.height}`,
+                  width: `${canvasFit.width}px`,
+                  height: `${canvasFit.height}px`,
+                  aspectRatio: `${canvasFit.aspect}`,
                   transform: `translate(${pan.x}px,${pan.y}px) scale(${zoom})`,
+                  transformOrigin: "center center",
                 } as CSSProperties
               }
             >
               <div
                 ref={stage}
                 className="touch-canvas"
-                style={{ aspectRatio: `${size.width}/${size.height}` }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  aspectRatio: `${canvasFit.aspect}`,
+                }}
               >
                 <StudioPreview composition={visible} />
                 {layers
@@ -2409,13 +2477,33 @@ export default function Studio({
                     {/* Aspect Ratio Row */}
                     <div className="piccollage-ratio-row">
                       {ASPECT_RATIOS.map((r) => {
-                        const isCurrentRatio = (c.aspectRatio ?? "1:1") === r.id
+                        const activeRatio = getActiveAspectRatio(c, template)
+                        const isCurrentRatio = (c.aspectRatio ? c.aspectRatio === r.id : activeRatio === r.id)
                         return (
                           <button
                             type="button"
                             key={r.id}
                             className={`piccollage-ratio-chip ${isCurrentRatio ? "active" : ""}`}
-                            onClick={() => commit({ ...c, aspectRatio: r.id })}
+                            onClick={() => {
+                              setPan({ x: 0, y: 0 })
+                              setZoom(1)
+                              let nextGridId = c.gridLayoutId
+                              const count = c.photos.length || template.count || 4
+                              if (!nextGridId || nextGridId === "grid-4-strip" || nextGridId === "grid-4-equal") {
+                                if (r.id === "1:1" && count === 4) nextGridId = "grid-4-equal"
+                                else if ((r.id === "16:9" || r.id === "3:2") && count === 4) nextGridId = "grid-4-equal"
+                                else if ((r.id === "9:16" || r.id === "2:3" || r.id === "3:4" || r.id === "4:5") && count === 4) nextGridId = "grid-4-strip"
+                                else if (count === 3) nextGridId = (r.id === "16:9" || r.id === "3:2") ? "grid-3-hero-top" : "grid-3-hero-left"
+                                else if (count === 2) nextGridId = (r.id === "16:9" || r.id === "3:2") ? "grid-2-cols" : "grid-2-rows"
+                                else if (count === 1) nextGridId = "grid-1-full"
+                              }
+                              commit({
+                                ...c,
+                                aspectRatio: r.id,
+                                ...(nextGridId ? { gridLayoutId: nextGridId } : {}),
+                              })
+                              notify(`Studio format: ${r.label} (${r.sublabel})`)
+                            }}
                             title={`${r.sublabel} · ${r.label}`}
                           >
                             <span className={`ratio-box-icon ${r.iconType}`} />
