@@ -3,6 +3,7 @@ import {
   Camera,
   ArrowRight,
   ArrowLeft,
+  ArrowUp,
   Plus,
   Heart,
   Sparkles,
@@ -120,6 +121,10 @@ const defaultSettings: BoothSettings = {
   sound: false,
   visualCountdown: true,
   captureFilter: "Original",
+  highResExport: true,
+  haptic: true,
+  safeAreaGuide: true,
+  autoSaveBookmarks: true,
 }
 
 const emptyComposition = (id = "tmpl-001"): Composition => {
@@ -231,6 +236,10 @@ function getInitialPage(): Page {
 
 export default function App() {
   const [page, setPage] = useState<Page>(() => getInitialPage())
+  const [showSplash, setShowSplash] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false
+    return !sessionStorage.getItem("lm_splash_seen")
+  })
   const [settings, setSettings] = useState<BoothSettings>(() =>
     readLocal("little-settings", defaultSettings),
   )
@@ -390,6 +399,15 @@ export default function App() {
       return () => clearTimeout(t)
     }
   }, [toast])
+
+  useEffect(() => {
+    if (!showSplash) return
+    const timer = setTimeout(() => {
+      setShowSplash(false)
+      sessionStorage.setItem("lm_splash_seen", "true")
+    }, 1400)
+    return () => clearTimeout(timer)
+  }, [showSplash])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -1410,6 +1428,49 @@ export default function App() {
       {/* CodePen Paper Texture Overlay */}
       <div className="paper-texture" aria-hidden="true" />
 
+      {/* Starting Page (Splash Screen) from Blueprint Screen 1 */}
+      {showSplash && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#fdfbf7] p-6 text-stone-900 transition-opacity duration-300 cursor-pointer animate-fadeIn"
+          onClick={() => {
+            setShowSplash(false)
+            sessionStorage.setItem("lm_splash_seen", "true")
+          }}
+        >
+          <div className="w-full max-w-[320px] rounded-3xl border-3 border-stone-900 bg-[#faf7ee] p-8 shadow-[8px_8px_0_#171717] flex flex-col items-center text-center relative overflow-hidden">
+            <div className="w-16 h-1.5 rounded-full bg-stone-300 mb-6" />
+
+            {/* Hand-drawn LM badge */}
+            <div className="mb-6 w-36 h-32 rounded-2xl border-2 border-stone-900 bg-[#faf8f0] shadow-[4px_4px_0_#171717] flex flex-col items-center justify-center relative">
+              <span className="font-mono font-black text-4xl tracking-tighter text-stone-900 flex items-center gap-1">
+                LM<Sparkles size={24} className="text-amber-500 fill-amber-400" />
+              </span>
+              <span className="text-[10px] font-mono tracking-widest text-stone-500 uppercase mt-1 font-bold">
+                PHOTOSTUDIO
+              </span>
+            </div>
+
+            <h1 className="font-caveat text-4xl font-bold text-stone-900 mb-1">
+              Little Moments
+            </h1>
+            <p className="text-xs font-mono text-stone-600 mb-6 leading-relaxed">
+              Korean Photobooth Keepsakes & Analog Print Studio
+            </p>
+
+            {/* Subtle Loading Pulse Dots from sketch */}
+            <div className="flex items-center gap-2 mt-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-stone-900 animate-ping" />
+              <span className="w-2.5 h-2.5 rounded-full bg-stone-900 animate-pulse delay-75" />
+              <span className="w-2.5 h-2.5 rounded-full bg-stone-900 animate-pulse delay-150" />
+            </div>
+
+            <span className="mt-8 text-[11px] font-mono text-stone-400">
+              Tap anywhere to enter
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Hidden File Input for Device Uploads */}
       <input
         ref={fileInput}
@@ -1565,38 +1626,71 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Mobile & Tablet quick actions */}
-        <div className="flex items-center gap-2 lg:hidden">
+        {/* Mobile & Tablet quick actions matching Blueprint Screen 2 & 3 */}
+        <div className="flex items-center gap-1.5 lg:hidden">
+          {page === "home" && (
+            <>
+              <button
+                type="button"
+                className="sketch-button sketch-button--sm text-xs py-1 px-2 flex items-center gap-1 bg-amber-200 border-stone-900 text-stone-900 shadow-[2px_2px_0_#171717] active:scale-95 font-bold"
+                onClick={() => setPage("kbooth")}
+                title="K-Booth Photostrips"
+              >
+                <Sparkles size={13} className="text-amber-800" />
+                <span>K-Booth</span>
+              </button>
+              <button
+                type="button"
+                className="w-8 h-8 rounded-full border-2 border-stone-900 bg-white shadow-[2px_2px_0_#171717] flex items-center justify-center text-stone-900 active:scale-95 transition-transform"
+                onClick={() => setPage("settings")}
+                title="Settings"
+                aria-label="Settings"
+              >
+                <Settings size={15} />
+              </button>
+            </>
+          )}
+
+          {page === "templates" && (
+            <>
+              <button
+                type="button"
+                className="sketch-button sketch-button--sm text-xs py-1 px-2 flex items-center gap-1 bg-amber-200 border-stone-900 text-stone-900 shadow-[2px_2px_0_#171717] active:scale-95 font-bold"
+                onClick={() => setPage("kbooth")}
+                title="K-Booth Photostrips"
+              >
+                <Sparkles size={13} className="text-amber-800" />
+                <span>K-Booth</span>
+              </button>
+              <button
+                type="button"
+                className="sketch-button sketch-button--sm text-xs py-1 px-2 flex items-center gap-1 bg-stone-900 text-white border-stone-900 shadow-[2px_2px_0_#d97762] active:scale-95 font-bold"
+                onClick={() => setPage("editor")}
+                title="Open Studio"
+              >
+                <Paintbrush size={13} className="text-amber-300" />
+                <span>Studio</span>
+              </button>
+            </>
+          )}
+
           <button
             type="button"
-            className="w-9 h-9 border-2 border-stone-900 bg-white shadow-[2px_2px_0_#171717] flex items-center justify-center text-stone-900 active:scale-95 transition-transform"
+            className="w-8 h-8 rounded-full border-2 border-stone-900 bg-white shadow-[2px_2px_0_#171717] flex items-center justify-center text-stone-900 active:scale-95 transition-transform"
             onClick={() => setAccountModalOpen(true)}
             title="Cloud Database & User Account"
             aria-label="Cloud Database & User Account"
           >
-            <Database size={16} />
+            <Database size={14} />
           </button>
 
           <button
             type="button"
-            className="sketch-button sketch-button--sm text-xs py-1.5 px-2.5 flex items-center gap-1.5 bg-rose-600 text-white border-stone-900 shadow-[2px_2px_0_#171717] active:scale-95"
-            onClick={() => {
-              setPage("camera")
-              openCamera()
-            }}
-            title="Launch Photobooth Camera"
-          >
-            <Camera size={14} />
-            <span className="font-bold">Booth</span>
-          </button>
-
-          <button
-            type="button"
-            className="w-9 h-9 border-2 border-stone-900 bg-[#faf8f0] shadow-[2px_2px_0_#171717] flex items-center justify-center text-stone-900 active:scale-95 transition-transform"
+            className="w-8 h-8 rounded-full border-2 border-stone-900 bg-[#faf8f0] shadow-[2px_2px_0_#171717] flex items-center justify-center text-stone-900 active:scale-95 transition-transform"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
           </button>
         </div>
       </header>
@@ -1837,13 +1931,37 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="mt-12 text-center">
+              <div className="mt-10 text-center flex flex-col items-center gap-3">
                 <button
                   type="button"
-                  className="sketch-button sketch-button--dark"
+                  className="sketch-button sketch-button--dark text-sm px-6 py-2.5 font-bold shadow-[3px_3px_0_#171717]"
                   onClick={() => setPage("templates")}
                 >
                   View all {templates.length} templates →
+                </button>
+
+                {/* Blueprint Screen 2 -> 3 Slide Up Navigation Target */}
+                <button
+                  type="button"
+                  className="w-full max-w-lg mt-2 p-4 bg-stone-900 text-amber-300 border-2 border-stone-900 rounded-2xl shadow-[4px_4px_0_#d97762] flex items-center justify-between font-mono text-xs font-bold active:scale-98 transition-transform group cursor-pointer"
+                  onClick={() => {
+                    setPage("templates")
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }}
+                  title="Slide up to explore all templates & K-Booth styles"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-amber-400 text-stone-950 flex items-center justify-center shadow-sm">
+                      <ArrowUp size={18} className="group-hover:-translate-y-1 transition-transform stroke-[2.5]" />
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-[11px] text-stone-300 uppercase tracking-wider">Slide up to see Template</span>
+                      <span className="text-sm text-white font-bold">& All {templates.length}+ K-Booth & Scrapbook Styles</span>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded bg-stone-800 text-amber-300 text-[10px] uppercase tracking-wider font-bold group-hover:bg-amber-400 group-hover:text-stone-950 transition-colors">
+                    Catalog →
+                  </span>
                 </button>
               </div>
             </section>
@@ -2996,6 +3114,11 @@ export default function App() {
                   onSave={() => saveCurrentCreation()}
                   saveStatus={saveStatus}
                   notify={(msg) => notify(msg)}
+                  onUndo={() => undo()}
+                  onRedo={() => redo()}
+                  canUndo={history.length > 0}
+                  canRedo={future.length > 0}
+                  onClose={() => setPage("templates")}
                 />
               </Suspense>
             </div>
@@ -3223,13 +3346,13 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
                 {saved.map((item) => (
                   <div
                     key={item.id}
-                    className="booth-card flex flex-col justify-between hover:shadow-[8px_8px_0_#171717] transition-all"
+                    className="booth-card flex flex-col justify-between hover:shadow-[8px_8px_0_#171717] transition-all p-3"
                   >
-                    <div className="aspect-[3/4] bg-stone-100 border border-stone-900 mb-3 flex items-center justify-center p-2 overflow-hidden">
+                    <div className="aspect-[3/4] bg-stone-100 border border-stone-900 mb-2 flex items-center justify-center p-1.5 overflow-hidden rounded">
                       <img
                         src={item.image}
                         alt="Saved keepsake"
@@ -3238,33 +3361,34 @@ export default function App() {
                     </div>
 
                     <div>
-                      <div className="flex justify-between items-center text-xs font-mono text-stone-500 mb-2">
-                        <span>{item.date}</span>
-                        <span>{item.composition.photos.length} photos</span>
+                      <div className="flex justify-between items-center text-[10.5px] font-mono text-stone-500 mb-1.5">
+                        <span className="truncate">{item.date}</span>
+                        <span className="flex-shrink-0">{item.composition.photos.length} cuts</span>
                       </div>
 
-                      <div className="flex gap-2 mt-3">
+                      <div className="flex gap-1.5 mt-2">
                         <button
                           type="button"
-                          className="sketch-button sketch-button--dark sketch-button--sm flex-1 text-xs"
+                          className="sketch-button sketch-button--dark sketch-button--sm flex-1 text-[11px] py-1 px-2"
                           onClick={() => {
                             setComposition(item.composition)
                             setPage("editor")
                           }}
                         >
-                          Reopen & Edit
+                          Studio
                         </button>
                         <button
                           type="button"
-                          className="p-2 border border-stone-400 hover:border-red-600 hover:text-red-600"
+                          className="p-1.5 border border-stone-400 hover:border-red-600 hover:text-red-600 rounded flex items-center justify-center"
                           onClick={() => {
                             removeProject(item.id)
                             setSaved((prev) => prev.filter((x) => x.id !== item.id))
-                            notify("Deleted from creations.")
+                            notify("Deleted from bookmark creations.")
                           }}
                           aria-label="Delete"
+                          title="Delete keepsake"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
@@ -3276,55 +3400,149 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* SCREEN 8: SETTINGS & PREFERENCES                         */}
+        {/* SCREEN 6: SETTING (Tactile Switches from Blueprint)      */}
         {/* ======================================================== */}
         {page === "settings" && (
-          <section className="py-8 max-w-2xl mx-auto">
+          <section className="py-6 max-w-xl mx-auto">
             <header className="mb-6">
-              <p className="eyebrow">Studio Preferences</p>
-              <h2 className="font-gochi text-4xl">Settings</h2>
+              <p className="eyebrow">Studio Preferences & Setup</p>
+              <h2 className="font-caveat text-4xl font-bold text-stone-900">Setting</h2>
+              <p className="text-xs font-mono text-stone-600 mt-1">
+                Customize camera shutter, print quality, and booth behavior.
+              </p>
             </header>
 
-            <div className="booth-card space-y-6 text-xs font-mono">
-              <div>
-                <strong className="block text-sm mb-1 font-bold">Default Countdown</strong>
-                <p className="text-stone-500 mb-2">Number of seconds before the first snapshot.</p>
-                <div className="grid grid-cols-2 sm:flex gap-2">
-                  {[0, 3, 5, 10].map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      className={`px-4 py-2 border ${
-                        settings.countdown === s
-                          ? "border-stone-900 bg-stone-900 text-white font-bold"
-                          : "border-stone-300"
+            {/* List with Text on left and Toggle Switch on right (Blueprint Screen 6) */}
+            <div className="booth-card divide-y divide-stone-200 p-0 overflow-hidden shadow-[4px_4px_0_#171717] bg-[#faf8f0]">
+              {[
+                {
+                  id: "sound",
+                  title: "Shutter Sound Effects",
+                  subtitle: "Play vintage analog camera click and chime",
+                  value: settings.sound,
+                  onChange: (val: boolean) => setSettings((s) => ({ ...s, sound: val })),
+                },
+                {
+                  id: "mirror",
+                  title: "Mirror Front Camera",
+                  subtitle: "Natural selfie mirroring in viewfinder",
+                  value: settings.mirror,
+                  onChange: (val: boolean) => setSettings((s) => ({ ...s, mirror: val })),
+                },
+                {
+                  id: "flash",
+                  title: "Studio Photobooth Flash",
+                  subtitle: "Simulate strobe flash on capture",
+                  value: settings.flash,
+                  onChange: (val: boolean) => setSettings((s) => ({ ...s, flash: val })),
+                },
+                {
+                  id: "visualCountdown",
+                  title: "Visual Countdown",
+                  subtitle: "Display 3s / 5s animated countdown numbers",
+                  value: settings.visualCountdown,
+                  onChange: (val: boolean) => setSettings((s) => ({ ...s, visualCountdown: val })),
+                },
+                {
+                  id: "highResExport",
+                  title: "4K High-Resolution Export",
+                  subtitle: "Generate ultra-crisp 300DPI print-ready keepsakes",
+                  value: settings.highResExport ?? true,
+                  onChange: (val: boolean) => setSettings((s) => ({ ...s, highResExport: val })),
+                },
+                {
+                  id: "haptic",
+                  title: "Tactile Haptic Feedback",
+                  subtitle: "Gentle vibration on shutter & tool actions",
+                  value: settings.haptic ?? true,
+                  onChange: (val: boolean) => setSettings((s) => ({ ...s, haptic: val })),
+                },
+                {
+                  id: "safeAreaGuide",
+                  title: "Safe Area Print Margins",
+                  subtitle: "Show print border guides on canvas",
+                  value: settings.safeAreaGuide ?? true,
+                  onChange: (val: boolean) => setSettings((s) => ({ ...s, safeAreaGuide: val })),
+                },
+                {
+                  id: "autoSaveBookmarks",
+                  title: "Auto-Save to Bookmarks",
+                  subtitle: "Save exported photostrips to local keepsakes",
+                  value: settings.autoSaveBookmarks ?? true,
+                  onChange: (val: boolean) => setSettings((s) => ({ ...s, autoSaveBookmarks: val })),
+                },
+              ].map((item) => (
+                <div
+                  key={item.id}
+                  className="p-4 flex items-center justify-between gap-4 hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex-1 min-w-0 pr-2">
+                    <strong className="block text-sm font-bold text-stone-900 truncate">
+                      {item.title}
+                    </strong>
+                    <span className="text-[11px] font-mono text-stone-500 block">
+                      {item.subtitle}
+                    </span>
+                  </div>
+
+                  {/* Tactile Android Toggle Switch matching blueprint Screen 6 */}
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={item.value}
+                    onClick={() => item.onChange(!item.value)}
+                    className={`w-13 h-7 rounded-full border-2 border-stone-900 transition-colors p-0.5 relative flex-shrink-0 cursor-pointer ${
+                      item.value ? "bg-amber-400" : "bg-stone-200"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full bg-stone-900 shadow-md transition-transform flex items-center justify-center ${
+                        item.value ? "translate-x-6" : "translate-x-0"
                       }`}
-                      onClick={() => setSettings((st) => ({ ...st, countdown: s as any }))}
                     >
-                      {s === 0 ? "Instant" : `${s} Seconds`}
-                    </button>
-                  ))}
+                      {item.value && <Check size={11} className="text-amber-400 stroke-[3]" />}
+                    </div>
+                  </button>
                 </div>
+              ))}
+            </div>
+
+            {/* Quick Actions & Extras */}
+            <div className="mt-6 booth-card space-y-4 text-xs font-mono">
+              <div className="flex items-center justify-between">
+                <div>
+                  <strong className="block text-sm font-bold">Starting Page (Splash Screen)</strong>
+                  <span className="text-stone-500">Preview the opening app badge</span>
+                </div>
+                <button
+                  type="button"
+                  className="sketch-button sketch-button--sm"
+                  onClick={() => setShowSplash(true)}
+                >
+                  Preview Splash
+                </button>
               </div>
 
               <div className="pt-4 border-t border-dashed border-stone-300">
-                <strong className="block text-sm mb-1 font-bold">Shutter Flash</strong>
-                <p className="text-stone-500 mb-2">Simulate real photobooth flash lamps.</p>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.flash}
-                    onChange={(e) => setSettings((s) => ({ ...s, flash: e.target.checked }))}
-                    className="accent-stone-900 w-4 h-4"
-                  />
-                  <span>Enable photobooth flash screen</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <strong className="block text-sm font-bold">Cloud Account & Sync</strong>
+                  <button
+                    type="button"
+                    className="sketch-button sketch-button--sm bg-emerald-50 border-emerald-700 text-emerald-900"
+                    onClick={() => setAccountModalOpen(true)}
+                  >
+                    Manage Account
+                  </button>
+                </div>
+                <p className="text-stone-500 text-[11px]">
+                  {currentUser ? `Signed in as ${currentUser.email} (${currentUser.role})` : "Sign in to backup your keepsakes to cloud storage."}
+                </p>
               </div>
 
               <div className="pt-4 border-t border-dashed border-stone-300">
-                <strong className="block text-sm mb-1 font-bold">Local Storage & Privacy</strong>
-                <p className="text-stone-500 mb-2">
-                  All photos, compositions, and drafts stay 100% on this device in your browser. Nothing is ever uploaded to external servers.
+                <strong className="block text-sm font-bold text-red-700 mb-1">Local Storage & Privacy</strong>
+                <p className="text-stone-500 mb-3 text-[11px]">
+                  All photos and drafts remain private on this device.
                 </p>
                 <button
                   type="button"
@@ -3335,11 +3553,12 @@ export default function App() {
                     localStorage.removeItem("little-favorites")
                     localStorage.removeItem("little-template-usage")
                     localStorage.removeItem("little-recent-templates")
+                    sessionStorage.removeItem("lm_splash_seen")
                     setSaved([])
                     setFavorites([])
                     setUsageHistory({})
                     setRecentTemplates([])
-                    notify("Cleared all local app data, favorites, and recent history.")
+                    notify("Cleared all local app data and preferences.")
                   }}
                 >
                   Clear All Local App Data
@@ -3597,15 +3816,16 @@ export default function App() {
         {toast}
       </div>
 
-      {/* Android APK Bottom Navigation Bar (Optimized for Phones & Tablets, hidden in Studio mode to avoid tool overlap) */}
+      {/* Android APK 5-Tab Bottom Navigation Bar (Blueprint Screen 1-7 & Hand Sketch) */}
       {page !== "editor" && (
         <nav
           aria-label="Android Bottom Navigation"
           className="fixed bottom-0 left-0 right-0 z-40 bg-[#faf8f2]/95 backdrop-blur-md border-t-2 border-stone-900 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] lg:hidden px-2 sm:px-6 pt-1.5 pb-2 safe-bottom flex items-center justify-around"
         >
+          {/* Tab 1: Home */}
           <button
             type="button"
-            className={`flex flex-col items-center justify-center py-1 px-3 sm:px-5 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
               page === "home"
                 ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
                 : "text-stone-600 hover:text-stone-900"
@@ -3619,31 +3839,11 @@ export default function App() {
             <span className="mt-0.5">Home</span>
           </button>
 
+          {/* Tab 2: Template */}
           <button
             type="button"
-            className={`flex flex-col items-center justify-center py-1 px-2.5 sm:px-4 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
-              page === "kbooth"
-                ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
-                : "text-stone-600 hover:text-stone-900"
-            }`}
-            onClick={() => {
-              setPage("kbooth")
-              window.scrollTo({ top: 0, behavior: "smooth" })
-            }}
-          >
-            <div className="relative">
-              <Sparkles size={19} className={page === "kbooth" ? "stroke-[2.5]" : "stroke-[1.8]"} />
-              <span className="absolute -top-1 -right-2 text-[8px] font-mono font-bold bg-amber-400 text-stone-950 px-1 rounded-full leading-tight">
-                {kBoothTemplates.length}
-              </span>
-            </div>
-            <span className="mt-0.5">K-Booth</span>
-          </button>
-
-          <button
-            type="button"
-            className={`flex flex-col items-center justify-center py-1 px-3 sm:px-5 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
-              page === "templates"
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
+              page === "templates" || page === "kbooth"
                 ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
                 : "text-stone-600 hover:text-stone-900"
             }`}
@@ -3653,15 +3853,15 @@ export default function App() {
             }}
           >
             <div className="relative">
-              <Grid2X2 size={19} className={page === "templates" ? "stroke-[2.5]" : "stroke-[1.8]"} />
+              <Grid2X2 size={19} className={page === "templates" || page === "kbooth" ? "stroke-[2.5]" : "stroke-[1.8]"} />
               <span className="absolute -top-1 -right-2 text-[8px] font-mono font-bold bg-amber-500 text-stone-950 px-1 rounded-full leading-tight">
                 {templates.length}
               </span>
             </div>
-            <span className="mt-0.5">Templates</span>
+            <span className="mt-0.5">Template</span>
           </button>
 
-          {/* Elevated Center Android Camera Shutter Action Button */}
+          {/* Tab 3: Camera (Elevated Center Android Arcade Shutter Button) */}
           <button
             type="button"
             className="relative -top-3.5 flex flex-col items-center justify-center group active:scale-90 transition-transform"
@@ -3676,41 +3876,19 @@ export default function App() {
             <div className="w-13 h-13 rounded-full bg-rose-600 border-[3px] border-stone-900 text-white flex items-center justify-center shadow-[0_4px_12px_rgba(225,29,72,0.4)] group-hover:bg-rose-500">
               <Camera size={24} className="stroke-[2.4]" />
             </div>
-            <span className="text-[10px] font-mono font-bold text-stone-900 mt-0.5">Booth</span>
+            <span className="text-[10px] font-mono font-bold text-stone-900 mt-0.5">Camera</span>
           </button>
 
+          {/* Tab 4: Bookmark (Saved Keepsakes / Creations) */}
           <button
             type="button"
-            className="flex flex-col items-center justify-center py-1 px-3 sm:px-5 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 text-stone-600 hover:text-stone-900"
-            onClick={() => {
-              if (!composition.photos.length) {
-                setComposition((c) => ({
-                  ...c,
-                  photos: Array.from({ length: currentTemplate.count }, (_, i) => ({
-                    id: crypto.randomUUID(),
-                    src: samples[i % samples.length],
-                    name: `Sample Photo ${i + 1}`,
-                    adjustments: defaultAdjustments(),
-                  })),
-                }))
-              }
-              setPage("editor")
-              window.scrollTo({ top: 0, behavior: "smooth" })
-            }}
-          >
-            <Paintbrush size={19} className="stroke-[1.8]" />
-            <span className="mt-0.5">Studio</span>
-          </button>
-
-          <button
-            type="button"
-            className={`relative flex flex-col items-center justify-center py-1 px-3 sm:px-5 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
+            className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
               page === "creations"
                 ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
                 : "text-stone-600 hover:text-stone-900"
             }`}
             onClick={() => {
-              setCreationsTab("scrapbook")
+              setCreationsTab("grid")
               setPage("creations")
               window.scrollTo({ top: 0, behavior: "smooth" })
             }}
@@ -3723,7 +3901,24 @@ export default function App() {
                 </span>
               )}
             </div>
-            <span className="mt-0.5">Scrapbook</span>
+            <span className="mt-0.5">Bookmark</span>
+          </button>
+
+          {/* Tab 5: Setting */}
+          <button
+            type="button"
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-full text-[10px] font-mono tracking-tight transition-all active:scale-95 ${
+              page === "settings"
+                ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
+                : "text-stone-600 hover:text-stone-900"
+            }`}
+            onClick={() => {
+              setPage("settings")
+              window.scrollTo({ top: 0, behavior: "smooth" })
+            }}
+          >
+            <Settings size={19} className={page === "settings" ? "stroke-[2.5]" : "stroke-[1.8]"} />
+            <span className="mt-0.5">Setting</span>
           </button>
         </nav>
       )}

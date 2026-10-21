@@ -158,6 +158,10 @@ export type BoothSettings = {
   visualCountdown: boolean
   captureFilter: FilterName
   deviceId?: string
+  highResExport?: boolean
+  haptic?: boolean
+  safeAreaGuide?: boolean
+  autoSaveBookmarks?: boolean
 }
 
 export const defaultAdjustments = (): Adjustments => ({

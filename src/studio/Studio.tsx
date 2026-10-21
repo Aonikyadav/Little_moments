@@ -5,6 +5,7 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -92,6 +93,11 @@ type Props = {
   onSave: () => void
   saveStatus: string
   notify: (s: string) => void
+  onUndo?: () => void
+  onRedo?: () => void
+  canUndo?: boolean
+  canRedo?: boolean
+  onClose?: () => void
 }
 const tools = [
   { name: "Grid", icon: Grid2X2 },
@@ -305,8 +311,15 @@ export default function Studio({
   onSave,
   saveStatus,
   notify,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
+  onClose,
 }: Props) {
   const [tool, setTool] = useState("Grid"),
+    [showLayersModal, setShowLayersModal] = useState(false),
+    [activeMobileDrawer, setActiveMobileDrawer] = useState<string | null>(null),
     [studioTab, setStudioTab] = useState<"grid" | "template">("grid"),
     [gridCountFilter, setGridCountFilter] = useState<number | "all">("all"),
     [templateCategoryFilter, setTemplateCategoryFilter] = useState<string>("All styles"),
@@ -1755,6 +1768,296 @@ export default function Studio({
                 {snapped.y && <div className="snap-guide horizontal" />}
               </div>
             </div>
+
+            {/* Floating Quick-Tools Rail on Canvas Right Edge (Blueprint Screen 8) */}
+            <div className="studio-floating-rail" role="toolbar" aria-label="Quick Canvas Tools">
+              <button
+                type="button"
+                className={`studio-floating-btn ${showLayersModal ? "active" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowLayersModal(!showLayersModal)
+                }}
+                title="Layers Panel (Floating)"
+                aria-label="Toggle Layers"
+              >
+                <Layers size={17} />
+                <span className="floating-btn-label">Layers</span>
+                <span className="floating-btn-badge">{layers.length}</span>
+              </button>
+
+              <button
+                type="button"
+                className="studio-floating-btn"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (photo) {
+                    const nextFit = photo.adjustments.fit === "fit" ? "fill" : "fit"
+                    updatePhoto({ fit: nextFit })
+                    notify(`Photo fit: ${nextFit}`)
+                  } else {
+                    notify("Tap any photo to adjust fit/crop")
+                  }
+                }}
+                title="Toggle Photo Fit/Fill Crop"
+                aria-label="Crop / Fit"
+              >
+                <Crop size={17} />
+                <span className="floating-btn-label">Crop</span>
+              </button>
+
+              <button
+                type="button"
+                className={`studio-floating-btn ${safe ? "active" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSafe(!safe)
+                }}
+                title="Toggle Safe Guides"
+                aria-label="Safe Area"
+              >
+                <Grid2X2 size={17} />
+                <span className="floating-btn-label">Safe</span>
+              </button>
+
+              <button
+                type="button"
+                className="studio-floating-btn"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  resetView()
+                }}
+                title="Fit to Center"
+                aria-label="Fit Canvas"
+              >
+                <Maximize size={17} />
+                <span className="floating-btn-label">Fit</span>
+              </button>
+            </div>
+
+            {/* Floating Layers Panel Card (Reference Image 5 & Blueprint Screen 8) */}
+            {showLayersModal && (
+              <div
+                className="floating-layers-card"
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-label="Floating Layers Panel"
+              >
+                {/* Header */}
+                <div className="layers-card-header">
+                  <div className="flex items-center gap-2">
+                    <Layers size={16} className="text-cyan-400" />
+                    <span className="font-mono text-xs font-bold text-white tracking-wide">
+                      Layers
+                    </span>
+                    <span className="text-[10px] font-mono text-stone-400">
+                      ({layers.length})
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="w-6 h-6 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center transition-colors cursor-pointer"
+                    onClick={() => setShowLayersModal(false)}
+                    aria-label="Close Layers"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+
+                {/* Layer Items List (Reversed so top-most visual layer is at top) */}
+                <div className="layers-card-list">
+                  {[...layers].reverse().map((l, revIdx) => {
+                    const originalIdx = layers.length - 1 - revIdx
+                    const isSelected = selected === l.id && !compare
+                    const photoItem = l.kind === "photo" ? c.photos.find((p) => p.id === l.id) : null
+                    const stickerItem = l.kind === "sticker" ? c.stickers.find((s) => s.id === l.id) : null
+
+                    return (
+                      <div
+                        key={l.id}
+                        className={`layer-item-card ${isSelected ? "selected-cyan" : ""}`}
+                        onClick={() => setSelected(l.id)}
+                      >
+                        {/* Thumbnail with checkered transparency pattern */}
+                        <div className="layer-thumb-container">
+                          {photoItem?.src ? (
+                            <img src={photoItem.src} alt={l.label} className="w-full h-full object-cover rounded" />
+                          ) : stickerItem?.src ? (
+                            <img src={stickerItem.src} alt="sticker" className="w-full h-full object-contain p-1" />
+                          ) : l.kind === "text" ? (
+                            <div className="w-full h-full flex items-center justify-center text-cyan-400 font-bold font-mono text-sm bg-stone-900/80">
+                              T
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-amber-400 bg-stone-900/80">
+                              <Frame size={16} />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Title & Badge */}
+                        <div className="layer-meta">
+                          <span className="layer-label truncate">{l.label}</span>
+                          <span className="layer-type">{l.kind}</span>
+                        </div>
+
+                        {/* Toggles & Reorder */}
+                        <div className="layer-actions flex items-center gap-1">
+                          <button
+                            type="button"
+                            className={`layer-toggle-btn ${l.properties.hidden ? "is-off" : ""}`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              commit(patchLayer(c, l.id, { hidden: !l.properties.hidden }))
+                            }}
+                            title={l.properties.hidden ? "Show layer" : "Hide layer"}
+                          >
+                            {l.properties.hidden ? <EyeOff size={13} /> : <Eye size={13} />}
+                          </button>
+
+                          <button
+                            type="button"
+                            className={`layer-toggle-btn ${l.properties.locked ? "is-locked" : ""}`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              commit(patchLayer(c, l.id, { locked: !l.properties.locked }))
+                            }}
+                            title={l.properties.locked ? "Unlock layer" : "Lock layer"}
+                          >
+                            {l.properties.locked ? <LockKeyhole size={13} /> : <UnlockKeyhole size={13} />}
+                          </button>
+
+                          <div className="flex flex-col ml-0.5">
+                            <button
+                              type="button"
+                              disabled={originalIdx >= layers.length - 1}
+                              className="reorder-arrow disabled:opacity-20"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                commit(moveLayer(c, l.id, originalIdx + 1))
+                              }}
+                              title="Move Forward"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={originalIdx <= 0}
+                              className="reorder-arrow disabled:opacity-20"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                commit(moveLayer(c, l.id, originalIdx - 1))
+                              }}
+                              title="Move Backward"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Opacity Control Slider (Matching Reference Image 5) */}
+                <div className="layers-card-opacity">
+                  <div className="flex justify-between items-center text-[11px] font-mono mb-1.5 text-stone-300">
+                    <span className="font-bold">Opacity</span>
+                    <span className="text-cyan-400 font-bold font-mono">
+                      {Math.round((layer?.properties.opacity ?? 1) * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={Math.round((layer?.properties.opacity ?? 1) * 100)}
+                    onChange={(e) => {
+                      const val = Number(e.target.value) / 100
+                      if (selected) {
+                        commit(patchLayer(c, selected, { opacity: val }))
+                      }
+                    }}
+                    className="w-full accent-cyan-400 h-1.5 bg-stone-700 rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Bottom Quick Tools Row (Duplicate, Delete, Replace, Rotate) */}
+                <div className="layers-card-footer">
+                  <button
+                    type="button"
+                    disabled={!selected}
+                    className="layer-footer-btn"
+                    onClick={() => {
+                      if (!selected) return
+                      const newId = crypto.randomUUID()
+                      commit(duplicateLayer(c, selected, newId))
+                      setSelected(newId)
+                      notify("Layer duplicated")
+                    }}
+                    title="Duplicate Layer"
+                  >
+                    <Copy size={13} />
+                    <span>Copy</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!selected}
+                    className="layer-footer-btn"
+                    onClick={() => {
+                      if (!selected) return
+                      if (photo) {
+                        setReplacing(true)
+                        importInput.current?.click()
+                      } else {
+                        stickerInput.current?.click()
+                      }
+                    }}
+                    title="Replace with new file"
+                  >
+                    <ImagePlus size={13} />
+                    <span>Replace</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!selected}
+                    className="layer-footer-btn"
+                    onClick={() => {
+                      if (!selected) return
+                      if (photo) {
+                        const cur = photo.adjustments.rotation || 0
+                        updatePhoto({ rotation: (cur + 90) % 360 })
+                      } else {
+                        const b = layerBounds(selected)
+                        commit(patchLayer(c, selected, { transform: { ...b, rotation: (b.rotation + 90) % 360 } }))
+                      }
+                    }}
+                    title="Rotate 90°"
+                  >
+                    <RotateCw size={13} />
+                    <span>Rotate</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!selected}
+                    className="layer-footer-btn text-rose-400 hover:text-rose-300"
+                    onClick={() => {
+                      if (!selected) return
+                      commit(deleteLayer(c, selected))
+                      setSelected("")
+                      notify("Layer deleted")
+                    }}
+                    title="Delete Layer"
+                  >
+                    <Trash2 size={13} />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <div className="canvas-bottomline flex flex-wrap items-center justify-between gap-1.5 px-3 py-2 bg-stone-100 border-t border-stone-300">
             {/* Mode switch & gesture info */}
@@ -2035,14 +2338,78 @@ export default function Studio({
             </div>
           )}
 
+          {/* Mobile Bottom Tool Dock (Blueprint Screen 8 & Reference Image 3/4) */}
+          <div className="studio-mobile-dock lg:hidden" role="toolbar" aria-label="Mobile Tool Dock">
+            {[
+              { name: "Grid", icon: Grid2X2, label: "Grid" },
+              { name: "Templates", icon: Sparkles, label: "Templates" },
+              { name: "Adjust", icon: SlidersHorizontal, label: "Adjust" },
+              { name: "Filters", icon: WandSparkles, label: "Filter" },
+              { name: "Text", icon: Type, label: "Text" },
+              { name: "Background", icon: Paintbrush, label: "Background" },
+              { name: "Stickers", icon: Sticker, label: "Stickers" },
+            ].map(({ name, icon: Icon, label }) => {
+              const isActive = activeMobileDrawer === name
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  className={`mobile-dock-btn ${isActive ? "active" : ""}`}
+                  onClick={() => {
+                    if (activeMobileDrawer === name) {
+                      setActiveMobileDrawer(null)
+                    } else {
+                      setPanel(name)
+                      setActiveMobileDrawer(name)
+                      if (["Adjust", "Filters"].includes(name)) selectPhoto()
+                    }
+                  }}
+                  title={label}
+                >
+                  <div className="mobile-dock-icon-wrapper">
+                    <Icon size={18} />
+                  </div>
+                  <span className="mobile-dock-label">{label}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
+
         <aside
-          className="studio-inspector"
+          className={`studio-inspector ${activeMobileDrawer ? "drawer-open" : ""}`}
           style={{
-            width: `${inspectorWidth}px`,
-            maxWidth: "85vw",
-          }}
+            "--studio-inspector-width": `${inspectorWidth}px`,
+          } as CSSProperties}
         >
+          {/* Mobile Bottom Sheet Drawer Header (Blueprint Screen 9) */}
+          <div className="mobile-drawer-header lg:hidden">
+            <div
+              className="mobile-drawer-pill"
+              onClick={() => setActiveMobileDrawer(null)}
+              title="Tap or drag to close drawer"
+            />
+            <div className="mobile-drawer-title-bar">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="font-mono text-xs font-bold text-stone-900 uppercase tracking-wide">
+                  {tool}
+                </span>
+                <span className="text-[10px] text-stone-500 font-mono">
+                  · Choose Option
+                </span>
+              </div>
+              <button
+                type="button"
+                className="w-7 h-7 rounded-full bg-stone-200 hover:bg-stone-300 flex items-center justify-center text-stone-800 transition-colors cursor-pointer"
+                onClick={() => setActiveMobileDrawer(null)}
+                aria-label="Dismiss Drawer"
+                title="Dismiss Drawer"
+              >
+                <ChevronDown size={16} />
+              </button>
+            </div>
+          </div>
           {/* Draggable sidebar resizer handle */}
           <div
             className={`studio-resizer ${isResizing ? "resizing" : ""}`}
