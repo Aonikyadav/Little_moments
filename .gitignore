@@ -29,3 +29,5 @@ logs/
 
 # Android build outputs
 *.apk
+.gradle/
+app/.gradle/

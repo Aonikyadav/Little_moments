@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Search, Sparkles, Filter, Check, ArrowRight, Paintbrush } from "lucide-react"
 import type { MobileTab } from "../types"
-import { templates, kBoothTemplates, purikuraTemplates } from "../../templates"
+import { getAllTemplates } from "../../templates"
 import { TemplateThumbnail } from "../../components/TemplateThumbnail"
 
 interface TemplatesScreenProps {
@@ -16,10 +16,11 @@ export const TemplatesScreen: React.FC<TemplatesScreenProps> = ({
   const [filter, setFilter] = useState<string>("all")
   const [search, setSearch] = useState<string>("")
 
-  const allTemplates = [...templates, ...kBoothTemplates, ...purikuraTemplates]
+  const allTemplates = getAllTemplates()
 
   const categories = [
     { id: "all", label: "All Strips" },
+    { id: "custom", label: "Studio & Custom ✦" },
     { id: "4cut", label: "4-Cut Classic" },
     { id: "kbooth", label: "Korean K-Booth" },
     { id: "twin", label: "Twin Strips" },
@@ -37,6 +38,7 @@ export const TemplatesScreen: React.FC<TemplatesScreenProps> = ({
     }
 
     if (filter === "all") return true
+    if (filter === "custom") return t.id.startsWith("tmpl-custom-") || t.tags?.includes("custom") || t.tags?.includes("studio") || (t as any).isCustom
     if (filter === "4cut") return t.count === 4
     if (filter === "kbooth") return t.tags?.includes("k-booth") || t.id.startsWith("kb-")
     if (filter === "twin") return t.tags?.includes("twin-strip") || t.tags?.includes("v-strip")
@@ -119,6 +121,12 @@ export const TemplatesScreen: React.FC<TemplatesScreenProps> = ({
               <div className="absolute top-1 left-1 bg-stone-900/85 text-white text-[8px] font-mono font-bold px-1 rounded shadow-xs">
                 {t.count}-cut
               </div>
+              {(t.id.startsWith("tmpl-custom-") || t.tags?.includes("custom")) && (
+                <div className="absolute top-1 right-1 bg-amber-400 text-stone-950 text-[7px] font-mono font-bold px-1 rounded border border-stone-900 shadow-xs flex items-center gap-0.5">
+                  <Sparkles size={8} className="text-amber-900" />
+                  <span>STUDIO</span>
+                </div>
+              )}
             </div>
 
             {/* Template Info */}

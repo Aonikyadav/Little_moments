@@ -5,6 +5,8 @@ import {
   type TemplateImageAsset,
 } from "../utils/templateImageMap"
 
+import { getTemplate } from "../templates"
+
 export interface TemplateThumbnailProps {
   /** Template object or partial template with an ID */
   template?: PhotoTemplate | { id: string; name?: string; count?: number; category?: string; background?: string; thumbnail?: string } | null
@@ -42,38 +44,42 @@ export function TemplateThumbnail({
   onLoad,
 }: TemplateThumbnailProps) {
   const targetId = templateId || template?.id || ""
+  const activeTemplate = template || (targetId ? getTemplate(targetId) : null)
+  const isCustom = targetId.startsWith("tmpl-custom-") || Boolean(activeTemplate && "tags" in activeTemplate && Array.isArray((activeTemplate as any).tags) && (activeTemplate as any).tags.includes("custom"))
 
-  // Resolve to authentic local asset from Images/ folders
-  const resolvedAsset: TemplateImageAsset = resolveTemplateLocalAsset(
-    targetId ? targetId : template
-  )
+  // Resolve to authentic local asset from Images/ folders (only for built-in templates)
+  const resolvedAsset: TemplateImageAsset | null = isCustom
+    ? null
+    : resolveTemplateLocalAsset(targetId ? targetId : template)
 
   const candidates: string[] = []
 
   // 1. Direct thumbnail property on template if provided
-  if (template && "thumbnail" in template && typeof template.thumbnail === "string" && template.thumbnail) {
-    candidates.push(template.thumbnail)
+  if (activeTemplate && "thumbnail" in activeTemplate && typeof activeTemplate.thumbnail === "string" && activeTemplate.thumbnail) {
+    candidates.push(activeTemplate.thumbnail)
   }
 
-  // 2. Primary encodedUrl from resolved asset
-  if (resolvedAsset?.encodedUrl && !candidates.includes(resolvedAsset.encodedUrl)) {
-    candidates.push(resolvedAsset.encodedUrl)
-  }
+  if (!isCustom && resolvedAsset) {
+    // 2. Primary encodedUrl from resolved asset
+    if (resolvedAsset.encodedUrl && !candidates.includes(resolvedAsset.encodedUrl)) {
+      candidates.push(resolvedAsset.encodedUrl)
+    }
 
-  // 3. Fallback candidate URLs from asset registry
-  if (resolvedAsset?.allCandidateUrls) {
-    for (const url of resolvedAsset.allCandidateUrls) {
-      if (url && !candidates.includes(url)) {
-        candidates.push(url)
+    // 3. Fallback candidate URLs from asset registry
+    if (resolvedAsset.allCandidateUrls) {
+      for (const url of resolvedAsset.allCandidateUrls) {
+        if (url && !candidates.includes(url)) {
+          candidates.push(url)
+        }
       }
     }
-  }
 
-  // 4. Fallback directly to tmpl-user-XXX.jpg
-  const paddedIdx = String(resolvedAsset.index || 1).padStart(3, "0")
-  const defaultTmplUrl = `/templates/tmpl-user-${paddedIdx}.jpg`
-  if (!candidates.includes(defaultTmplUrl)) {
-    candidates.push(defaultTmplUrl)
+    // 4. Fallback directly to tmpl-user-XXX.jpg
+    const paddedIdx = String(resolvedAsset.index || 1).padStart(3, "0")
+    const defaultTmplUrl = `/templates/tmpl-user-${paddedIdx}.jpg`
+    if (!candidates.includes(defaultTmplUrl)) {
+      candidates.push(defaultTmplUrl)
+    }
   }
 
   const [candidateIndex, setCandidateIndex] = useState(0)
@@ -85,7 +91,7 @@ export function TemplateThumbnail({
     setCandidateIndex(0)
     setIsLoaded(false)
     setHasFailed(false)
-  }, [resolvedAsset.templateId, resolvedAsset.fileName, targetId])
+  }, [resolvedAsset?.templateId, resolvedAsset?.fileName, targetId])
 
   const currentSrc = candidates[candidateIndex] || candidates[0]
 
@@ -104,10 +110,10 @@ export function TemplateThumbnail({
 
   // Graceful pure HTML/CSS badge only if image cannot be rendered
   if (hasFailed || !currentSrc) {
-    const bgColor = template?.background || "#f5f5f4"
-    const displayName = template?.name || resolvedAsset.title
-    const displayCount = template?.count || resolvedAsset.count
-    const displayCategory = template?.category || resolvedAsset.category
+    const bgColor = activeTemplate?.background || "#f5f5f4"
+    const displayName = activeTemplate?.name || resolvedAsset?.title || "Template"
+    const displayCount = activeTemplate?.count || resolvedAsset?.count || 4
+    const displayCategory = activeTemplate?.category || resolvedAsset?.category || "Custom"
 
     return (
       <div
@@ -122,14 +128,16 @@ export function TemplateThumbnail({
         <span className="text-[10px] text-stone-600 font-mono mt-1">
           {displayCount} Cuts · {displayCategory}
         </span>
-        <span className="text-[9px] text-stone-400 font-mono mt-0.5">
-          #{resolvedAsset.index} {resolvedAsset.folder.replace(/#/g, "").trim()}
-        </span>
+        {resolvedAsset && (
+          <span className="text-[9px] text-stone-400 font-mono mt-0.5">
+            #{resolvedAsset.index} {resolvedAsset.folder.replace(/#/g, "").trim()}
+          </span>
+        )}
       </div>
     )
   }
 
-  const resolvedAlt = alt || template?.name || resolvedAsset.title
+  const resolvedAlt = alt || activeTemplate?.name || resolvedAsset?.title || "Template"
 
   return (
     <div
@@ -154,8 +162,8 @@ export function TemplateThumbnail({
         className={`${className} transition-opacity duration-200 ease-out ${
           isLoaded ? "opacity-100" : "opacity-90"
         }`}
-        data-local-folder={resolvedAsset.folder}
-        data-asset-index={resolvedAsset.index}
+        data-local-folder={resolvedAsset?.folder}
+        data-asset-index={resolvedAsset?.index}
       />
     </div>
   )

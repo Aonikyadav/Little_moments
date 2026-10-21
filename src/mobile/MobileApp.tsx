@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { Camera, Upload, Sparkles, X, ArrowRight, LayoutGrid } from "lucide-react"
 import type { MobileTab } from "./types"
 import { BottomNavBar } from "./components/BottomNavBar"
@@ -10,8 +10,12 @@ import { BookmarksScreen } from "./screens/BookmarksScreen"
 import { SettingsScreen } from "./screens/SettingsScreen"
 import { KBoothScreen } from "./screens/KBoothScreen"
 import { MobileStudioScreen } from "./screens/MobileStudioScreen"
-import { getTemplate } from "../templates"
+import { getTemplate, registerCustomTemplates } from "../templates"
 import { TemplateThumbnail } from "../components/TemplateThumbnail"
+import { getCurrentUser, type UserAccount } from "../services/supabase"
+import { fetchCustomTemplates } from "../services/adminService"
+import { UserAccountModal } from "../components/UserAccountModal"
+import { MasterControlDashboard } from "../components/admin/MasterControlDashboard"
 
 export const MobileApp: React.FC = () => {
   const [showSplash, setShowSplash] = useState<boolean>(() => {
@@ -22,8 +26,28 @@ export const MobileApp: React.FC = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("tmpl-user-001")
   const [capturedPhotos, setCapturedPhotos] = useState<string[]>([])
   const [actionTemplateId, setActionTemplateId] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(null)
+  const [accountModalOpen, setAccountModalOpen] = useState(false)
+  const [masterControlOpen, setMasterControlOpen] = useState(false)
 
   const galleryInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    let mounted = true
+    getCurrentUser().then((u: UserAccount | null) => {
+      if (mounted) setCurrentUser(u)
+    }).catch(() => {})
+
+    fetchCustomTemplates(false).then((customs) => {
+      if (mounted && customs && customs.length > 0) {
+        registerCustomTemplates(customs)
+      }
+    }).catch((err) => {
+      console.warn("MobileApp custom templates sync error:", err)
+    })
+
+    return () => { mounted = false }
+  }, [])
 
   const handleSplashComplete = () => {
     setShowSplash(false)
@@ -110,7 +134,13 @@ export const MobileApp: React.FC = () => {
           />
         )}
 
-        {currentTab === "settings" && <SettingsScreen />}
+        {currentTab === "settings" && (
+          <SettingsScreen
+            onOpenAccountModal={() => setAccountModalOpen(true)}
+            currentUser={currentUser}
+            onOpenMasterControl={() => setMasterControlOpen(true)}
+          />
+        )}
 
         {currentTab === "kbooth" && (
           <KBoothScreen
@@ -245,6 +275,32 @@ export const MobileApp: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* 6. Cloud Account Modal */}
+      <UserAccountModal
+        isOpen={accountModalOpen}
+        onClose={() => setAccountModalOpen(false)}
+        currentUser={currentUser}
+        onUserUpdated={(u) => setCurrentUser(u)}
+        onOpenMasterControl={() => {
+          setAccountModalOpen(false)
+          setMasterControlOpen(true)
+        }}
+      />
+
+      {/* 7. Super Admin Master Control & Visual Template Studio Dashboard */}
+      {masterControlOpen && currentUser && (
+        <MasterControlDashboard
+          onClose={() => {
+            setMasterControlOpen(false)
+            fetchCustomTemplates(false).then((customs) => {
+              if (customs && customs.length > 0) {
+                registerCustomTemplates(customs)
+              }
+            }).catch(() => {})
+          }}
+          currentUser={currentUser}
+        />
       )}
     </div>
   )

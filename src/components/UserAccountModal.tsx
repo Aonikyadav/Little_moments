@@ -19,6 +19,7 @@ import {
   Image,
   RefreshCw,
   Eye,
+  ArrowRight,
 } from "lucide-react"
 import {
   isSupabaseConfigured,
@@ -40,6 +41,7 @@ interface UserAccountModalProps {
   currentUser: UserAccount | null
   onUserUpdated: (user: UserAccount | null) => void
   cloudCreationsCount?: number
+  onOpenMasterControl?: () => void
 }
 
 export const UserAccountModal: React.FC<UserAccountModalProps> = ({
@@ -48,6 +50,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   currentUser,
   onUserUpdated,
   cloudCreationsCount = 0,
+  onOpenMasterControl,
 }) => {
   // Tabs: "auth" (login/register/profile) | "admin" (superadmin portal) | "config" (keys)
   const [activeTab, setActiveTab] = useState<"auth" | "admin" | "config">("auth")
@@ -464,6 +467,25 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                 <RefreshCw size={13} className={adminLoading ? "animate-spin" : ""} />
               </button>
             </div>
+
+            {/* Launch Master Control & Visual Studio Button */}
+            <button
+              type="button"
+              onClick={() => {
+                onClose()
+                onOpenMasterControl?.()
+              }}
+              className="w-full py-2.5 px-3.5 rounded-xl bg-stone-900 hover:bg-black text-amber-300 font-mono text-xs font-bold border-2 border-stone-900 shadow-[3px_3px_0_#d97762] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none flex items-center justify-between group transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-amber-400" />
+                <div className="flex flex-col text-left">
+                  <span className="font-bold">Launch Master Control & Studio</span>
+                  <span className="text-[9.5px] text-stone-400 font-normal">Full user management & visual template builder</span>
+                </div>
+              </div>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </button>
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-3 gap-2 text-center font-mono">

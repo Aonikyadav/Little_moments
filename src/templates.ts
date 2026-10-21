@@ -1515,12 +1515,54 @@ export const templateCategories = [
   "Romantic Kiss Pose Aesthetic ♡",
 ]
 
+let customTemplatesList: PhotoTemplate[] = []
+const customTemplateDefinitions: Map<string, any> = new Map()
+
+export function registerCustomTemplates(items: any[]) {
+  customTemplateDefinitions.clear()
+  customTemplatesList = (items || []).map((c) => {
+    customTemplateDefinitions.set(c.id, c)
+    return {
+      id: c.id,
+      name: c.name,
+      category: c.category,
+      count: c.photoCount || (c.slots ? c.slots.length : 4),
+      width: c.width || 1800,
+      height: c.height || 2400,
+      slots: c.slots,
+      background: c.background,
+      accent: c.accent || "#171717",
+      orientation: c.orientation || "portrait",
+      note: c.description || `#${c.category?.toLowerCase().replace(/\s+/g, "") || "custom"} #studio #cms`,
+      thumbnail: c.thumbnailUrl,
+      tags: c.tags || ["custom", "studio"],
+      backgroundPattern: c.backgroundPattern,
+      frameId: c.frameId,
+      frameColor: c.frameColor,
+      subtitle: c.description,
+    }
+  })
+}
+
+export function getCustomTemplateDefinition(id: string): any | undefined {
+  return customTemplateDefinitions.get(id)
+}
+
+export function getAllTemplates(): PhotoTemplate[] {
+  const customIds = new Set(customTemplatesList.map((c) => c.id))
+  return [...customTemplatesList, ...templates.filter((t) => !customIds.has(t.id))]
+}
+
 export const templatesForCount = (count: PhotoCount) =>
-  templates.filter((template) => template.count === count)
+  getAllTemplates().filter((template) => template.count === count)
 
 export const getTemplate = (id: string) =>
-  templates.find((template) => template.id === id) ?? templates.find((t) => t.id === "four-cut") ?? templates[0]
+  customTemplatesList.find((template) => template.id === id) ??
+  templates.find((template) => template.id === id) ??
+  templates.find((t) => t.id === "four-cut") ??
+  templates[0]
 
 export const allTemplateTags: string[] = Array.from(
-  new Set(templates.flatMap((t) => t.tags ?? []).filter(Boolean)),
+  new Set(getAllTemplates().flatMap((t) => t.tags ?? []).filter(Boolean)),
 ).sort()
+

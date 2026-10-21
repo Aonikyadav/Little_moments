@@ -65,7 +65,12 @@ import {
   templatesForCount,
   kBoothTemplates,
   purikuraTemplates,
+  registerCustomTemplates,
+  getAllTemplates,
+  getCustomTemplateDefinition,
 } from "./templates"
+import { fetchCustomTemplates } from "./services/adminService"
+import { MasterControlDashboard } from "./components/admin/MasterControlDashboard"
 import { cssFilter, renderComposition } from "./rendering"
 import "./studio/studio.css"
 import { dimensions, historyStep } from "./studio/model"
@@ -132,6 +137,27 @@ const defaultSettings: BoothSettings = {
 }
 
 const emptyComposition = (id = "tmpl-001"): Composition => {
+  const customDef = getCustomTemplateDefinition(id)
+  if (customDef) {
+    return {
+      templateId: customDef.id,
+      background: customDef.background || "#ffffff",
+      borderColor: customDef.accent || "#171717",
+      borderWidth: 0,
+      radius: customDef.slots?.[0]?.radius || 2,
+      spacing: 0,
+      padding: 0,
+      photos: [],
+      stickers: customDef.stickers ? [...customDef.stickers] : [],
+      texts: customDef.texts ? [...customDef.texts] : [],
+      backgroundPattern: customDef.backgroundPattern,
+      backgroundOpacity: customDef.backgroundOpacity,
+      frameId: customDef.frameId,
+      frameColor: customDef.frameColor,
+      frameOpacity: customDef.frameOpacity,
+      aspectRatio: customDef.aspectRatio,
+    }
+  }
   const t = getTemplate(id)
   return {
     templateId: id,
@@ -144,6 +170,9 @@ const emptyComposition = (id = "tmpl-001"): Composition => {
     photos: [],
     stickers: [],
     texts: [],
+    backgroundPattern: t.backgroundPattern,
+    frameId: t.frameId,
+    frameColor: t.frameColor,
   }
 }
 
@@ -346,6 +375,20 @@ export default function App() {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUserAccount | null>(null)
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(null)
   const [accountModalOpen, setAccountModalOpen] = useState(false)
+  const [masterControlOpen, setMasterControlOpen] = useState(false)
+  const [dynamicTemplates, setDynamicTemplates] = useState<PhotoTemplate[]>(() => getAllTemplates())
+
+  // Initial sync for custom published templates
+  useEffect(() => {
+    fetchCustomTemplates(false)
+      .then((customs) => {
+        if (customs && customs.length > 0) {
+          registerCustomTemplates(customs)
+          setDynamicTemplates(getAllTemplates())
+        }
+      })
+      .catch((e) => console.warn("[Templates] Custom sync warning:", e))
+  }, [])
 
   const draftReady = useRef(false)
   const documentRevision = useRef(0)
@@ -1320,8 +1363,8 @@ export default function App() {
   const filteredTemplates = useMemo(() => {
     const isRecentCategory = category === "Recent" || category.startsWith("Recent")
     const top5RecentIds = recentTemplates.slice(0, 5)
-
-    return templates.filter((t) => {
+    const allTmpls = dynamicTemplates.length > 0 ? dynamicTemplates : getAllTemplates()
+    return allTmpls.filter((t) => {
       const matchesCategory =
         category === "All styles" ||
         (isRecentCategory && top5RecentIds.includes(t.id)) ||
@@ -1404,7 +1447,7 @@ export default function App() {
       }
       return 0
     })
-  }, [category, selectedTag, countFilter, query, sortBy, favorites, recentTemplates, preferenceProfiles])
+  }, [category, selectedTag, countFilter, query, sortBy, favorites, recentTemplates, preferenceProfiles, dynamicTemplates])
 
   const currentTemplate = getTemplate(composition.templateId)
 
@@ -1657,10 +1700,34 @@ export default function App() {
             </span>
             <Database size={13} className="text-stone-600 flex-shrink-0" />
           </button>
+
+          {/* Master Control Launcher for Superadmin */}
+          {currentUser?.role === "superadmin" && (
+            <button
+              type="button"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-600 bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs font-mono shadow-[2px_2px_0_#171717] active:translate-x-0.5 active:translate-y-0.5 transition-all ml-1.5"
+              onClick={() => setMasterControlOpen(true)}
+              title="Open Super Admin Master Control & Visual Studio"
+            >
+              <ShieldCheck size={14} className="text-stone-950 flex-shrink-0" />
+              <span>Master Control</span>
+            </button>
+          )}
         </nav>
 
         {/* Mobile & Tablet quick actions matching Blueprint Screen 2 & 3 */}
         <div className="flex items-center gap-1.5 lg:hidden">
+          {currentUser?.role === "superadmin" && (
+            <button
+              type="button"
+              className="w-8 h-8 rounded-lg border-2 border-stone-900 bg-amber-400 shadow-[2px_2px_0_#171717] flex items-center justify-center text-stone-950 active:scale-95 transition-transform"
+              onClick={() => setMasterControlOpen(true)}
+              title="Open Super Admin Master Control"
+              aria-label="Open Super Admin Master Control"
+            >
+              <ShieldCheck size={16} />
+            </button>
+          )}
           {page === "home" && (
             <>
               <button
@@ -4011,7 +4078,19 @@ export default function App() {
         currentUser={currentUser}
         onUserUpdated={setCurrentUser}
         cloudCreationsCount={saved.length}
+        onOpenMasterControl={() => setMasterControlOpen(true)}
       />
+
+      {/* Super Admin Master Control & Visual Studio Dashboard */}
+      {masterControlOpen && currentUser?.role === "superadmin" && (
+        <MasterControlDashboard
+          currentUser={currentUser}
+          onClose={() => {
+            setMasterControlOpen(false)
+            setDynamicTemplates(getAllTemplates())
+          }}
+        />
+      )}
     </div>
   )
 }

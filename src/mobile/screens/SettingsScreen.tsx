@@ -14,13 +14,18 @@ import {
   Check,
 } from "lucide-react"
 import type { MobileSettingsState } from "../types"
+import type { UserAccount } from "../../services/supabase"
 
 interface SettingsScreenProps {
   onOpenAccountModal?: () => void
+  currentUser?: UserAccount | null
+  onOpenMasterControl?: () => void
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onOpenAccountModal,
+  currentUser,
+  onOpenMasterControl,
 }) => {
   const [settings, setSettings] = useState<MobileSettingsState>(() => {
     try {
@@ -122,17 +127,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </header>
 
       {/* Cloud Account Card */}
-      <div className="bg-white rounded-2xl border-2 border-stone-900 p-3.5 shadow-[3px_3px_0_#1f1d1a] mb-4 flex items-center justify-between">
+      <div className="bg-white rounded-2xl border-2 border-stone-900 p-3.5 shadow-[3px_3px_0_#1f1d1a] mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-amber-400 text-stone-950 flex items-center justify-center font-black">
             <Database size={18} />
           </div>
           <div>
-            <div className="text-xs font-mono font-bold text-stone-900">
-              Cloud Database & Storage
+            <div className="text-xs font-mono font-bold text-stone-900 flex items-center gap-1.5">
+              <span>{currentUser ? currentUser.email : "Cloud Database & Storage"}</span>
+              {currentUser?.role === "superadmin" && (
+                <span className="text-[8px] bg-stone-900 text-amber-300 px-1 rounded font-mono font-bold">ADMIN</span>
+              )}
             </div>
             <div className="text-[10px] font-mono text-stone-500">
-              Sync strips across devices with Supabase
+              {currentUser ? `Role: ${currentUser.role} · Sync active` : "Sync strips across devices with Supabase"}
             </div>
           </div>
         </div>
@@ -142,10 +150,38 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             onClick={onOpenAccountModal}
             className="px-3 py-1.5 bg-stone-900 text-white rounded-xl text-xs font-mono font-bold active:scale-95 transition-all shadow-xs"
           >
-            Manage
+            {currentUser ? "Account" : "Sign In"}
           </button>
         )}
       </div>
+
+      {/* Super Admin Master Control & Visual Studio Banner */}
+      {currentUser?.role === "superadmin" && onOpenMasterControl && (
+        <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-200 rounded-2xl border-2 border-stone-900 p-3.5 shadow-[4px_4px_0_#171717] mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-stone-900 text-amber-300 flex items-center justify-center font-black shadow-xs">
+              <ShieldCheck size={20} />
+            </div>
+            <div>
+              <div className="text-xs font-mono font-bold text-stone-900 flex items-center gap-1.5">
+                <span>Master Control</span>
+                <span className="text-[8.5px] bg-stone-900 text-amber-300 px-1.5 py-0.2 rounded font-mono font-bold">CMS</span>
+              </div>
+              <div className="text-[10px] font-mono text-stone-700">
+                Visual Studio & User Platform Admin
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenMasterControl}
+            className="px-3 py-1.5 bg-stone-900 text-white hover:bg-black rounded-xl text-xs font-mono font-bold active:scale-95 transition-all shadow-xs flex items-center gap-1"
+          >
+            <span>Open Studio</span>
+            <span>→</span>
+          </button>
+        </div>
+      )}
 
       {/* Toggles list matching sketch (Text [toggle] ...) */}
       <div className="bg-white rounded-2xl border-2 border-stone-900 divide-y divide-stone-100 shadow-[4px_4px_0_#1f1d1a] overflow-hidden mb-5">

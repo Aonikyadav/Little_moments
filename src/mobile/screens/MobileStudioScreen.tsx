@@ -17,7 +17,7 @@ import {
 import "../../studio/studio.css"
 import type { Composition, Photo, Adjustments } from "../../types"
 import { defaultAdjustments } from "../../types"
-import { getTemplate } from "../../templates"
+import { getTemplate, getCustomTemplateDefinition } from "../../templates"
 import { renderComposition } from "../../rendering"
 import { saveProject } from "../../studio/storage"
 import { findGridLayout, getActiveAspectRatio } from "../../studio/gridEngine"
@@ -44,6 +44,28 @@ function createInitialComposition(templateId: string, incomingPhotos: string[]):
     name: `Shot ${i + 1}`,
     adjustments: defaultAdjustments(),
   }))
+
+  const customDef = getCustomTemplateDefinition(templateId)
+  if (customDef) {
+    return {
+      templateId: customDef.id,
+      background: customDef.background || "#ffffff",
+      borderColor: customDef.accent || "#171717",
+      borderWidth: 0,
+      radius: customDef.slots?.[0]?.radius ?? 4,
+      spacing: 0,
+      padding: 0,
+      photos,
+      stickers: customDef.stickers ? [...customDef.stickers] : [],
+      texts: customDef.texts ? [...customDef.texts] : [],
+      backgroundPattern: customDef.backgroundPattern,
+      backgroundOpacity: customDef.backgroundOpacity,
+      frameId: customDef.frameId,
+      frameColor: customDef.frameColor,
+      frameOpacity: customDef.frameOpacity,
+      aspectRatio: customDef.aspectRatio,
+    }
+  }
 
   return {
     templateId: t.id,
